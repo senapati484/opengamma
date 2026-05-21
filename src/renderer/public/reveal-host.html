@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>OpenGamma Reveal.js Host</title>
+
+    <!-- Reveal.js Core Stylesheets -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+    <!-- Default Reveal.js Base Theme (white) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css"
+      id="reveal-theme"
+    />
+
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: transparent;
+      }
+      .reveal {
+        width: 100%;
+        height: 100%;
+      }
+      .reveal-viewport {
+        background: transparent !important;
+      }
+
+      /* Design System Token Mappings */
+      .reveal {
+        background: var(--og-slide-bg) !important;
+        color: var(--og-slide-text) !important;
+      }
+      .reveal h1,
+      .reveal h2,
+      .reveal h3 {
+        font-family: var(--og-slide-font-heading) !important;
+        color: var(--og-slide-text) !important;
+      }
+      .reveal p,
+      .reveal li {
+        font-family: var(--og-slide-font-body) !important;
+        font-size: var(--og-slide-body-size) !important;
+      }
+      .reveal section .accent {
+        color: var(--og-slide-accent) !important;
+      }
+      .reveal section strong {
+        color: var(--og-slide-accent) !important;
+      }
+      .reveal .slide-background {
+        background: var(--og-slide-bg) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <!-- Live-generated slides will be appended here -->
+      </div>
+    </div>
+
+    <!-- Reveal.js Core Library -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+
+    <script>
+      // 1. Initialize Reveal.js with specified configurations
+      Reveal.initialize({
+        hash: false,
+        controls: true,
+        progress: false,
+        slideNumber: 'c/t',
+        transition: 'fade',
+        transitionSpeed: 'fast',
+        width: 1280,
+        height: 720,
+        margin: 0
+      })
+
+      // 2. Expose window.addSlide(html: string) to append new slides and navigate
+      window.addSlide = function (html) {
+        const slidesContainer = document.querySelector('.reveal .slides')
+        if (!slidesContainer) return
+
+        const trimmedHtml = html.trim()
+        let sectionElement
+
+        // If the HTML starts with `<section`, parse it into a real DOM node
+        if (trimmedHtml.startsWith('<section')) {
+          const tempDiv = document.createElement('div')
+          tempDiv.innerHTML = trimmedHtml
+          sectionElement = tempDiv.firstElementChild
+        }
+
+        // If not a full `<section>` block, wrap the raw HTML inside a new section element
+        if (!sectionElement) {
+          sectionElement = document.createElement('section')
+          sectionElement.innerHTML = html
+        }
+
+        slidesContainer.appendChild(sectionElement)
+
+        // Sync Reveal DOM state and auto-navigate to the newly appended slide
+        Reveal.sync()
+        Reveal.slide(Reveal.getTotalSlides() - 1)
+      }
+
+      // 3. Expose window.clearSlides() to flush all slide contents
+      window.clearSlides = function () {
+        const slidesContainer = document.querySelector('.reveal .slides')
+        if (slidesContainer) {
+          slidesContainer.innerHTML = ''
+        }
+        Reveal.sync()
+      }
+
+      // 4. Expose window.setTheme(cssTokens: string) to inject CSS variable overrides
+      window.setTheme = function (cssTokens) {
+        let styleTag = document.getElementById('custom-theme-variables')
+
+        // Replace or create a dedicated style block
+        if (!styleTag) {
+          styleTag = document.createElement('style')
+          styleTag.id = 'custom-theme-variables'
+          document.head.appendChild(styleTag)
+        }
+
+        styleTag.innerHTML = cssTokens
+      }
+
+      // 5. Setup postMessage event receiver for loose coupling and iframe compatibility
+      window.addEventListener('message', function (event) {
+        const data = event.data
+        if (!data || typeof data !== 'object') return
+
+        switch (data.type) {
+          case 'ADD_SLIDE':
+            if (typeof data.html === 'string') {
+              window.addSlide(data.html)
+            }
+            break
+
+          case 'CLEAR_SLIDES':
+            window.clearSlides()
+            break
+
+          case 'SET_THEME':
+            if (typeof data.cssTokens === 'string') {
+              window.setTheme(data.cssTokens)
+            }
+            break
+
+          case 'SET_REVEAL_THEME':
+            if (typeof data.themeName === 'string') {
+              const themeLink = document.getElementById('reveal-theme')
+              if (themeLink) {
+                themeLink.setAttribute(
+                  'href',
+                  'https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/' + data.themeName + '.css'
+                )
+              }
+            }
+            break
+
+          case 'NEXT_SLIDE':
+            Reveal.next()
+            break
+
+          case 'PREV_SLIDE':
+            Reveal.prev()
+            break
+
+          case 'GO_TO_SLIDE':
+            if (typeof data.index === 'number') {
+              Reveal.slide(data.index)
+            }
+            break
+        }
+      })
+    </script>
+  </body>
+</html>

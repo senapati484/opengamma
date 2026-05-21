@@ -1,0 +1,13 @@
+:root {
+  --og-slide-bg: #1c1917;
+  --og-slide-text: #fafaf9;
+  --og-slide-muted: #a8a29e;
+  --og-slide-accent: #f97316;
+  --og-slide-border: #292524;
+  --og-slide-h1-size: 52px;
+  --og-slide-body-size: 18px;
+  --og-slide-font-heading: 'Sora', sans-serif;
+  --og-slide-font-body: 'Sora', sans-serif;
+  --og-slide-radius: 8px;
+  --og-slide-shadow: 0 8px 24px rgba(234, 88, 12, 0.15);
+}

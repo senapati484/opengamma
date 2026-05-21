@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --og-bg: #0d0d0d;
+  --og-surface: #161616;
+  --og-surface2: #1f1f1f;
+  --og-border: rgba(255, 255, 255, 0.07);
+  --og-text: #c9c5bc;
+  --og-white: #f0ece4;
+  --og-accent: #e8ff57;
+  --og-blue: #57b8ff;
+  --og-purple: #b57bff;
+  --og-muted: #555;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--og-bg);
+  color: var(--og-text);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+/* Monospace Overrides */
+code,
+pre,
+.font-mono {
+  font-family:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace !important;
+}
+
+/* Custom Scrollbars: thin, custom styled (2px track, surface color) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--og-surface) transparent;
+}
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--og-bg);
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--og-surface);
+  border-radius: 9999px;
+  border: 1px solid var(--og-bg);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--og-accent);
+}
+
+/* Custom Drag Region helper classes */
+.drag-region {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Global keyboard focus rings using the accent color */
+*:focus-visible {
+  outline: 2px solid var(--og-accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* Premium Animations */
+@keyframes scale-bounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-scale-bounce {
+  animation: scale-bounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes export-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 10px 20px -6px rgba(232, 255, 87, 0.15),
+      0 0 0 0px rgba(232, 255, 87, 0.2);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 10px 25px -3px rgba(232, 255, 87, 0.35),
+      0 0 0 6px rgba(232, 255, 87, 0);
+    transform: scale(1.02);
+  }
+}
+.animate-export-pulse {
+  animation: export-pulse 2s infinite ease-in-out;
+}

@@ -1,0 +1,13 @@
+:root {
+  --og-slide-bg: #030712;
+  --og-slide-text: #ecfdf5;
+  --og-slide-muted: #6ee7b7;
+  --og-slide-accent: #84cc16;
+  --og-slide-border: #374151;
+  --og-slide-h1-size: 52px;
+  --og-slide-body-size: 16px;
+  --og-slide-font-heading: 'Syncopate', sans-serif;
+  --og-slide-font-body: 'Share Tech Mono', monospace;
+  --og-slide-radius: 0px;
+  --og-slide-shadow: 0 0 20px rgba(132, 204, 22, 0.3);
+}

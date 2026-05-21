@@ -1,0 +1,13 @@
+:root {
+  --og-slide-bg: #ffffff;
+  --og-slide-text: #334155;
+  --og-slide-muted: #64748b;
+  --og-slide-accent: #2563eb;
+  --og-slide-border: #0f172a;
+  --og-slide-h1-size: 48px;
+  --og-slide-body-size: 18px;
+  --og-slide-font-heading: 'Space Grotesk', sans-serif;
+  --og-slide-font-body: 'Space Grotesk', sans-serif;
+  --og-slide-radius: 4px;
+  --og-slide-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}

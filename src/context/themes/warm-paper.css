@@ -1,0 +1,13 @@
+:root {
+  --og-slide-bg: #fdfbf7;
+  --og-slide-text: #292524;
+  --og-slide-muted: #78716c;
+  --og-slide-accent: #b45309;
+  --og-slide-border: #d6d3d1;
+  --og-slide-h1-size: 50px;
+  --og-slide-body-size: 20px;
+  --og-slide-font-heading: 'Cinzel', serif;
+  --og-slide-font-body: 'EB Garamond', serif;
+  --og-slide-radius: 0px;
+  --og-slide-shadow: none;
+}

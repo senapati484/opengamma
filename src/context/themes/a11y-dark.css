@@ -1,0 +1,13 @@
+:root {
+  --og-slide-bg: #000000;
+  --og-slide-text: #ffffff;
+  --og-slide-muted: #e5e7eb;
+  --og-slide-accent: #facc15;
+  --og-slide-border: #facc15;
+  --og-slide-h1-size: 60px;
+  --og-slide-body-size: 22px;
+  --og-slide-font-heading: 'Atkinson Hyperlegible', sans-serif;
+  --og-slide-font-body: 'Atkinson Hyperlegible', sans-serif;
+  --og-slide-radius: 4px;
+  --og-slide-shadow: none;
+}

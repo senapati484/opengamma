@@ -1,0 +1,13 @@
+:root {
+  --og-slide-bg: linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #111827 100%);
+  --og-slide-text: #f3f4f6;
+  --og-slide-muted: #9ca3af;
+  --og-slide-accent: #ec4899;
+  --og-slide-border: #374151;
+  --og-slide-h1-size: 56px;
+  --og-slide-body-size: 18px;
+  --og-slide-font-heading: 'Syne', sans-serif;
+  --og-slide-font-body: 'Plus Jakarta Sans', sans-serif;
+  --og-slide-radius: 12px;
+  --og-slide-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+}

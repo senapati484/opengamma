@@ -1,0 +1,13 @@
+:root {
+  --og-slide-bg: #030712;
+  --og-slide-text: #e0e7ff;
+  --og-slide-muted: #6b7280;
+  --og-slide-accent: #10b981;
+  --og-slide-border: #10b981;
+  --og-slide-h1-size: 50px;
+  --og-slide-body-size: 16px;
+  --og-slide-font-heading: 'JetBrains Mono', monospace;
+  --og-slide-font-body: 'JetBrains Mono', monospace;
+  --og-slide-radius: 2px;
+  --og-slide-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}

@@ -1,0 +1,62 @@
+# OpenGamma — Gemini Project Context
+
+# This file is automatically injected into every Gemini/Antigravity session.
+
+## 1. PROJECT OVERVIEW
+
+- **OpenGamma** is an Electron + React + TypeScript desktop application.
+- It is a direct open-source alternative to Gamma.app — an AI-powered presentation tool.
+- **Core flow:** User types a prompt → Claude API streams slide HTML → Reveal.js renders it live in the renderer → User exports as `.pptx`.
+
+---
+
+## 2. ARCHITECTURE RULES
+
+- **Main process** (`src/main/`): Node.js only. Handles file I/O, IPC handlers, and window management.
+- **Renderer process** (`src/renderer/`): React only. Must never make direct Node.js calls.
+- **ALL** communication between main and renderer goes through IPC via the preload context bridge (`src/preload/index.ts`).
+- Never set `nodeIntegration: true` in `BrowserWindow` — always use `contextBridge`.
+- **State management:** React Context only (no Redux, no Zustand). The app is scoped enough not to need a heavy store.
+
+---
+
+## 3. CODE STYLE
+
+- TypeScript **strict mode** always (`"strict": true` in tsconfig).
+- **Functional components only** — no class components ever.
+- Extract all non-trivial logic into **custom hooks** (e.g. `useStream`, `usePptx`, `useHistory`).
+- **No inline styles** — use Tailwind utility classes or CSS custom properties (`--og-*`) only.
+- All async operations use `async/await` — never `.then()` / `.catch()` chains.
+- Add **error boundaries** on all major components (SlidePreview, App shell, etc.).
+
+---
+
+## 4. FILE NAMING
+
+| Artifact          | Convention                        | Extension |
+| ----------------- | --------------------------------- | --------- |
+| React components  | `PascalCase`                      | `.tsx`    |
+| Utilities / hooks | `camelCase`                       | `.ts`     |
+| Type definitions  | `types` (per folder)              | `.ts`     |
+| Constants         | `UPPER_SNAKE_CASE` in `constants` | `.ts`     |
+
+---
+
+## 5. KEY DEPENDENCIES
+
+| Package             | Purpose                                               |
+| ------------------- | ----------------------------------------------------- |
+| `@anthropic-ai/sdk` | Claude API — use streaming messages API               |
+| `reveal.js`         | Slide renderer — embed inside a sandboxed `<iframe>`  |
+| `pptxgenjs`         | PPTX file generation from slide data                  |
+| `better-sqlite3`    | Local SQLite DB for presentation history              |
+| `electron-store`    | Persistent settings (API key, theme preference, etc.) |
+
+---
+
+## 6. NEVER DO THIS
+
+- ❌ Never hardcode API keys — always read them at runtime from `electron-store`.
+- ❌ Never block the main process with synchronous file operations — use `fs/promises`.
+- ❌ Never `import` Node.js built-ins (`fs`, `path`, `child_process`, etc.) directly inside renderer components.
+- ❌ Never use `any` as a TypeScript type — use `unknown` and narrow, or define a proper type/interface.
