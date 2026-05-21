@@ -4,6 +4,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerIpcHandlers } from './ipc'
 import { initDb } from './db'
+import { createApplicationMenu } from './menu'
+import { initUpdater } from './updater'
 
 // ─── Window Factory ───────────────────────────────────────────────────────────
 
@@ -74,13 +76,26 @@ app.whenReady().then(() => {
   // never fires a channel that has no handler yet
   registerIpcHandlers()
 
-  createWindow()
+  const mainWindow = createWindow()
+  initUpdater()
+  if (process.platform === 'darwin') {
+    app.setAboutPanelOptions({
+      applicationName: 'OpenGamma',
+      applicationVersion: app.getVersion(),
+      copyright: 'Copyright © 2026 OpenGamma Team',
+      credits: 'Built with React, Electron & Reveal.js'
+    })
+    createApplicationMenu(mainWindow)
+  }
 
   // macOS: re-create the window when the dock icon is clicked and no windows
   // are open (standard macOS behaviour)
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
+      const win = createWindow()
+      if (process.platform === 'darwin') {
+        createApplicationMenu(win)
+      }
     }
   })
 })

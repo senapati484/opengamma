@@ -14,6 +14,8 @@ export interface SlideThumbnailsProps {
   onEditSlide: (index: number) => void
   /** Regenerate slide action callback */
   onRegenerateSlide: (index: number) => void
+  /** Index of slide currently regenerating, if any */
+  regeneratingIndex?: number | null
 }
 
 /**
@@ -28,7 +30,8 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
   activeTheme,
   onSelectSlide,
   onEditSlide,
-  onRegenerateSlide
+  onRegenerateSlide,
+  regeneratingIndex
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -48,7 +51,7 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
   }, [activeSlideIndex, slides.length])
 
   return (
-    <div className="w-full flex flex-col gap-2.5 no-drag mt-2">
+    <div className="w-full flex flex-col gap-2 no-drag">
       {/* Scrollbar hiding styles */}
       <style
         dangerouslySetInnerHTML={{
@@ -67,23 +70,23 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
       {/* Section Header */}
       <div className="flex items-center justify-between px-1">
         <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-          Slide Outline & Outline Preview
+          Slides
         </label>
         <span className="text-[10px] text-neutral-400 font-medium">
-          Slide <span className="font-semibold text-yellow-400">{activeSlideIndex + 1}</span> of{' '}
-          {slides.length}
+          <span className="font-semibold text-[#0047ff]">{activeSlideIndex + 1}</span>
+          {' '}of {slides.length}
         </span>
       </div>
 
       {/* Horizontal Strip */}
       <div
         ref={containerRef}
-        className="thumbnails-scroll-container flex gap-4 overflow-x-auto pb-2 pt-1 snap-x scroll-smooth"
+        className="thumbnails-scroll-container flex gap-3 overflow-x-auto pb-1.5 pt-0.5 snap-x scroll-smooth"
       >
         {slides.map((slide, index) => {
           const isActive = index === activeSlideIndex
 
-          // Build a sandboxed preview HTML frame combining fonts, design tokens, and slide content
+          // Build a sandboxed preview HTML frame
           const fontImport = (activeTheme as any).fontImport || ''
           const srcDoc = `
             <!DOCTYPE html>
@@ -144,15 +147,22 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
             </html>
           `
 
+          const isRegenerating = index === regeneratingIndex
+
           return (
             <div
               key={slide.id}
               data-slide-index={index}
-              onClick={() => onSelectSlide(index)}
-              className={`flex-shrink-0 relative w-[160px] h-[90px] rounded-lg border cursor-pointer select-none snap-start overflow-hidden group transition-all duration-300 transform active:scale-98 ${
-                isActive
-                  ? 'border-yellow-400 ring-2 ring-yellow-400/20'
-                  : 'border-neutral-800 hover:border-neutral-700/80 hover:bg-neutral-900/40'
+              onClick={() => {
+                if (isRegenerating) return
+                onSelectSlide(index)
+              }}
+              className={`flex-shrink-0 relative w-[152px] h-[86px] rounded-xl border select-none snap-start overflow-hidden group transition-all duration-200 transform active:scale-[0.98] ${
+                isRegenerating
+                  ? 'border-amber-300 cursor-wait shadow-sm shadow-amber-100'
+                  : isActive
+                    ? 'border-[#0047ff] ring-2 ring-[#0047ff]/15 cursor-pointer shadow-sm shadow-blue-100'
+                    : 'border-neutral-200 hover:border-neutral-300 hover:shadow-sm cursor-pointer bg-white'
               }`}
             >
               {/* Scaled HTML preview iframe */}
@@ -162,68 +172,104 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
                   width: '1280px',
                   height: '720px',
                   border: 'none',
-                  transform: 'scale(0.125)',
+                  transform: 'scale(0.1188)',
                   transformOrigin: 'top left',
                   pointerEvents: 'none'
                 }}
                 title={`Thumbnail Slide ${index + 1}`}
               />
 
-              {/* Slide number badge bottom-left */}
-              <span className="absolute bottom-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded bg-black/75 border border-white/10 text-[9px] font-bold text-neutral-300 pointer-events-none">
+              {/* Slide number badge */}
+              <span
+                className={`absolute bottom-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md text-[9px] font-bold pointer-events-none ${
+                  isActive
+                    ? 'bg-[#0047ff] text-white'
+                    : 'bg-white/90 text-neutral-500 border border-neutral-200'
+                }`}
+              >
                 {index + 1}
               </span>
 
-              {/* Hover action overlay */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2.5 z-20">
-                {/* Edit Pencil Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onEditSlide(index)
-                  }}
-                  className="p-1.5 rounded-lg bg-neutral-900/85 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10 hover:border-white/20 transition-all active:scale-95 cursor-pointer shadow-md"
-                  title="Edit Slide"
-                >
+              {/* Regenerating overlay */}
+              {isRegenerating && (
+                <div className="absolute inset-0 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center gap-1.5 z-30 pointer-events-none animate-fade-in">
                   <svg
-                    className="w-3.5 h-3.5"
+                    className="animate-spin h-4 w-4 text-amber-500"
                     fill="none"
-                    stroke="currentColor"
                     viewBox="0 0 24 24"
-                    strokeWidth="2.5"
                   >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                    />
                     <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                </button>
+                  <span className="text-[9px] font-bold text-amber-600 tracking-wide">
+                    Regenerating…
+                  </span>
+                </div>
+              )}
 
-                {/* Regenerate Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onRegenerateSlide(index)
-                  }}
-                  className="p-1.5 rounded-lg bg-neutral-900/85 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10 hover:border-white/20 transition-all active:scale-95 cursor-pointer shadow-md"
-                  title="Regenerate Slide"
-                >
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2.5"
+              {/* Hover action overlay */}
+              {!isRegenerating && (
+                <div className="absolute inset-0 bg-neutral-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center justify-center gap-2 z-20">
+                  {/* Edit button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEditSlide(index)
+                    }}
+                    className="p-1.5 rounded-lg bg-white/95 hover:bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    title="Edit Slide"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-                    />
-                  </svg>
-                </button>
-              </div>
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth="2.5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Regenerate button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onRegenerateSlide(index)
+                    }}
+                    className="p-1.5 rounded-lg bg-white/95 hover:bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    title="Regenerate Slide"
+                  >
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth="2.5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
           )
         })}

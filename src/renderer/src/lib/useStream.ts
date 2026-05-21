@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import type { Slide, StreamStatus, GenerationConfig } from '../types'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import type { Slide, StreamStatus, GenerationConfig, Presentation } from '../types'
 import { useElectron } from './useElectron'
+import { useAppContext } from '../context/AppContext'
 
 /**
  * A custom React hook that manages the entire presentation generation lifecycle
@@ -10,14 +11,29 @@ import { useElectron } from './useElectron'
  * - Automatic cleanup of IPC event listeners on completion, error, or unmount.
  * - Safely cancelling any active generation before triggering a new run.
  */
-export function useStream() {
+export function useStream(): {
+  slides: Slide[]
+  setSlides: React.Dispatch<React.SetStateAction<Slide[]>>
+  status: StreamStatus
+  generate: (config: GenerationConfig) => void
+  cancel: () => void
+  reset: () => void
+  regeneratingIndex: number | undefined
+  regenerateSingleSlide: (
+    slideIndex: number,
+    currentPresentation: Presentation
+  ) => Promise<Slide | null>
+  regenerateSlide: (slideIndex: number) => Promise<void>
+} {
   const electronAPI = useElectron()
+  const { activePresentation } = useAppContext()
   const [slides, setSlides] = useState<Slide[]>([])
   const [status, setStatus] = useState<StreamStatus>({
     state: 'idle',
     slidesGenerated: 0,
     totalSlides: 0
   })
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | undefined>(undefined)
 
   // Store active IPC unsubscribe/cleanup callbacks across renders
   const cleanupsRef = useRef<(() => void)[]>([])
@@ -121,6 +137,102 @@ export function useStream() {
     [electronAPI, cleanupListeners]
   )
 
+  // Synchronize local slides with active presentation when not generating
+  useEffect(() => {
+    if (status.state !== 'generating' && activePresentation) {
+      setSlides(activePresentation.slides)
+    }
+  }, [activePresentation, status.state])
+
+  /**
+   * Regenerates a single slide in isolation using the main process AI pipeline.
+   * Updates only the slide at the target index when the response is completed.
+   */
+  const regenerateSingleSlide = useCallback(
+    async (slideIndex: number, currentPresentation: Presentation) => {
+      if (regeneratingIndex !== null) return null
+
+      try {
+        setRegeneratingIndex(slideIndex)
+
+        // Trigger IPC call to the main process
+        const updatedSlide = await electronAPI.regenerateSlide(slideIndex, currentPresentation)
+
+        // Update the slides array immutably
+        setSlides((prev) => {
+          if (prev.length === 0) return prev
+          return prev.map((s, idx) => (idx === slideIndex ? updatedSlide : s))
+        })
+
+        // Updates the Reveal.js iframe: replaces the slide at that index instead of appending
+        const revealIframe = (document.getElementById('reveal-host-iframe') ||
+          document.querySelector('iframe[title="Live Slide Preview"]')) as HTMLIFrameElement | null
+        if (revealIframe && revealIframe.contentDocument) {
+          const doc = revealIframe.contentDocument
+          const slidesContainer = doc.querySelector('.reveal .slides')
+          if (slidesContainer) {
+            const sections = slidesContainer.querySelectorAll('section')
+            const targetSection = sections[slideIndex]
+            if (targetSection) {
+              const tempDiv = doc.createElement('div')
+              const trimmedHtml = updatedSlide.html.trim()
+              let newSection: Element | null = null
+              if (trimmedHtml.startsWith('<section')) {
+                tempDiv.innerHTML = trimmedHtml
+                newSection = tempDiv.firstElementChild
+              }
+              if (!newSection) {
+                newSection = doc.createElement('section')
+                newSection.innerHTML = updatedSlide.html
+              }
+              slidesContainer.replaceChild(newSection, targetSection)
+
+              const win = revealIframe.contentWindow as any
+              if (win && win.Reveal) {
+                win.Reveal.sync()
+                win.Reveal.slide(slideIndex)
+              }
+            }
+          }
+        }
+
+        // Also post message for backward compatibility / other potential listeners
+        if (revealIframe && revealIframe.contentWindow) {
+          revealIframe.contentWindow.postMessage(
+            {
+              type: 'REPLACE_SLIDE',
+              index: slideIndex,
+              html: updatedSlide.html
+            },
+            '*'
+          )
+        }
+
+        return updatedSlide
+      } catch (err: unknown) {
+        console.error('[useStream] Single-slide regeneration failed:', err)
+        throw err
+      } finally {
+        setRegeneratingIndex(undefined)
+      }
+    },
+    [electronAPI, regeneratingIndex]
+  )
+
+  /**
+   * Regenerates a single slide without re-generating the whole presentation.
+   * Updates slides[slideIndex] with the new slide when it arrives.
+   */
+  const regenerateSlide = useCallback(
+    async (slideIndex: number): Promise<void> => {
+      if (!activePresentation) {
+        throw new Error('No active presentation to regenerate slide for.')
+      }
+      await regenerateSingleSlide(slideIndex, activePresentation)
+    },
+    [regenerateSingleSlide, activePresentation]
+  )
+
   // Clean up all active listeners on component unmount
   useEffect(() => {
     return () => {
@@ -131,5 +243,15 @@ export function useStream() {
     }
   }, [electronAPI, cleanupListeners])
 
-  return { slides, status, generate, cancel, reset }
+  return {
+    slides,
+    setSlides,
+    status,
+    generate,
+    cancel,
+    reset,
+    regeneratingIndex,
+    regenerateSingleSlide,
+    regenerateSlide
+  }
 }

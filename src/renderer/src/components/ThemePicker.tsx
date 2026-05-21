@@ -37,12 +37,12 @@ const getThemeBackground = (theme: Theme) => {
 }
 
 const getThemeFontHeading = (theme: Theme) => {
-  const match = theme.cssTokens.match(/--r-heading-font:\s*['"]?([^,'";]+)['"]?/)
+  const match = theme.cssTokens.match(/--r-heading-font:\s*['"']?([^,'"";]+)['"']?/)
   return match ? match[1].trim() : 'sans-serif'
 }
 
 const getThemeFontBody = (theme: Theme) => {
-  const match = theme.cssTokens.match(/--r-main-font:\s*['"]?([^,'";]+)['"]?/)
+  const match = theme.cssTokens.match(/--r-main-font:\s*['"']?([^,'"";]+)['"']?/)
   return match ? match[1].trim() : 'sans-serif'
 }
 
@@ -99,7 +99,6 @@ const getMiniPreviewStyles = (theme: Theme) => {
     fontWeight: 'bold'
   }
 
-  // Specific custom treatments matching each theme's unique identity:
   if (theme.id === 'academic-clean') {
     sectionStyle.textAlign = 'left'
     h2Style.fontStyle = 'italic'
@@ -179,11 +178,8 @@ export const ThemePicker: React.FC<ThemePickerProps> = ({ themes, selectedTheme,
     if (parentRect) {
       const parentWidth = parentRect.width
       let left = rect.left - parentRect.left + (rect.width - 280) / 2
-      // Constrain within parent bounds with 8px margin
       left = Math.max(8, Math.min(left, parentWidth - 280 - 8))
-
-      // Calculate top above the card
-      const top = rect.top - parentRect.top - 170 // 158px height + 12px gap
+      const top = rect.top - parentRect.top - 170
       setTooltipPosition({ left, top })
     }
   }
@@ -199,8 +195,8 @@ export const ThemePicker: React.FC<ThemePickerProps> = ({ themes, selectedTheme,
   }
 
   return (
-    <div className="w-full flex flex-col gap-2.5 no-drag relative">
-      {/* Self-contained custom styling for smooth scrollbars & smooth animations */}
+    <div className="w-full flex flex-col gap-2 no-drag relative">
+      {/* Scrollbar & animation styles */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -212,14 +208,8 @@ export const ThemePicker: React.FC<ThemePickerProps> = ({ themes, selectedTheme,
           scrollbar-width: none !important;
         }
         @keyframes tooltip-fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(8px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
+          from { opacity: 0; transform: translateY(8px) scale(0.95); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         .animate-tooltip-in {
           animation: tooltip-fade-in 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -228,13 +218,13 @@ export const ThemePicker: React.FC<ThemePickerProps> = ({ themes, selectedTheme,
         }}
       />
 
-      {/* Title block with helper label */}
+      {/* Header */}
       <div className="flex items-center justify-between px-1">
-        <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+        <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
           Design Theme
         </label>
         {selectedTheme && (
-          <span className="text-xs text-neutral-400 font-medium transition-all duration-200">
+          <span className="text-xs text-neutral-500 font-medium transition-all duration-200">
             Selected:{' '}
             <span className="font-semibold" style={{ color: selectedTheme.colors.accent }}>
               {selectedTheme.name}
@@ -243,10 +233,10 @@ export const ThemePicker: React.FC<ThemePickerProps> = ({ themes, selectedTheme,
         )}
       </div>
 
-      {/* Horizontal Scrollable Row of Theme Cards */}
+      {/* Scrollable theme card row */}
       <div
         onScroll={handleScroll}
-        className="theme-scroll-container flex gap-4.5 overflow-x-auto pb-3.5 pt-1.5 snap-x scroll-smooth scrollbar-thin"
+        className="theme-scroll-container flex gap-4 overflow-x-auto pb-3 pt-1 snap-x scroll-smooth"
       >
         {themes.map((theme) => {
           const isSelected = selectedTheme?.id === theme.id
@@ -257,79 +247,77 @@ export const ThemePicker: React.FC<ThemePickerProps> = ({ themes, selectedTheme,
               onClick={() => onSelect(theme)}
               onMouseEnter={(e) => handleMouseEnter(theme, e)}
               onMouseLeave={handleMouseLeave}
-              className={`flex-shrink-0 w-60 rounded-xl border cursor-pointer select-none transition-all duration-300 ease-out snap-start flex flex-col overflow-hidden transform hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] ${
+              className={`flex-shrink-0 w-56 rounded-xl border cursor-pointer select-none transition-all duration-250 ease-out snap-start flex flex-col overflow-hidden transform hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] ${
                 isSelected
-                  ? 'bg-neutral-900/80 shadow-2xl'
-                  : 'bg-neutral-900/20 border-neutral-800 hover:border-neutral-700/80 hover:bg-neutral-900/40'
+                  ? 'bg-white shadow-md'
+                  : 'bg-white border-neutral-200 hover:border-neutral-200 hover:shadow-sm'
               }`}
               style={{
                 borderColor: isSelected ? theme.colors.accent : undefined,
                 boxShadow: isSelected
-                  ? `0 12px 24px -6px rgba(0, 0, 0, 0.6), 0 0 16px -2px ${theme.colors.accent}24`
+                  ? `0 4px 16px -4px ${theme.colors.accent}30, 0 0 0 2px ${theme.colors.accent}18`
                   : undefined
               }}
             >
-              {/* Top Section: Visual Swatch & Layout Template Mockup */}
+              {/* Visual swatch area */}
               <div
-                className="h-24 w-full relative flex flex-col justify-between p-3.5 overflow-hidden border-b border-neutral-800/60"
+                className="h-20 w-full relative flex flex-col justify-between p-3 overflow-hidden border-b border-neutral-100"
                 style={{ backgroundColor: theme.colors.bg }}
               >
-                {/* Horizontal Palette Swatch Dot Indicator Block */}
+                {/* Color palette dots */}
                 <div className="flex gap-1.5 z-10">
                   <div
-                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm"
+                    className="w-3 h-3 rounded-full border border-black/10 shadow-sm"
                     style={{ backgroundColor: theme.colors.bg }}
                     title={`Background: ${theme.colors.bg}`}
                   />
                   <div
-                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm"
+                    className="w-3 h-3 rounded-full border border-black/10 shadow-sm"
                     style={{ backgroundColor: theme.colors.primary }}
                     title={`Primary: ${theme.colors.primary}`}
                   />
                   <div
-                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm"
+                    className="w-3 h-3 rounded-full border border-black/10 shadow-sm"
                     style={{ backgroundColor: theme.colors.accent }}
                     title={`Accent: ${theme.colors.accent}`}
                   />
                   <div
-                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm"
+                    className="w-3 h-3 rounded-full border border-black/10 shadow-sm"
                     style={{ backgroundColor: theme.colors.text }}
                     title={`Text: ${theme.colors.text}`}
                   />
                 </div>
 
-                {/* Stylized mock layout simulating a structural slide inside the swatch */}
-                <div className="flex flex-col gap-2 w-full mt-2.5 opacity-85 select-none">
-                  {/* Mock Heading */}
+                {/* Mock slide layout */}
+                <div className="flex flex-col gap-1.5 w-full opacity-90 select-none">
                   <div
-                    className="h-3 w-8/12 rounded-full"
+                    className="h-2.5 w-8/12 rounded-full"
                     style={{ backgroundColor: theme.colors.primary }}
                   />
-                  {/* Mock Paragraph lines */}
                   <div className="flex flex-col gap-1 w-full">
                     <div
-                      className="h-1.5 w-11/12 rounded-full"
+                      className="h-1.5 w-11/12 rounded-full opacity-60"
                       style={{ backgroundColor: theme.colors.text }}
                     />
                     <div
-                      className="h-1.5 w-7/12 rounded-full"
+                      className="h-1.5 w-7/12 rounded-full opacity-40"
                       style={{ backgroundColor: theme.colors.text }}
                     />
                   </div>
                 </div>
 
-                {/* Premium Round Selection Badge */}
+                {/* Selected checkmark */}
                 {isSelected && (
                   <div
-                    className="absolute top-2.5 right-2.5 z-20 flex items-center justify-center w-5.5 h-5.5 rounded-full shadow-lg border border-black/10 animate-fade-in"
+                    className="absolute top-2 right-2 z-20 flex items-center justify-center w-5 h-5 rounded-full shadow-md border border-white/20 animate-fade-in"
                     style={{ backgroundColor: theme.colors.accent }}
                   >
                     <svg
-                      className="w-3.5 h-3.5 text-black font-extrabold"
+                      className="w-3 h-3 text-white"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
-                      strokeWidth="4"
+                      strokeWidth="3"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -337,48 +325,27 @@ export const ThemePicker: React.FC<ThemePickerProps> = ({ themes, selectedTheme,
                 )}
               </div>
 
-              {/* Lower Section: Theme Details */}
-              <div className="p-3.5 flex flex-col justify-between flex-grow">
-                <div>
-                  <h4 className="font-semibold text-sm tracking-wide text-neutral-100">
-                    {theme.name}
-                  </h4>
-                  <p className="text-[11px] text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
-                    {theme.description}
-                  </p>
-                </div>
-
-                {/* Premium Preview block in the footer */}
-                <div className="mt-3.5 pt-3.5 border-t border-neutral-800/40 flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="font-bold uppercase tracking-wider text-neutral-500">
-                      Preview
-                    </span>
-                    <div className="flex gap-1.5">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full border border-white/10 shadow-sm"
-                        style={{ backgroundColor: theme.colors.primary }}
-                        title="Primary"
-                      />
-                      <span
-                        className="w-2.5 h-2.5 rounded-full border border-white/10 shadow-sm"
-                        style={{ backgroundColor: theme.colors.accent }}
-                        title="Accent"
-                      />
-                      <span
-                        className="w-2.5 h-2.5 rounded-full border border-white/10 shadow-sm"
-                        style={{ backgroundColor: theme.colors.bg }}
-                        title="Background"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-semibold text-neutral-300 truncate max-w-[120px]">
-                      {theme.name}
-                    </span>
-                    <span className="text-[9.5px] text-neutral-400 font-medium whitespace-nowrap bg-neutral-900/60 px-1.5 py-0.5 rounded border border-neutral-800/60">
-                      {themeTags[theme.id] || 'Modern · Clean'}
-                    </span>
+              {/* Theme info */}
+              <div className="p-3 flex flex-col gap-1.5">
+                <h4 className="font-semibold text-[13px] tracking-tight text-neutral-800">
+                  {theme.name}
+                </h4>
+                <p className="text-[10.5px] text-neutral-500 line-clamp-1 leading-relaxed">
+                  {theme.description}
+                </p>
+                <div className="flex items-center justify-between mt-0.5 pt-2 border-t border-neutral-100">
+                  <span className="text-[9.5px] text-neutral-400 font-medium bg-neutral-50 px-1.5 py-0.5 rounded-md border border-neutral-100">
+                    {themeTags[theme.id] || 'Modern · Clean'}
+                  </span>
+                  <div className="flex gap-1">
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: theme.colors.primary }}
+                    />
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: theme.colors.accent }}
+                    />
                   </div>
                 </div>
               </div>
@@ -387,7 +354,7 @@ export const ThemePicker: React.FC<ThemePickerProps> = ({ themes, selectedTheme,
         })}
       </div>
 
-      {/* Floating Interactive Hover Tooltip Slide Preview */}
+      {/* Floating hover tooltip */}
       {hoveredTheme &&
         tooltipPosition &&
         (() => {
@@ -397,11 +364,11 @@ export const ThemePicker: React.FC<ThemePickerProps> = ({ themes, selectedTheme,
 
           return (
             <div
-              className="absolute z-50 pointer-events-none w-[280px] h-[158px] rounded-xl overflow-hidden border border-neutral-700/50 bg-neutral-950/90 animate-tooltip-in"
+              className="absolute z-50 pointer-events-none w-[280px] h-[158px] rounded-xl overflow-hidden border border-neutral-200 bg-white animate-tooltip-in"
               style={{
                 left: tooltipPosition.left,
                 top: tooltipPosition.top,
-                boxShadow: `0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.7), 0 0 20px -2px ${hoveredTheme.colors.accent}1c`
+                boxShadow: `0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.06), 0 0 0 1px ${hoveredTheme.colors.accent}18`
               }}
             >
               {fontImport && <style dangerouslySetInnerHTML={{ __html: fontImport }} />}

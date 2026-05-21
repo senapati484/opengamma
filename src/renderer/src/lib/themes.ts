@@ -20,6 +20,7 @@ export const themes: AppTheme[] = [
     description: 'Vibrant purple-violet gradient with modern Syne typography. Full pitch energy.',
     colors: {
       primary: '#8B5CF6',
+      secondary: '#6D28D9',
       accent: '#EC4899',
       bg: '#1E1B4B',
       text: '#F3F4F6'
@@ -55,6 +56,7 @@ export const themes: AppTheme[] = [
     description: 'Prestigious white paper aesthetic with editorial serif typography.',
     colors: {
       primary: '#111827',
+      secondary: '#374151',
       accent: '#0F766E',
       bg: '#FFFFFF',
       text: '#1F2937'
@@ -87,6 +89,7 @@ export const themes: AppTheme[] = [
     description: 'High-contrast black and yellow. Maximized for readability and accessibility.',
     colors: {
       primary: '#FACC15',
+      secondary: '#EAB308',
       accent: '#FACC15',
       bg: '#000000',
       text: '#FFFFFF'
@@ -116,6 +119,7 @@ export const themes: AppTheme[] = [
     description: 'Cybersecurity console style, featuring glowing green on pure dark.',
     colors: {
       primary: '#10B981',
+      secondary: '#065F46',
       accent: '#34D399',
       bg: '#030712',
       text: '#E0E7FF'
@@ -145,6 +149,7 @@ export const themes: AppTheme[] = [
     description: 'Clean consulting layout, utilizing card styling, clean lines, and Inter.',
     colors: {
       primary: '#1F2937',
+      secondary: '#4B5563',
       accent: '#2563EB',
       bg: '#F8FAFC',
       text: '#334155'
@@ -175,6 +180,7 @@ export const themes: AppTheme[] = [
       'Gradient dark-blue backdrop, designed for data analytics and finance presentations.',
     colors: {
       primary: '#0284C7',
+      secondary: '#0369A1',
       accent: '#38BDF8',
       bg: '#0F172A',
       text: '#F1F5F9'
@@ -204,6 +210,7 @@ export const themes: AppTheme[] = [
     description: 'Warm charcoal background with eye-catching energetic orange accents.',
     colors: {
       primary: '#EA580C',
+      secondary: '#C2410C',
       accent: '#F97316',
       bg: '#1C1917',
       text: '#FAFAF9'
@@ -233,6 +240,7 @@ export const themes: AppTheme[] = [
     description: 'Relaxed cream textured backdrop. Ideal for editorials and deep dive journalism.',
     colors: {
       primary: '#451A03',
+      secondary: '#78350F',
       accent: '#B45309',
       bg: '#FDFBF7',
       text: '#292524'
@@ -260,6 +268,7 @@ export const themes: AppTheme[] = [
     description: 'Deep forest green backdrop coupled with sustainability and earth tones.',
     colors: {
       primary: '#064E3B',
+      secondary: '#065F46',
       accent: '#10B981',
       bg: '#022C22',
       text: '#ECFDF5'
@@ -288,6 +297,7 @@ export const themes: AppTheme[] = [
       'Calming pink and lavender cards. Friendly styling built for wellness and education.',
     colors: {
       primary: '#DB2777',
+      secondary: '#BE185D',
       accent: '#EC4899',
       bg: '#FFF5F5',
       text: '#4A5568'
@@ -316,6 +326,7 @@ export const themes: AppTheme[] = [
     description: 'Ultra luxury golden borders surrounding an intense absolute black space.',
     colors: {
       primary: '#D97706',
+      secondary: '#B45309',
       accent: '#F59E0B',
       bg: '#000000',
       text: '#E5E7EB'
@@ -344,6 +355,7 @@ export const themes: AppTheme[] = [
     description: 'Immersive deep violet and purple gradients curated for creative agencies.',
     colors: {
       primary: '#6D28D9',
+      secondary: '#5B21B6',
       accent: '#A78BFA',
       bg: '#0F0A1E',
       text: '#F5F3FF'
@@ -371,6 +383,7 @@ export const themes: AppTheme[] = [
       'Technical grid blueprint pattern. Crafted for design, engineering, and architecture.',
     colors: {
       primary: '#0F172A',
+      secondary: '#1E293B',
       accent: '#2563EB',
       bg: '#FFFFFF',
       text: '#334155'
@@ -402,6 +415,7 @@ export const themes: AppTheme[] = [
     description: 'Bold red side-accent lines. Highlights urgency, metrics, and high-impact sales.',
     colors: {
       primary: '#DC2626',
+      secondary: '#B91C1C',
       accent: '#EF4444',
       bg: '#FFFFFF',
       text: '#1F2937'
@@ -430,6 +444,7 @@ export const themes: AppTheme[] = [
     description: 'Intense green glow against dark matter. Built for cyberpunk and gamers.',
     colors: {
       primary: '#84CC16',
+      secondary: '#65A30D',
       accent: '#A3E635',
       bg: '#030712',
       text: '#ECFDF5'

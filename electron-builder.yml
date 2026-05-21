@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: com.opengemma.app
 productName: opengamma
 directories:
   buildResources: build
@@ -33,11 +33,11 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: electronjs.org
+  maintainer: OpenGamma Team (https://opengemma.vercel.app)
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
   provider: generic
-  url: https://example.com/auto-updates
+  url: https://opengemma.vercel.app/api/updates

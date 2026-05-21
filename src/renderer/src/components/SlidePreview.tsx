@@ -13,10 +13,9 @@ export interface SlidePreviewProps {
 export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme, status }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
-  const injectedSlideIds = useRef<Set<string>>(new Set())
+  const injectedSlideIds = useRef<string[]>([])
 
   // ─── Direct DOM Injection Helper ───────────────────────────────────────────
-  // Clears and re-injects all slides into the iframe to keep everything in sync
   const reinjectAllSlides = () => {
     const iframe = iframeRef.current
     if (!iframe) return
@@ -24,7 +23,6 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
     if (!contentWindow || !isLoaded) return
 
     try {
-      // 1. Clear existing slides inside the host
       if ((contentWindow as any).clearSlides) {
         ;(contentWindow as any).clearSlides()
       } else {
@@ -34,9 +32,8 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
       contentWindow.postMessage({ type: 'CLEAR_SLIDES' }, '*')
     }
 
-    injectedSlideIds.current.clear()
+    injectedSlideIds.current = []
 
-    // 2. Add each slide to the host
     slides.forEach((slide) => {
       try {
         if ((contentWindow as any).addSlide) {
@@ -47,7 +44,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
       } catch {
         contentWindow.postMessage({ type: 'ADD_SLIDE', html: slide.html }, '*')
       }
-      injectedSlideIds.current.add(slide.id)
+      injectedSlideIds.current.push(slide.id)
     })
   }
 
@@ -93,11 +90,24 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
     const contentWindow = iframe.contentWindow
     if (!contentWindow || !isLoaded) return
 
-    let newlyAdded = false
+    const currentInjected = injectedSlideIds.current
+    let isPrefix = true
+    if (currentInjected.length > slides.length) {
+      isPrefix = false
+    } else {
+      for (let i = 0; i < currentInjected.length; i++) {
+        if (currentInjected[i] !== slides[i].id) {
+          isPrefix = false
+          break
+        }
+      }
+    }
 
-    // Identify and incrementally append any new slides
-    slides.forEach((slide) => {
-      if (!injectedSlideIds.current.has(slide.id)) {
+    if (!isPrefix) {
+      reinjectAllSlides()
+    } else {
+      for (let i = currentInjected.length; i < slides.length; i++) {
+        const slide = slides[i]
         try {
           if ((contentWindow as any).addSlide) {
             ;(contentWindow as any).addSlide(slide.html)
@@ -107,15 +117,8 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
         } catch {
           contentWindow.postMessage({ type: 'ADD_SLIDE', html: slide.html }, '*')
         }
-        injectedSlideIds.current.add(slide.id)
-        newlyAdded = true
+        injectedSlideIds.current.push(slide.id)
       }
-    })
-
-    // If the presentation slides array shrunk (e.g., reset, re-run, or deletion),
-    // perform a full slide reload to regain DOM sync.
-    if (!newlyAdded && injectedSlideIds.current.size > slides.length) {
-      reinjectAllSlides()
     }
   }, [slides, isLoaded])
 
@@ -123,9 +126,9 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
     <div
       className="relative w-full h-full min-h-[400px] overflow-hidden rounded-xl border transition-all duration-500 no-drag"
       style={{
-        boxShadow: `0 30px 60px -15px rgba(0, 0, 0, 0.8), 0 0 50px -12px ${activeTheme?.colors?.accent || '#b57bff'}20`,
-        borderColor: `${activeTheme?.colors?.accent || '#b57bff'}15`,
-        backgroundColor: '#0d0d0d'
+        boxShadow: `0 20px 40px -12px rgba(0, 0, 0, 0.12), 0 0 0 1px ${activeTheme?.colors?.accent || '#0047ff'}10`,
+        borderColor: `${activeTheme?.colors?.accent || '#0047ff'}20`,
+        backgroundColor: activeTheme?.colors?.bg || '#0d0d0d'
       }}
     >
       {/* Self-contained Reveal.js Preview Window */}
@@ -137,18 +140,16 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
         title="Live Slide Preview"
       />
 
-      {/* Premium Loading Overlay (Corner Badge) */}
+      {/* Generation Status Badge */}
       {status.state === 'generating' && (
-        <div className="absolute top-4 right-4 z-50 flex items-center gap-3 px-4.5 py-2.5 rounded-full border bg-neutral-900/90 border-neutral-700 text-white shadow-2xl backdrop-blur-md transition-all duration-300 animate-pulse">
-          {/* Animated Spinner with harmony color */}
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full border bg-white/95 border-neutral-200 text-neutral-700 shadow-lg backdrop-blur-sm transition-all duration-300">
           <div
-            className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
+            className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin"
             style={{
-              borderColor: `${activeTheme.colors?.accent || '#a855f7'} transparent`
+              borderColor: `${activeTheme.colors?.accent || '#0047ff'} transparent`
             }}
           />
-          {/* Status Details */}
-          <span className="text-xs font-semibold tracking-wide text-neutral-200">
+          <span className="text-xs font-semibold tracking-wide">
             Generating slide {status.slidesGenerated} of {status.totalSlides}
           </span>
         </div>

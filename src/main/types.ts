@@ -8,6 +8,8 @@ export enum IpcChannels {
   // ── Generation ──────────────────────────────────────────────────────────────
   /** Renderer → Main: start streaming slide generation from Claude */
   GENERATE_SLIDES = 'generate:slides',
+  /** Renderer → Main: regenerate a single slide in isolation */
+  REGENERATE_SLIDE = 'generate:regenerate-slide',
   /** Renderer → Main: abort an in-progress generation stream */
   CANCEL_GENERATION = 'generate:cancel',
 
@@ -20,6 +22,8 @@ export enum IpcChannels {
   SAVE_PRESENTATION = 'history:save',
   /** Renderer → Main: retrieve all saved presentations from SQLite */
   GET_HISTORY = 'history:get',
+  /** Renderer → Main: retrieve a single presentation from SQLite by ID */
+  GET_PRESENTATION_BY_ID = 'history:get-by-id',
   /** Renderer → Main: remove a presentation record from SQLite */
   DELETE_PRESENTATION = 'history:delete',
 
@@ -31,5 +35,13 @@ export enum IpcChannels {
 
   // ── Utilities ───────────────────────────────────────────────────────────────
   /** Renderer → Main: open a native OS file-picker dialog */
-  OPEN_FILE_DIALOG = 'dialog:open-file'
+  OPEN_FILE_DIALOG = 'dialog:open-file',
+
+  // ── CLI Tools ───────────────────────────────────────────────────────────────
+  /** Renderer → Main: auto-detect system CLI tools */
+  DETECT_CLI_TOOLS = 'settings:detect-cli-tools',
+  /** Renderer → Main: test if a Claude API key is valid */
+  TEST_API_KEY = 'settings:test-api-key',
+  /** Renderer → Main: test if a detected CLI tool is accessible */
+  TEST_CLI_TOOL = 'settings:test-cli-tool'
 }

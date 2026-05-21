@@ -4,18 +4,16 @@ import type {
   Presentation,
   StreamStatus,
   GenerationConfig,
-  AppSettings
+  AppSettings,
+  CliTool
 } from '../renderer/src/types'
 import { IpcChannels } from '../main/types'
 
-// ─── ElectronAPI surface type ─────────────────────────────────────────────────
-// Kept here so the preload and the renderer's env.d.ts both reference the same
-// shape. The renderer must import it only from its own env.d.ts declaration.
-
 export interface ElectronAPI {
   // ── Generation ──────────────────────────────────────────────────────────────
-  /** Kick off a streaming generation run. Slides arrive via onSlideGenerated. */
   generateSlides: (config: GenerationConfig) => Promise<void>
+  /** Regenerate only one slide in isolation */
+  regenerateSlide: (slideIndex: number, currentPresentation: Presentation) => Promise<Slide>
   /** Subscribe to individual slide events streamed from the main process.
    *  Returns a cleanup function — call it on component unmount. */
   onSlideGenerated: (callback: (slide: Slide) => void) => () => void
@@ -30,11 +28,9 @@ export interface ElectronAPI {
   exportPptx: (presentation: Presentation) => Promise<{ success: boolean; path?: string }>
 
   // ── Persistence ─────────────────────────────────────────────────────────────
-  /** Persist a completed presentation to the local SQLite database. */
   savePresentation: (presentation: Presentation) => Promise<void>
-  /** Retrieve all saved presentations from SQLite, newest first. */
   getHistory: () => Promise<Presentation[]>
-  /** Remove a presentation record from SQLite by its id. */
+  getPresentationById: (id: string) => Promise<Presentation | null>
   deletePresentation: (id: string) => Promise<void>
 
   // ── Settings ────────────────────────────────────────────────────────────────
@@ -42,30 +38,55 @@ export interface ElectronAPI {
   getSettings: () => Promise<AppSettings>
   /** Persist updated app settings to electron-store. */
   saveSettings: (settings: AppSettings) => Promise<void>
-}
+  /** Open a native folder or file selection dialog. */
+  openFileDialog: (options?: any) => Promise<{ canceled: boolean; filePaths: string[] }>
 
-// ─── Implementation ───────────────────────────────────────────────────────────
-// ipcRenderer is NEVER forwarded directly — only narrow, named wrappers cross
-// the context bridge boundary. This prevents the renderer from calling any
-// arbitrary channel.
+  // ── CLI Tools ───────────────────────────────────────────────────────────────
+  /** Auto-detect installed system CLI tools */
+  detectCliTools: () => Promise<CliTool[]>
+
+  // ── API Key Validation ──────────────────────────────────────────────────────
+  /** Test if a Claude API key is valid */
+  testApiKey: (apiKey: string) => Promise<{ valid: boolean; message: string }>
+
+  // ── CLI Tool Validation ─────────────────────────────────────────────────────
+  /** Test if a CLI tool is accessible */
+  testCliTool: (cliPath: string, cliName: string) => Promise<{ success: boolean; message: string; version?: string }>
+
+  // ── Native Menu ─────────────────────────────────────────────────────────────
+  /** Subscribe to native application-menu command events sent from the main
+   *  process (e.g. File > New, File > Export).  Returns a cleanup function. */
+  onMenuAction: (callback: (action: string) => void) => () => void
+
+  // ── Auto Update ─────────────────────────────────────────────────────────────
+  /** Subscribe to auto-update ready event sent from main process when update is downloaded. */
+  onUpdateReady: (callback: () => void) => () => void
+  /** Request the main process to restart and install the downloaded update. */
+  restartAndInstall: () => void
+}
 
 const electronAPI: ElectronAPI = {
   // ── Generation ──────────────────────────────────────────────────────────────
-
   generateSlides: (config) => ipcRenderer.invoke(IpcChannels.GENERATE_SLIDES, config),
+
+  regenerateSlide: (slideIndex, currentPresentation) =>
+    ipcRenderer.invoke(IpcChannels.REGENERATE_SLIDE, slideIndex, currentPresentation),
 
   onSlideGenerated: (callback) => {
     const handler = (_event: Electron.IpcRendererEvent, slide: Slide): void => callback(slide)
     ipcRenderer.on(IpcChannels.GENERATE_SLIDES, handler)
-    // Return a cleanup function so callers can remove the listener on unmount
-    return () => ipcRenderer.removeListener(IpcChannels.GENERATE_SLIDES, handler)
+    return () => {
+      ipcRenderer.removeListener(IpcChannels.GENERATE_SLIDES, handler)
+    }
   },
 
   onStreamStatus: (callback) => {
     const handler = (_event: Electron.IpcRendererEvent, status: StreamStatus): void =>
       callback(status)
     ipcRenderer.on('stream:status', handler)
-    return () => ipcRenderer.removeListener('stream:status', handler)
+    return () => {
+      ipcRenderer.removeListener('stream:status', handler)
+    }
   },
 
   cancelGeneration: () => {
@@ -73,29 +94,58 @@ const electronAPI: ElectronAPI = {
   },
 
   // ── Export ──────────────────────────────────────────────────────────────────
-
   exportPptx: (presentation) => ipcRenderer.invoke(IpcChannels.EXPORT_PPTX, presentation),
 
   // ── Persistence ─────────────────────────────────────────────────────────────
-
   savePresentation: (presentation) =>
     ipcRenderer.invoke(IpcChannels.SAVE_PRESENTATION, presentation),
 
   getHistory: () => ipcRenderer.invoke(IpcChannels.GET_HISTORY),
 
+  getPresentationById: (id) => ipcRenderer.invoke(IpcChannels.GET_PRESENTATION_BY_ID, id),
+
   deletePresentation: (id) => ipcRenderer.invoke(IpcChannels.DELETE_PRESENTATION, id),
 
   // ── Settings ────────────────────────────────────────────────────────────────
-
   getSettings: () => ipcRenderer.invoke(IpcChannels.GET_SETTINGS),
 
-  saveSettings: (settings) => ipcRenderer.invoke(IpcChannels.SAVE_SETTINGS, settings)
-}
+  saveSettings: (settings) => ipcRenderer.invoke(IpcChannels.SAVE_SETTINGS, settings),
 
-// ─── Context Bridge Exposure ──────────────────────────────────────────────────
-// contextIsolation must be true (enforced in main/index.ts) for this to work.
-// The try/catch guards against the unlikely case of a preload running outside
-// of a contextIsolated BrowserWindow during testing.
+  openFileDialog: (options) => ipcRenderer.invoke(IpcChannels.OPEN_FILE_DIALOG, options),
+
+  // ── CLI Tools ───────────────────────────────────────────────────────────────
+  detectCliTools: () => ipcRenderer.invoke(IpcChannels.DETECT_CLI_TOOLS),
+
+  // ── API Key Validation ──────────────────────────────────────────────────────
+  testApiKey: (apiKey: string) =>
+    ipcRenderer.invoke(IpcChannels.TEST_API_KEY, apiKey),
+
+  // ── CLI Tool Validation ─────────────────────────────────────────────────────
+  testCliTool: (cliPath: string, cliName: string) =>
+    ipcRenderer.invoke(IpcChannels.TEST_CLI_TOOL, cliPath, cliName),
+
+  // ── Native Menu ─────────────────────────────────────────────────────────────
+  onMenuAction: (callback) => {
+    const handler = (_event: Electron.IpcRendererEvent, action: string): void => callback(action)
+    ipcRenderer.on('menu:action', handler)
+    return () => {
+      ipcRenderer.removeListener('menu:action', handler)
+    }
+  },
+
+  // ── Auto Update ─────────────────────────────────────────────────────────────
+  onUpdateReady: (callback) => {
+    const handler = (): void => callback()
+    ipcRenderer.on('update-ready', handler)
+    return () => {
+      ipcRenderer.removeListener('update-ready', handler)
+    }
+  },
+
+  restartAndInstall: () => {
+    ipcRenderer.send('updater:restart')
+  }
+}
 
 if (process.contextIsolated) {
   try {
@@ -104,6 +154,5 @@ if (process.contextIsolated) {
     console.error('[preload] contextBridge.exposeInMainWorld failed:', error)
   }
 } else {
-  // Fallback for non-isolated environments (e.g. unit test runners)
   ;(window as any).electronAPI = electronAPI
 }

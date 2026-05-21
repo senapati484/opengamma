@@ -16,17 +16,23 @@ const noopCleanup = (): (() => void) => noop
 
 const browserMock: ElectronAPI = {
   // ── Generation ──────────────────────────────────────────────────────────────
-  generateSlides: async (_config: GenerationConfig): Promise<void> => {
-    console.warn('[useElectron] generateSlides called outside Electron — no-op')
+  generateSlides: async (config: GenerationConfig): Promise<void> => {
+    console.warn('[useElectron] generateSlides called outside Electron with config:', config)
   },
 
-  onSlideGenerated: (_callback: (slide: Slide) => void): (() => void) => {
-    console.warn('[useElectron] onSlideGenerated registered outside Electron — no-op')
+  onSlideGenerated: (callback: (slide: Slide) => void): (() => void) => {
+    console.warn(
+      '[useElectron] onSlideGenerated registered outside Electron with callback:',
+      callback
+    )
     return noopCleanup()
   },
 
-  onStreamStatus: (_callback: (status: StreamStatus) => void): (() => void) => {
-    console.warn('[useElectron] onStreamStatus registered outside Electron — no-op')
+  onStreamStatus: (callback: (status: StreamStatus) => void): (() => void) => {
+    console.warn(
+      '[useElectron] onStreamStatus registered outside Electron with callback:',
+      callback
+    )
     return noopCleanup()
   },
 
@@ -35,14 +41,17 @@ const browserMock: ElectronAPI = {
   },
 
   // ── Export ──────────────────────────────────────────────────────────────────
-  exportPptx: async (_presentation: Presentation): Promise<{ success: boolean; path?: string }> => {
-    console.warn('[useElectron] exportPptx called outside Electron — returning mock success')
+  exportPptx: async (presentation: Presentation): Promise<{ success: boolean; path?: string }> => {
+    console.warn('[useElectron] exportPptx called outside Electron for presentation:', presentation)
     return { success: false }
   },
 
   // ── Persistence ─────────────────────────────────────────────────────────────
-  savePresentation: async (_presentation: Presentation): Promise<void> => {
-    console.warn('[useElectron] savePresentation called outside Electron — no-op')
+  savePresentation: async (presentation: Presentation): Promise<void> => {
+    console.warn(
+      '[useElectron] savePresentation called outside Electron for presentation:',
+      presentation
+    )
   },
 
   getHistory: async (): Promise<Presentation[]> => {
@@ -50,8 +59,33 @@ const browserMock: ElectronAPI = {
     return []
   },
 
-  deletePresentation: async (_id: string): Promise<void> => {
-    console.warn('[useElectron] deletePresentation called outside Electron — no-op')
+  getPresentationById: async (id: string): Promise<Presentation | null> => {
+    console.warn(
+      `[useElectron] getPresentationById called outside Electron for ID ${id} — returning null`
+    )
+    return null
+  },
+
+  deletePresentation: async (id: string): Promise<void> => {
+    console.warn('[useElectron] deletePresentation called outside Electron for ID:', id)
+  },
+
+  regenerateSlide: async (
+    slideIndex: number,
+    currentPresentation: Presentation
+  ): Promise<Slide> => {
+    console.warn(
+      `[useElectron] regenerateSlide called outside Electron for index ${slideIndex} on presentation:`,
+      currentPresentation
+    )
+    return {
+      id: `mock-slide-${slideIndex}`,
+      html: '<h1>Mock Slide Title</h1><p>Mock slide body content</p>',
+      title: 'Mock Slide Title',
+      notes: 'Mock notes',
+      slideType: 'content',
+      index: slideIndex
+    }
   },
 
   // ── Settings ────────────────────────────────────────────────────────────────
@@ -65,8 +99,50 @@ const browserMock: ElectronAPI = {
     }
   },
 
-  saveSettings: async (_settings: AppSettings): Promise<void> => {
-    console.warn('[useElectron] saveSettings called outside Electron — no-op')
+  saveSettings: async (settings: AppSettings): Promise<void> => {
+    console.warn('[useElectron] saveSettings called outside Electron with settings:', settings)
+  },
+
+  onMenuAction: (_callback: (action: string) => void): (() => void) => {
+    console.warn('[useElectron] onMenuAction registered outside Electron — no-op')
+    return noop
+  },
+
+  detectCliTools: async (): Promise<any[]> => {
+    console.warn('[useElectron] detectCliTools called outside Electron — returning []')
+    return []
+  },
+
+  testApiKey: async (apiKey: string): Promise<{ valid: boolean; message: string }> => {
+    console.warn('[useElectron] testApiKey called outside Electron for key:', apiKey)
+    return { valid: false, message: 'Running outside Electron' }
+  },
+
+  testCliTool: async (
+    cliPath: string,
+    cliName: string
+  ): Promise<{ success: boolean; message: string; version?: string }> => {
+    console.warn(
+      '[useElectron] testCliTool called outside Electron for CLI:',
+      cliName,
+      'at path:',
+      cliPath
+    )
+    return { success: false, message: 'Running outside Electron' }
+  },
+
+  openFileDialog: async (options?: any): Promise<{ canceled: boolean; filePaths: string[] }> => {
+    console.warn('[useElectron] openFileDialog called outside Electron with options:', options)
+    return { canceled: true, filePaths: [] }
+  },
+
+  onUpdateReady: (callback: () => void): (() => void) => {
+    console.warn('[useElectron] onUpdateReady registered outside Electron with callback:', callback)
+    return noopCleanup()
+  },
+
+  restartAndInstall: (): void => {
+    console.warn('[useElectron] restartAndInstall called outside Electron — no-op')
   }
 }
 

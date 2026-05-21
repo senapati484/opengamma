@@ -5,16 +5,17 @@
 @tailwind utilities;
 
 :root {
-  --og-bg: #0d0d0d;
-  --og-surface: #161616;
-  --og-surface2: #1f1f1f;
-  --og-border: rgba(255, 255, 255, 0.07);
-  --og-text: #c9c5bc;
-  --og-white: #f0ece4;
-  --og-accent: #e8ff57;
-  --og-blue: #57b8ff;
-  --og-purple: #b57bff;
-  --og-muted: #555;
+  --og-bg: #ffffff;
+  --og-surface: #faf9f6;
+  --og-surface2: #f3f4f6;
+  --og-border: rgba(0, 0, 0, 0.08);
+  --og-text: #1f2937;
+  --og-white: #111827;
+  --og-accent: #0047ff;
+  --og-accent-glow: rgba(0, 71, 255, 0.15);
+  --og-blue: #0047ff;
+  --og-purple: #8b5cf6;
+  --og-muted: #6b7280;
 }
 
 html,
@@ -69,8 +70,9 @@ pre,
 
 /* Global keyboard focus rings using the accent color */
 *:focus-visible {
-  outline: 2px solid var(--og-accent) !important;
-  outline-offset: 2px !important;
+  outline: none !important;
+  border-color: var(--og-accent) !important;
+  box-shadow: 0 0 0 2px var(--og-accent-glow) !important;
 }
 
 /* Premium Animations */
@@ -93,17 +95,31 @@ pre,
   0%,
   100% {
     box-shadow:
-      0 10px 20px -6px rgba(232, 255, 87, 0.15),
-      0 0 0 0px rgba(232, 255, 87, 0.2);
+      0 10px 20px -6px rgba(139, 92, 246, 0.15),
+      0 0 0 0px rgba(139, 92, 246, 0.2);
     transform: scale(1);
   }
   50% {
     box-shadow:
-      0 10px 25px -3px rgba(232, 255, 87, 0.35),
-      0 0 0 6px rgba(232, 255, 87, 0);
+      0 10px 25px -3px rgba(139, 92, 246, 0.35),
+      0 0 0 6px rgba(139, 92, 246, 0);
     transform: scale(1.02);
   }
 }
 .animate-export-pulse {
   animation: export-pulse 2s infinite ease-in-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

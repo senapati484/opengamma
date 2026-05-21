@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { Theme, Presentation, AppSettings } from '../types'
+import type { DesignSystemMetadata } from '../types/designSystem'
 import { useElectron } from '../lib/useElectron'
 import { themes } from '../lib/themes'
 
@@ -12,6 +13,9 @@ interface AppContextType {
   setActivePresentation: React.Dispatch<React.SetStateAction<Presentation | null>>
   settings: AppSettings | null
   setSettings: React.Dispatch<React.SetStateAction<AppSettings | null>>
+  // New: Design System Support (Phase 2)
+  selectedDesignSystem: DesignSystemMetadata | null
+  setSelectedDesignSystem: React.Dispatch<React.SetStateAction<DesignSystemMetadata | null>>
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -22,6 +26,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [presentations, setPresentations] = useState<Presentation[]>([])
   const [activePresentation, setActivePresentation] = useState<Presentation | null>(null)
   const [settings, setSettings] = useState<AppSettings | null>(null)
+  const [selectedDesignSystem, setSelectedDesignSystem] = useState<DesignSystemMetadata | null>(null)
 
   useEffect(() => {
     const initData = async () => {
@@ -55,7 +60,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activePresentation,
         setActivePresentation,
         settings,
-        setSettings
+        setSettings,
+        selectedDesignSystem,
+        setSelectedDesignSystem
       }}
     >
       {children}

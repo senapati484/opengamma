@@ -1,0 +1,384 @@
+{
+  "research_date": "2026-05-22",
+  "research_source": "https://github.com/kzhrknt/awesome-design-md-jp",
+  "repository": {
+    "name": "awesome-design-md-jp",
+    "full_name": "kzhrknt/awesome-design-md-jp",
+    "description": "日本語UIをAIエージェントに正しくつくらせるためのDESIGN.md集 (Japanese DESIGN.md collection for AI agents — extending Google Stitch format with CJK typography)",
+    "url": "https://github.com/kzhrknt/awesome-design-md-jp",
+    "stars": 688,
+    "language": "HTML",
+    "created": "2026-04-06"
+  },
+  "design_systems_location": {
+    "root_directory": "design-md/",
+    "total_systems_found": 72,
+    "total_search_results": 229,
+    "note": "72 is the count of primary brand/service design systems; 229 includes template files and cross-references",
+    "file_structure": "design-md/{system-slug}/DESIGN.md",
+    "template_path": "template/DESIGN.md"
+  },
+  "file_format_sections": {
+    "section_1": {
+      "name": "Visual Theme & Atmosphere",
+      "fields": [
+        "デザイン方針 (Design Philosophy)",
+        "密度 (Information Density)",
+        "キーワード (Keywords - 3-5 descriptive adjectives)",
+        "特徴 (Characteristics)"
+      ]
+    },
+    "section_2": {
+      "name": "Color Palette & Roles",
+      "fields": [
+        "Brand/Primary Colors",
+        "Semantic Colors (Danger, Warning, Success)",
+        "Neutral Colors (Text, Border, Background, Surface)",
+        "Header/Footer Colors",
+        "All colors specified in hex format from computed style"
+      ]
+    },
+    "section_3": {
+      "name": "Typography Rules",
+      "subsections": {
+        "3.1": "和文フォント (Japanese Fonts) - Gothic, Serif options",
+        "3.2": "欧文フォント (Latin Fonts) - Sans-serif, Serif, Monospace",
+        "3.3": "font-family 指定 (CSS font-family declarations with fallback chains)",
+        "3.4": "文字サイズ・ウェイト階層 (Font size/weight hierarchy table)",
+        "3.5": "行間・字間 (Line height and letter spacing)",
+        "3.6": "禁則処理・改行ルール (Line breaking and orphan/widow rules)",
+        "3.7": "OpenType 機能 (OpenType features like palt, kern)",
+        "3.8": "縦書き (Vertical writing - if applicable)"
+      }
+    },
+    "section_4": {
+      "name": "Component Stylings",
+      "components": [
+        "Buttons (Primary, Secondary, variations)",
+        "Tabs",
+        "Inputs & Forms",
+        "Select Dropdowns",
+        "Cards"
+      ],
+      "component_properties": [
+        "Background color",
+        "Text color",
+        "Padding",
+        "Border Radius",
+        "Font Size",
+        "Font Weight",
+        "Border styles",
+        "Shadows"
+      ]
+    },
+    "section_5": {
+      "name": "Layout Principles",
+      "fields": [
+        "Spacing Scale (XS, S, M, L, XL, XXL tokens)",
+        "Container (Max Width, Padding)",
+        "Grid (Columns, Gutter)"
+      ]
+    },
+    "section_6": {
+      "name": "Depth & Elevation",
+      "fields": [
+        "Shadow levels (0-3 with specific shadow values)",
+        "Use cases for each elevation level"
+      ]
+    },
+    "section_7": {
+      "name": "Do's and Don'ts",
+      "fields": [
+        "推奨 (Recommended practices)",
+        "禁止 (Prohibited practices)"
+      ]
+    },
+    "section_8": {
+      "name": "Responsive Behavior",
+      "fields": [
+        "Breakpoints (Mobile, Tablet, Desktop)",
+        "タッチターゲット (Touch target minimums)",
+        "フォントサイズの調整 (Font size adjustments per breakpoint)"
+      ]
+    },
+    "section_9": {
+      "name": "Agent Prompt Guide",
+      "fields": [
+        "Quick Reference (color/font/size cheat sheet)",
+        "プロンプト例 (Prompt examples for AI generation)",
+        "Comparison tables (e.g., Zenn vs Qiita, ANA vs JAL)"
+      ]
+    }
+  },
+  "markdown_format": {
+    "header_format": "# DESIGN.md — [サービス名]",
+    "language_convention": "Sections in English, descriptions/values in Japanese",
+    "color_specification": "All colors in hex format (e.g., #3ea8ff), based on computed style measurements",
+    "table_format": "Uses Markdown tables for typography hierarchy, spacing scales, elevation levels",
+    "code_blocks": "CSS code examples wrapped in ```css...```",
+    "metadata": "Includes service URL, measurement date, and data source notes"
+  },
+  "design_systems_examples": [
+    {
+      "slug": "zenn",
+      "name": "Zenn",
+      "url": "https://zenn.dev/",
+      "type": "Technology Platform / Article Publishing",
+      "key_characteristics": {
+        "brand_color": "#3ea8ff (Zenn Blue)",
+        "design_philosophy": "Clean, modern, tech-focused with emphasis on readability",
+        "font_primary": "-apple-system, system-ui, Hiragino Kaku Gothic ProN, Hiragino Sans, Meiryo",
+        "body_font_size": "16px",
+        "line_height": "1.8 (very generous for article readability)",
+        "text_color": "rgba(0,0,0,0.82)",
+        "css_vars": "None (direct values only)",
+        "button_style": "Standard rectangular with 8px border-radius",
+        "contrast_with": "Qiita - Zenn is simpler, less dense, uses slightly softer text opacity"
+      }
+    },
+    {
+      "slug": "ana",
+      "name": "ANA (全日本空輸 - All Nippon Airways)",
+      "url": "https://www.ana.co.jp/",
+      "type": "Airline / Travel & Booking",
+      "key_characteristics": {
+        "brand_color": "#073190 (ANA Blue)",
+        "secondary_color": "#00146e (Dark Navy), #d4c493 (Gold for premium)",
+        "design_philosophy": "Trust, cleanliness, high information density with clear visual hierarchy",
+        "header_style": "White background with blue pill-shaped CTAs",
+        "page_background": "#f1f1f1 (Light gray)",
+        "font_primary": "Hiragino Sans (Japanese) with extended fallback chain",
+        "body_font_size": "14px",
+        "line_height": "1.5",
+        "cta_button_style": "Pill-shaped (border-radius: 50px) with 12px or 16px padding",
+        "shadow_usage": "Light shadows for card elevation (0 2px 8px)"
+      }
+    },
+    {
+      "slug": "qiita",
+      "name": "Qiita",
+      "url": "https://qiita.com/",
+      "type": "Developer Community / Knowledge Base",
+      "key_characteristics": {
+        "brand_color": "#55c500 (Qiita Green)",
+        "design_philosophy": "Developer-focused, code-and-prose mixing, high information density",
+        "font_feature": "YakuHanJPs for proportional punctuation (palt optimization)",
+        "text_color": "rgba(0,0,0,0.87) (slightly darker than Zenn)",
+        "line_height": "1.8",
+        "page_background": "#f5f6f6",
+        "css_custom_properties": "Uses CSS vars for theming",
+        "positioning": "Qiita is the established player; Zenn is the challenger"
+      }
+    },
+    {
+      "slug": "pola",
+      "name": "POLA",
+      "url": "https://www.pola.co.jp/",
+      "type": "Luxury Cosmetics Brand",
+      "key_characteristics": {
+        "founded": "1929",
+        "brand_values": "Science, Art, Love",
+        "type_focus": "Premium beauty/cosmetics"
+      }
+    },
+    {
+      "slug": "nitori",
+      "name": "ニトリ (Nitori)",
+      "url": "https://www.nitori-net.jp/",
+      "type": "Home Furniture & Interior Retail",
+      "key_characteristics": {
+        "tagline": "お、ねだん以上。(More than the price)",
+        "scale": "Japan's largest home furnishings company",
+        "specialization": "EC platform for furniture, interior, lifestyle goods"
+      }
+    },
+    {
+      "slug": "cainz",
+      "name": "CAINZ (カインズ)",
+      "url": "https://www.cainz.com/",
+      "type": "Home Center / Retail Chain",
+      "key_characteristics": {
+        "scale": "Japan's largest home center chain",
+        "award": "Good Design Award recipient (2021 digital strategy refresh)",
+        "focus": "E-commerce with 200+ physical stores"
+      }
+    },
+    {
+      "slug": "beams",
+      "name": "BEAMS",
+      "url": "https://www.beams.co.jp/",
+      "type": "Fashion / Lifestyle Retail",
+      "key_characteristics": {
+        "positioning": "Tokyo fashion flagship"
+      }
+    },
+    {
+      "slug": "snidel",
+      "name": "SNIDEL (スナイデル)",
+      "url": "https://snidel.com/",
+      "type": "Women's Fashion Brand",
+      "key_characteristics": {
+        "parent": "MASH Holdings",
+        "concept": "Street Formal - Feminine elegance + casual street style",
+        "positioning": "Women's contemporary fashion"
+      }
+    },
+    {
+      "slug": "subaru",
+      "name": "SUBARU (スバル)",
+      "url": "https://www.subaru.jp/",
+      "type": "Automotive / Car Manufacturer",
+      "key_characteristics": {
+        "products": "SUVs, sedans, sports cars",
+        "focus": "Corporate/product website"
+      }
+    },
+    {
+      "slug": "yamaha",
+      "name": "Yamaha (ヤマハ株式会社)",
+      "url": "https://www.yamaha.com/ja/",
+      "type": "Conglomerate / Musical Instruments & Electronics",
+      "key_characteristics": {
+        "founded": "1887",
+        "portfolio": "Musical instruments, audio equipment, semiconductors",
+        "positioning": "Corporate website"
+      }
+    },
+    {
+      "slug": "ikyu",
+      "name": "ikyu（一休）",
+      "url": "https://ikyu.com/",
+      "type": "Travel / Luxury Hotel & Restaurant Booking",
+      "key_characteristics": {
+        "multi_vertical": "Uses same UI 'dressed' in different brand colors for 6 verticals (stays, restaurants, spa, outbound, catering, furusato tax)",
+        "font_strategy": "Apple system font + radius 6px + 14px base + flat design + card layouts",
+        "color_model": "1 shared UI system + 6 color layers (CSS vars: --color-{stay|res|spa|outbound|otoriyose|furusato}-main)",
+        "approach": "Adding new vertical = define main/sub color pair, UI stays same"
+      }
+    },
+    {
+      "slug": "wired",
+      "name": "WIRED.jp",
+      "url": "https://wired.jp/",
+      "type": "Media / Technology Journalism",
+      "key_characteristics": {
+        "parent": "Condé Nast Japan",
+        "tech_stack": "styled-components",
+        "measurement_method": "Puppeteer computed style extraction"
+      }
+    },
+    {
+      "slug": "dentsu",
+      "name": "dentsu (電通)",
+      "url": "https://www.dentsu.co.jp/",
+      "type": "Marketing / Advertising Agency",
+      "key_characteristics": {
+        "css_vars": "Not used (direct values)"
+      }
+    },
+    {
+      "slug": "jal",
+      "name": "JAL (日本航空)",
+      "url": "https://www.jal.co.jp/",
+      "type": "Airline / Travel & Booking",
+      "key_characteristics": {
+        "positioning": "Competitor to ANA",
+        "design_difference": "Black header (vs ANA's white), darker overall tone"
+      }
+    },
+    {
+      "slug": "mt",
+      "name": "mt masking tape (KAMOI KAKOSHI)",
+      "url": "https://www.masking-tape.jp/",
+      "type": "Stationery / Craft Materials",
+      "key_characteristics": {
+        "brand_font": "Premium Japanese font (FOT-筑紫ゴシック Pr5N D)",
+        "aesthetic": "Artisanal, craft-focused design system",
+        "parent": "Kamoi Kakoshi - washi tape manufacturer"
+      }
+    }
+  ],
+  "additional_design_systems_found": [
+    "10yc", "1616arita", "2121designsight", "45r", "abema", "actus", "aesop", "afternoontea",
+    "akomeya", "amadana", "aman-tokyo", "andwander", "anrealage", "apple", "asahibeer", "aton",
+    "auralee", "bake", "balmuda", "bape", "base", "basefood", "bluebottlecoffee", "botanist",
+    "brutus", "buttersand", "calbee", "canon", "casa-brutus", "casio", "cfcl", "citizen",
+    "claska", "coedo", "cohina", "cado", "cibone", "kuon", "sanu", "osaji", "shiro",
+    "ships", "tiger", "spiral", "keyuca", "ndc", "uka"
+  ],
+  "recommended_integration_approach": {
+    "for_opengamma": {
+      "strategy": "Federated DESIGN.md Registry with AI-Guided Selection",
+      "phases": [
+        {
+          "phase": "1. Design System Detection",
+          "description": "When user creates a new presentation, analyze the content domain to recommend 2-3 most relevant design systems from the registry",
+          "implementation": "Use LLM to categorize user's project (e.g., 'tech platform' → suggest Zenn, Qiita; 'travel' → suggest ANA, JAL; 'retail' → suggest Nitori, CAINZ)"
+        },
+        {
+          "phase": "2. DESIGN.md Loader",
+          "description": "Fetch and parse the recommended DESIGN.md files into opengamma's context",
+          "implementation": "Cache DESIGN.md files locally, parse sections 1-6 into a structured format, inject into code generation prompts"
+        },
+        {
+          "phase": "3. Presentation Styling",
+          "description": "When generating HTML/CSS for slides, inject design system tokens from selected DESIGN.md",
+          "implementation": "Pass color palette, typography rules, component styles to slide generator as constraints"
+        },
+        {
+          "phase": "4. Multi-Brand Support (Optional)",
+          "description": "Support 'multi-vertical' approach (like ikyu) for organizations with multiple brand variants",
+          "implementation": "Allow CSS variables for brand color swapping while keeping UI structure constant"
+        }
+      ]
+    },
+    "technical_implementation": {
+      "data_source": "https://github.com/kzhrknt/awesome-design-md-jp/tree/main/design-md",
+      "storage_recommendation": "Cache DESIGN.md files in opengamma/.gamma/design-systems/{slug}/DESIGN.md",
+      "parsing_strategy": "Extract sections 2 (colors), 3 (typography), 4 (components), 5 (layout) into JSON tokens",
+      "prompt_injection": "Pass tokens as 'DesignSystemContext' to slide generation prompts",
+      "fallback": "If no match found, use 'template/DESIGN.md' as baseline"
+    },
+    "ui_ux_changes": {
+      "add_to_settings_panel": "Design System selector dropdown",
+      "add_to_new_presentation": "Step 1 of wizard: 'Choose a design system' with examples",
+      "add_to_theme_picker": "Link theme colors to selected DESIGN.md primary colors"
+    },
+    "copyright_licensing": {
+      "source_license": "Check awesome-design-md-jp repo (likely CC0 or MIT for DESIGN.md templates)",
+      "usage": "DESIGN.md files are intended as specifications for AI agents; use them as styling guides, not as copied text",
+      "attribution": "Reference the original designer/brand in generated presentations"
+    }
+  },
+  "key_insights": {
+    "japanese_ui_best_practices": [
+      "Font family fallback chains are critical - must include both Japanese and Latin fonts",
+      "Line height for Japanese text should be 1.5-1.8 (wider than English)",
+      "Never use pure black (#000000); use slightly lighter colors like rgba(0,0,0,0.82)",
+      "OpenType features (palt for proportional punctuation) are optional but add polish",
+      "CJK typography needs explicit letter-spacing (typically 'normal' / 0)"
+    ],
+    "design_system_patterns": [
+      "Color tokens use semantic naming (Danger, Warning, Success) + brand colors",
+      "Component specs include all CSS properties (padding, radius, weight, shadow)",
+      "Responsive behavior defined via breakpoints and touch target minimums",
+      "Most systems use 6-8 spacing scale tokens (XS, S, M, L, XL, XXL)",
+      "Do's and Don'ts sections written for AI agents as constraint rules"
+    ],
+    "competitive_insights": [
+      "ANA (airline) uses pill-shaped CTAs (#073190) vs JAL's darker, more traditional approach",
+      "Zenn (tech platform) prioritizes readability with 1.8 line-height vs Qiita's dense information architecture",
+      "ikyu demonstrates 'multi-vertical' pattern: same UI, different brand colors per category",
+      "Premium brands (POLA, Aman Tokyo) emphasize minimalism and white space",
+      "Retail brands (Nitori, CAINZ) use high-density cards to showcase product inventory"
+    ]
+  },
+  "references": {
+    "source_repository": "https://github.com/kzhrknt/awesome-design-md-jp",
+    "template_file": "https://github.com/kzhrknt/awesome-design-md-jp/blob/main/template/DESIGN.md",
+    "example_zenn": "https://github.com/kzhrknt/awesome-design-md-jp/blob/main/design-md/zenn/DESIGN.md",
+    "example_ana": "https://github.com/kzhrknt/awesome-design-md-jp/blob/main/design-md/ana/DESIGN.md",
+    "about_google_stitch": "Google's Stitch is the inspiration - DESIGN.md is an AI-friendly design spec format",
+    "research_methodology": "Extracted from GitHub search results and computed style measurements (2026-05-21 data)"
+  }
+}

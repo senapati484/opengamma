@@ -2,9 +2,9 @@
   "name": "opengamma",
   "version": "1.0.0",
   "description": "An Electron application with React and TypeScript",
-  "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "main": "./dist-electron/main/index.js",
+  "author": "senapati484",
+  "homepage": "https://opengemma.vercel.app",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -17,8 +17,10 @@
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
-    "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux",
+    "build:all": "npm run build && electron-builder --win --mac --linux",
+    "release": "npm run build && electron-builder --publish always"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.97.1",
@@ -26,6 +28,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "better-sqlite3": "^12.10.0",
     "electron-store": "^11.0.2",
+    "electron-updater": "^6.8.3",
     "jsdom": "^27.0.1",
     "pptxgenjs": "^4.0.1",
     "reveal.js": "^6.0.1"
@@ -55,5 +58,50 @@
     "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",
     "vite": "^7.2.6"
+  },
+  "build": {
+    "appId": "app.opengamma.desktop",
+    "productName": "OpenGamma",
+    "copyright": "Copyright 2025 OpenGamma",
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "src/context/**/*",
+      "resources/**/*"
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "resources/icon.icns",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "entitlements": "resources/entitlements.mac.plist",
+      "entitlementsInherit": "resources/entitlements.mac.plist"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "resources/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "resources/icon.png"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "YOUR_GITHUB_USERNAME",
+      "repo": "opengamma"
+    }
   }
 }

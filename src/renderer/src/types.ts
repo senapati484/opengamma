@@ -13,6 +13,8 @@ export interface Slide {
   slideType: 'title' | 'content' | 'split' | 'data' | 'cta'
   /** Zero-based position in the presentation */
   index: number
+  /** List of bullet points extracted from the slide content */
+  bullets?: string[]
 }
 
 // ─── Presentation ─────────────────────────────────────────────────────────────
@@ -36,6 +38,7 @@ export interface Presentation {
 
 export interface ThemeColors {
   primary: string
+  secondary: string
   accent: string
   bg: string
   text: string
@@ -54,11 +57,11 @@ export interface Theme {
   revealTheme: string
   /** Colour values used for the preview swatch in ThemePicker */
   colors: ThemeColors
+  /** Google Font import declarations */
+  fontImport?: string
 }
 
 // ─── GenerationConfig ─────────────────────────────────────────────────────────
-
-export type Narrative = 'pitch' | 'explainer' | 'report' | 'academic'
 
 export interface GenerationConfig {
   /** User-supplied prompt describing the presentation */
@@ -67,8 +70,6 @@ export interface GenerationConfig {
   theme: Theme
   /** Requested number of slides — must be between 4 and 20 */
   slideCount: number
-  /** Narrative style that shapes Claude's structure and tone */
-  narrative: Narrative
 }
 
 // ─── StreamStatus ─────────────────────────────────────────────────────────────
@@ -97,4 +98,43 @@ export interface AppSettings {
   defaultSlideCount: number
   /** Narrative style to pre-select in the generation form */
   defaultNarrative: string
+  /** Local CLI tool selected (e.g. 'gemini', 'opencode', or empty/'claude') */
+  cliTool?: string
+  /** Path to the local CLI binary */
+  cliPath?: string
+  /** Custom model name/routing path to use for local CLI tool execution */
+  modelName?: string
+  /** Path to default save folder for presentations */
+  defaultSaveLocation?: string
+  /** Whether to export speaker notes on PPTX files */
+  includeSpeakerNotes?: boolean
+  /** Whether to append the Referral Footer onto exported presentations */
+  addReferralFooter?: boolean
+  /** Whether the onboarding experience has been fully completed */
+  onboardingComplete?: boolean
+  /** Local CLI temperature */
+  cliTemperature?: number
+  /** Local CLI max tokens */
+  cliMaxTokens?: number
+  /** Local CLI output mode */
+  cliOutputMode?: 'stream' | 'buffered'
+  /** Local CLI custom arguments */
+  cliCustomArgs?: string
+  /** Local CLI working directory */
+  cliWorkingDir?: string
+  /** Local CLI environment variables */
+  cliEnvVars?: string
+}
+
+// ─── CLI Tool ─────────────────────────────────────────────────────────────────
+
+export interface CliTool {
+  /** The name of the binary */
+  name: string
+  /** The absolute path of the binary on the system */
+  path: string
+  /** The version string of the binary (for featured/known tools) */
+  version?: string
+  /** Whether this tool is highlighted/featured */
+  isFeatured: boolean
 }
