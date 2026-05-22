@@ -745,7 +745,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
         </button>
 
         <div className="text-[9px] font-black text-neutral-700 uppercase tracking-tighter pointer-events-none select-none pr-1">
-          OpenGamma v1.0
+          Open Gamma v1.0
         </div>
       </div>
 

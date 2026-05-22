@@ -4,7 +4,7 @@ set -e
 # Change directory to the script's parent folder (resources)
 cd "$(dirname "$0")"
 
-echo "=== OpenGamma Icon Generator ==="
+echo "=== Open Gamma Icon Generator ==="
 
 # Check if sharp is installed, install locally if missing
 if ! node -e "require('sharp')" &>/dev/null; then

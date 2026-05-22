@@ -55,7 +55,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <div>
               <div className="text-lg font-bold text-white">No presentations yet</div>
               <p className="text-sm text-neutral-500 max-w-[280px] mx-auto mt-1">
-                Start by describing your vision in the left panel and let OpenGamma build it.
+                Start by describing your vision in the left panel and let Open Gamma build it.
               </p>
             </div>
             <button

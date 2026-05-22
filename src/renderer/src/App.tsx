@@ -262,7 +262,7 @@ function AppInner() {
       {/* Custom Title Bar */}
       <div className="h-8 w-full flex-none flex items-center justify-center select-none drag-region border-b border-white/5 bg-[#141414]">
         <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-[0.3em]">
-          OpenGamma
+          Open Gamma
         </span>
       </div>
 

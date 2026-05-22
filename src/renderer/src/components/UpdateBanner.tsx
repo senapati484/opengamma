@@ -49,7 +49,7 @@ export const UpdateBanner: React.FC = () => {
           </svg>
         </div>
         <p className="text-xs font-semibold tracking-wide text-neutral-100">
-          OpenGamma update ready — restart to apply the latest enhancements.
+          Open Gamma update ready — restart to apply the latest enhancements.
         </p>
         <button
           onClick={handleRestart}

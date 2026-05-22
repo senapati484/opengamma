@@ -62,8 +62,8 @@
   },
   "build": {
     "appId": "app.opengamma.desktop",
-    "productName": "OpenGamma",
-    "copyright": "Copyright 2025 OpenGamma",
+    "productName": "Open Gamma",
+    "copyright": "Copyright 2025 Open Gamma",
     "files": [
       "dist/**/*",
       "dist-electron/**/*",

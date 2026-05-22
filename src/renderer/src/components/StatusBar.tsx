@@ -32,7 +32,7 @@ export const StatusBar: React.FC = () => {
       <div className="flex items-center gap-4 h-full">
         <div className="h-3 w-px bg-white/5" />
         <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-[0.2em] leading-none mt-0.5">
-          OpenGamma v1.0.0
+          Open Gamma v1.0.0
         </span>
       </div>
     </div>

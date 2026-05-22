@@ -1,17 +1,17 @@
-# 🎨 OpenGamma
+# 🎨 Open Gamma
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/Language-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Electron](https://img.shields.io/badge/Framework-Electron-47848F.svg)](https://www.electronjs.org/)
 [![Vite](https://img.shields.io/badge/Build%20Tool-Vite-646CFF.svg)](https://vite.dev/)
 
-> **OpenGamma** is the premier, open-source, local-first alternative to Gamma.app. Built on a modern Electron, React, and TypeScript desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security.
+> **Open Gamma** is the premier, open-source, local-first alternative to Gamma.app. Built on a modern Electron, React, and TypeScript desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security.
 
 ---
 
 ## 🚀 The Local-First Slide Architecture
 
-Unlike cloud-locked web SaaS platforms, OpenGamma keeps your creative data and presentation outlines where they belong: **on your hard drive**.
+Unlike cloud-locked web SaaS platforms, Open Gamma keeps your creative data and presentation outlines where they belong: **on your hard drive**.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -43,7 +43,7 @@ Outline your slides by writing a short description or pasting a complete text pr
 
 ### 🎨 Premium HSL-Tailored Design Systems
 
-OpenGamma comes packed with professional CSS-in-JS themes. Select from beautiful modern, high-contrast, tech, neon-accented, or geometric style sets. Every component respects global typography and color variables dynamically mapped in CSS.
+Open Gamma comes packed with professional CSS-in-JS themes. Select from beautiful modern, high-contrast, tech, neon-accented, or geometric style sets. Every component respects global typography and color variables dynamically mapped in CSS.
 
 ### 📖 The Visual Booklet Editor
 
@@ -83,7 +83,7 @@ Press the **Help & Shortcuts** button `(?)` in the Left Panel footer or use thes
 
 ## 🛠️ Project Setup & Installation
 
-Follow these quick commands to install, run, and package OpenGamma on your local system:
+Follow these quick commands to install, run, and package Open Gamma on your local system:
 
 ### 1. Prerequisites
 

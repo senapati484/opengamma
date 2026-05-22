@@ -337,7 +337,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                       />
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg border border-white/5 bg-white/5">
-                      <span className="text-sm text-white">Add OpenGamma footer</span>
+                      <span className="text-sm text-white">Add Open Gamma footer</span>
                       <input
                         type="checkbox"
                         checked={addReferralFooter}
@@ -353,7 +353,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             {activeTab === 'about' && (
               <div className="space-y-8 animate-fade-in">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-2">About OpenGamma</h2>
+                  <h2 className="text-xl font-bold text-white mb-2">About Open Gamma</h2>
                   <p className="text-sm text-neutral-500">Application information and updates.</p>
                 </div>
 
@@ -384,7 +384,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                 <div className="text-center text-[11px] text-neutral-600">
                   Built with Electron, React & Framer Motion.
                   <br />
-                  Copyright © 2026 OpenGamma Team.
+                  Copyright © 2026 Open Gamma Team.
                 </div>
               </div>
             )}

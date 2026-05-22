@@ -1,5 +1,5 @@
 appId: com.opengamma.app
-productName: opengamma
+productName: Open Gamma
 directories:
   buildResources: build
 files:
@@ -33,7 +33,7 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: OpenGamma Team (https://opengamma.vercel.app)
+  maintainer: Open Gamma Team (https://opengamma.vercel.app)
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}

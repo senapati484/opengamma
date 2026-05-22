@@ -76,7 +76,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 Help & Keyboard Shortcuts
               </h2>
               <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
-                Learn how to maximize your presentation workflow in OpenGamma
+                Learn how to maximize your presentation workflow in Open Gamma
               </p>
             </div>
           </div>
@@ -173,7 +173,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 Local-First & Open Source Alternative
               </h4>
               <p className="text-[10px] text-neutral-400 leading-relaxed font-medium">
-                OpenGamma runs completely locally with SQLite and built-in CSS/Reveal.js tools. Your
+                Open Gamma runs completely locally with SQLite and built-in CSS/Reveal.js tools. Your
                 data remains fully secure on your hard drive, allowing zero-latency custom
                 modifications and private presentations without expensive cloud subscription gates.
               </p>
@@ -183,7 +183,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         <div className="p-4 bg-[#0d0d0d] border-t border-white/5 flex items-center justify-between text-[10px] text-neutral-600 font-bold tracking-widest uppercase">
-          <span>OpenGamma v1.0</span>
+          <span>Open Gamma v1.0</span>
           <span>
             Press{' '}
             <kbd className="px-1.5 py-0.5 rounded bg-white/5 text-neutral-400 font-mono text-[9px]">

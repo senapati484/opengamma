@@ -103,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div
             onClick={onGoToDashboard}
             className="cursor-pointer transition-transform hover:scale-105 active:scale-95 mb-2 mt-2"
-            title="OpenGamma Home"
+            title="Open Gamma Home"
           >
             <svg
               viewBox="0 0 24 24"
@@ -542,7 +542,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Trash</span>
           </button>
           <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold">
-            OpenGamma
+            Open Gamma
           </span>
         </div>
       </div>

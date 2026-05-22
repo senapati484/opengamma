@@ -188,7 +188,7 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>${presentation.title || 'OpenGamma Presentation'}</title>
+    <title>${presentation.title || 'Open Gamma Presentation'}</title>
 
     <!-- Reveal.js Core Stylesheets -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
@@ -356,7 +356,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>${presentation.title || 'OpenGamma Presentation'}</title>
+    <title>${presentation.title || 'Open Gamma Presentation'}</title>
 
     <!-- Reveal.js Core Stylesheets -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />

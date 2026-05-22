@@ -16,7 +16,7 @@ function createWindow(): BrowserWindow {
     minWidth: 1024,
     minHeight: 600,
     show: false,
-    title: 'OpenGamma',
+    title: 'Open Gamma',
     titleBarStyle: 'hidden',
     backgroundColor: '#0d0d0d',
     trafficLightPosition: { x: 14, y: 10 },
@@ -88,7 +88,7 @@ app.whenReady().then(() => {
   initUpdater()
   if (process.platform === 'darwin') {
     app.setAboutPanelOptions({
-      applicationName: 'OpenGamma',
+      applicationName: 'Open Gamma',
       applicationVersion: app.getVersion(),
       copyright: 'Copyright © 2026 OpenGamma Team',
       credits: 'Built with React, Electron & Reveal.js'

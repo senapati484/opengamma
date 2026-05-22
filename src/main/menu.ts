@@ -128,7 +128,7 @@ export function createApplicationMenu(mainWindow: BrowserWindow): void {
     role: 'help',
     submenu: [
       {
-        label: 'OpenGamma Website',
+        label: 'Open Gamma Website',
         click: async (): Promise<void> => {
           const { shell } = await import('electron')
           await shell.openExternal('https://opengamma.vercel.app')

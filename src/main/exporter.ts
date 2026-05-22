@@ -39,7 +39,7 @@ export async function exportToPptx(presentation: Presentation, filePath: string)
   // 2. Set presentation properties
   pptx.layout = 'LAYOUT_16x9' // Matches coordinates 10 x 5.625 viewport perfectly
   pptx.title = presentation.title || 'Presentation'
-  pptx.author = 'OpenGamma'
+  pptx.author = 'Open Gamma'
 
   // 3. Resolve theme matching the presentation
   const themeId = presentation.theme
