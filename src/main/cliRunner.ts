@@ -121,7 +121,7 @@ export async function generateWithCLI(
     console.log(`[cliRunner] Spawning ${cliId} at path: ${cliPath} cwd: ${workDir}`)
 
     const child = spawn(cliPath, args, {
-      shell: false,
+      shell: process.platform === 'win32',
       cwd: workDir,
       env: {
         ...process.env,
@@ -294,7 +294,7 @@ export async function runResearchWithCLI(
     console.log(`[cliRunner] Spawning CLI for research: ${cliId} cwd: ${workDir}`)
 
     const child = spawn(cliPath, args, {
-      shell: false,
+      shell: process.platform === 'win32',
       cwd: workDir,
       env: {
         ...process.env,

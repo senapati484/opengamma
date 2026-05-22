@@ -1062,8 +1062,9 @@ export function registerIpcHandlers(): void {
     }
 
     try {
-      // Check if the binary is executable
-      await fs.promises.access(cliPath, fs.constants.X_OK)
+      // Check if the binary is executable/accessible (X_OK is not supported on Windows)
+      const isWin = process.platform === 'win32'
+      await fs.promises.access(cliPath, isWin ? fs.constants.F_OK : fs.constants.X_OK)
 
       // Try to get version info
       const { promisify } = require('util')

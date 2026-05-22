@@ -138,7 +138,7 @@ export function createApplicationMenu(mainWindow: BrowserWindow): void {
         label: 'GitHub Repository',
         click: async (): Promise<void> => {
           const { shell } = await import('electron')
-          await shell.openExternal('https://github.com/senapati484/opengamma')
+          await shell.openExternal('https://github.com/senapati484/opengemma')
         }
       }
     ]

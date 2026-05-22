@@ -88,10 +88,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
   // Close theme dropdown on outside click
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      if (
-        themeDropdownRef.current &&
-        !themeDropdownRef.current.contains(e.target as Node)
-      ) {
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(e.target as Node)) {
         setShowThemeDropdown(false)
       }
     }
@@ -141,7 +138,10 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
       const slideTitle = activeSlide.title || ''
       const slideBullets = activeSlide.bullets || []
       const bulletText = slideBullets.length > 0 ? slideBullets[0] : ''
-      const cleanBullet = bulletText.replace(/<[^>]*>/g, '').substring(0, 80).trim()
+      const cleanBullet = bulletText
+        .replace(/<[^>]*>/g, '')
+        .substring(0, 80)
+        .trim()
 
       if (slideTitle && cleanBullet) {
         generatedPrompt = `A professional visual representing: ${slideTitle} - ${cleanBullet}. Clean, modern corporate style illustration, minimalist vector art, premium design system aesthetics.`
@@ -166,7 +166,8 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
 
     // Ultimate fallback if nothing is entered
     if (!generatedPrompt) {
-      generatedPrompt = 'Abstract modern tech background, minimalist vector art, glowing neon accents, clean geometric shapes'
+      generatedPrompt =
+        'Abstract modern tech background, minimalist vector art, glowing neon accents, clean geometric shapes'
       assetName = 'Abstract Tech'
     }
 

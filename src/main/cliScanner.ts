@@ -28,8 +28,17 @@ async function resolveCommandPath(command: string): Promise<string | null> {
   const cmd = isWin ? `where ${command}` : `which ${command}`
   try {
     const { stdout } = await execAsync(cmd)
-    const lines = stdout.trim().split('\n')
-    return lines[0]?.trim() || null
+    const lines = stdout
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+    if (isWin) {
+      // Prioritize executables and batch files on Windows (which can actually run under CMD)
+      const prioritized = lines.find((line) => /\.(cmd|bat|exe)$/i.test(line))
+      return prioritized || lines[0] || null
+    }
+    return lines[0] || null
   } catch (e) {
     return null
   }

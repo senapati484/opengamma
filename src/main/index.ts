@@ -20,8 +20,8 @@ function createWindow(): BrowserWindow {
     titleBarStyle: 'hidden',
     backgroundColor: '#0d0d0d',
     trafficLightPosition: { x: 14, y: 10 },
-    // Show icon on Linux; macOS and Windows handle this via app bundle / exe
-    ...(process.platform === 'linux' ? { icon } : {}),
+    // Show icon on Windows and Linux; macOS handles this via app bundle
+    ...(process.platform !== 'darwin' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true, // renderer cannot access Node internals

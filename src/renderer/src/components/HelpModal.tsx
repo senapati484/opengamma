@@ -173,8 +173,8 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 Local-First & Open Source Alternative
               </h4>
               <p className="text-[10px] text-neutral-400 leading-relaxed font-medium">
-                Open Gamma runs completely locally with SQLite and built-in CSS/Reveal.js tools. Your
-                data remains fully secure on your hard drive, allowing zero-latency custom
+                Open Gamma runs completely locally with SQLite and built-in CSS/Reveal.js tools.
+                Your data remains fully secure on your hard drive, allowing zero-latency custom
                 modifications and private presentations without expensive cloud subscription gates.
               </p>
             </div>
