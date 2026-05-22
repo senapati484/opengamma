@@ -167,6 +167,16 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
   const revealThemeName = theme.revealTheme || 'white'
   const cssTokens = theme.cssTokens || ''
 
+  let width = 1280
+  let height = 720
+  if (presentation.aspectRatio === '9:16') {
+    width = 720
+    height = 1280
+  } else if (presentation.aspectRatio === '1:1') {
+    width = 960
+    height = 960
+  }
+
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -213,8 +223,180 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
         slideNumber: 'c/t',
         transition: 'fade',
         transitionSpeed: 'fast',
-        width: 1280,
-        height: 720,
+        width: ${width},
+        height: ${height},
+        margin: 0
+      });
+    </script>
+  </body>
+</html>`
+}
+
+function compilePrintHtml(presentation: Presentation, theme: Theme, options: any): string {
+  const slidesHtml = presentation.slides
+    .map((slide) => {
+      let slideContent = slide.html.trim()
+      if (!slideContent.startsWith('<section')) {
+        slideContent = `<section>${slideContent}</section>`
+      }
+      
+      // If notes are enabled and exist, inject them in the format Reveal.js expects: <aside class="notes">
+      if (options.includeSpeakerNotes && slide.notes) {
+        if (!slideContent.includes('class="notes"') && !slideContent.includes('class=\'notes\'')) {
+          const lastIndex = slideContent.lastIndexOf('</section>')
+          if (lastIndex !== -1) {
+            slideContent = slideContent.substring(0, lastIndex) + 
+              `<aside class="notes">${slide.notes}</aside>` + 
+              slideContent.substring(lastIndex)
+          }
+        }
+      }
+      
+      return slideContent
+    })
+    .join('\n')
+
+  const revealThemeName = theme.revealTheme || 'white'
+  const cssTokens = theme.cssTokens || ''
+
+  // Typography Overrides
+  let typographyStyles = ''
+  let extraFontsImport = ''
+  
+  if (options.headingFont && options.headingFont !== 'original') {
+    extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${options.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
+    typographyStyles += `
+      .reveal h1, .reveal h2, .reveal h3, .reveal .accent {
+        font-family: '${options.headingFont}', sans-serif !important;
+      }
+    `
+  }
+  if (options.bodyFont && options.bodyFont !== 'original') {
+    extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${options.bodyFont.replace(/\s+/g, '+')}:wght@400;600&display=swap');\n`
+    typographyStyles += `
+      .reveal p, .reveal li, .reveal td, .reveal th, .reveal div, .reveal span {
+        font-family: '${options.bodyFont}', sans-serif !important;
+      }
+    `
+  }
+
+  // Preset styles (original, ink-saver, monochromatic)
+  let presetStyles = ''
+  if (options.preset === 'ink-saver') {
+    presetStyles = `
+      html, body, .reveal, .reveal .slides, .reveal section, .reveal .slide-background, .reveal .slide-background-content {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        background-image: none !important;
+        color: #111111 !important;
+      }
+      .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal p, .reveal li, .reveal td, .reveal th, .reveal span, .reveal div, .reveal strong, .reveal em {
+        color: #111111 !important;
+        background: none !important;
+        -webkit-text-fill-color: #111111 !important;
+        text-shadow: none !important;
+      }
+      .reveal .accent, .reveal strong, .reveal a {
+        color: #0047ff !important;
+        -webkit-text-fill-color: #0047ff !important;
+      }
+      .reveal .cta-block {
+        background: #f3f4f6 !important;
+        color: #111111 !important;
+        border: 1px solid #e5e7eb !important;
+      }
+      .reveal table, .reveal th, .reveal td {
+        border-color: #e5e7eb !important;
+      }
+    `
+  } else if (options.preset === 'monochromatic') {
+    presetStyles = `
+      html, body, .reveal {
+        filter: grayscale(100%) !important;
+      }
+    `
+  }
+
+  // Margin spacing
+  let marginPadding = '60px'
+  if (options.margins === 'none') marginPadding = '0px'
+  else if (options.margins === 'small') marginPadding = '30px'
+  else if (options.margins === 'medium') marginPadding = '60px'
+  else if (options.margins === 'large') marginPadding = '100px'
+
+  const marginStyles = `
+    .reveal .slides > section {
+      padding: ${marginPadding} !important;
+      box-sizing: border-box !important;
+    }
+  `
+
+  let width = 1280
+  let height = 720
+  if (presentation.aspectRatio === '9:16') {
+    width = 720
+    height = 1280
+  } else if (presentation.aspectRatio === '1:1') {
+    width = 960
+    height = 960
+  }
+
+  const showNotesConfig = options.includeSpeakerNotes ? "'separate-page'" : 'false'
+  const slideNumberConfig = options.showPageNumbers ? "'c/t'" : 'false'
+
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>${presentation.title || 'OpenGamma Presentation'}</title>
+
+    <!-- Reveal.js Core Stylesheets -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+    <!-- Reveal.js Base Theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/${revealThemeName}.css" id="reveal-theme" />
+
+    <style>
+      ${theme.fontImport || ''}
+      ${extraFontsImport}
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      .reveal {
+        width: 100%;
+        height: 100%;
+      }
+      ${cssTokens}
+      ${typographyStyles}
+      ${presetStyles}
+      ${marginStyles}
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        ${slidesHtml}
+      </div>
+    </div>
+
+    <!-- Reveal.js Core Library -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: false,
+        controls: false,
+        progress: false,
+        slideNumber: ${slideNumberConfig},
+        showNotes: ${showNotesConfig},
+        transition: 'none',
+        transitionSpeed: 'fast',
+        width: ${width},
+        height: ${height},
         margin: 0
       });
     </script>
@@ -379,6 +561,7 @@ export function registerIpcHandlers(): void {
         showFolderOnly?: boolean
         filePath?: string
         exportFormat?: string
+        exportOptions?: any
       }
     ) => {
       const window = getMainWindow()
@@ -425,7 +608,252 @@ export function registerIpcHandlers(): void {
         }
       }
 
-      // Case 3: PowerPoint (.pptx) Export
+      // Case 3: PDF Booklet Export
+      if (presentation.exportFormat === 'pdf') {
+        const defaultPath = join(desktopPath, `${slug}.pdf`)
+        const { canceled, filePath } = await dialog.showSaveDialog(window, {
+          title: 'Export PDF Booklet',
+          defaultPath,
+          filters: [{ name: 'PDF Document', extensions: ['pdf'] }]
+        })
+
+        if (canceled || !filePath) return { success: false }
+
+        let printWindow: BrowserWindow | null = null
+        let tempHtmlPath = ''
+
+        try {
+          const exportOptions = presentation.exportOptions || {}
+          const htmlContent = compilePrintHtml(presentation, theme, exportOptions)
+          tempHtmlPath = join(app.getPath('temp'), `print-${presentation.id}-${Date.now()}.html`)
+          await fs.promises.writeFile(tempHtmlPath, htmlContent, 'utf-8')
+
+          let width = 1280
+          let height = 720
+          if (presentation.aspectRatio === '9:16') {
+            width = 720
+            height = 1280
+          } else if (presentation.aspectRatio === '1:1') {
+            width = 960
+            height = 960
+          }
+
+          printWindow = new BrowserWindow({
+            show: false,
+            width,
+            height,
+            webPreferences: {
+              nodeIntegration: false,
+              contextIsolation: true
+            }
+          })
+
+          await printWindow.loadURL(`file://${tempHtmlPath}?print-pdf`)
+          
+          // Give Reveal.js ample time to load libraries from CDN and perform calculations
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+
+          const pdfOptions = {
+            pageSize: exportOptions.pageSize || 'A4',
+            landscape: exportOptions.orientation !== 'portrait',
+            printBackground: true,
+            margins: {
+              top: 0,
+              bottom: 0,
+              left: 0,
+              right: 0
+            }
+          }
+
+          const data = await printWindow.webContents.printToPDF(pdfOptions)
+          await fs.promises.writeFile(filePath, data)
+
+          shell.showItemInFolder(filePath)
+          return { success: true, path: filePath }
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'PDF export failed'
+          console.error('[ipc] EXPORT_PDF error:', message)
+          return { success: false, error: message }
+        } finally {
+          if (printWindow) {
+            printWindow.destroy()
+          }
+          if (tempHtmlPath) {
+            try {
+              await fs.promises.unlink(tempHtmlPath)
+            } catch (e) {
+              console.error('Failed to unlink temporary HTML file:', e)
+            }
+          }
+        }
+      }
+
+      // Case 4: PNG slideshow folder Export
+      if (presentation.exportFormat === 'png') {
+        const { canceled, filePaths } = await dialog.showOpenDialog(window, {
+          title: 'Select Destination Folder for PNG Images',
+          properties: ['openDirectory', 'createDirectory']
+        })
+
+        if (canceled || !filePaths || filePaths.length === 0) return { success: false }
+
+        const outputFolder = filePaths[0]
+        let captureWindow: BrowserWindow | null = null
+        let tempHtmlPath = ''
+
+        try {
+          const exportOptions = presentation.exportOptions || {}
+          const htmlContent = compilePrintHtml(presentation, theme, { ...exportOptions, includeSpeakerNotes: false })
+          tempHtmlPath = join(app.getPath('temp'), `png-${presentation.id}-${Date.now()}.html`)
+          await fs.promises.writeFile(tempHtmlPath, htmlContent, 'utf-8')
+
+          let width = 1280
+          let height = 720
+          if (presentation.aspectRatio === '9:16') {
+            width = 720
+            height = 1280
+          } else if (presentation.aspectRatio === '1:1') {
+            width = 960
+            height = 960
+          }
+
+          captureWindow = new BrowserWindow({
+            show: false,
+            width,
+            height,
+            webPreferences: {
+              nodeIntegration: false,
+              contextIsolation: true
+            }
+          })
+
+          await captureWindow.loadURL(`file://${tempHtmlPath}`)
+
+          // Wait for page load and styling layouts
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+
+          const slidesCount = presentation.slides.length
+          for (let i = 0; i < slidesCount; i++) {
+            await captureWindow.webContents.executeJavaScript(`Reveal.slide(${i});`)
+            // Wait for slide transition layout stabilizing
+            await new Promise((resolve) => setTimeout(resolve, 500))
+
+            const image = await captureWindow.webContents.capturePage()
+            const buffer = image.toPNG()
+            const pngPath = join(outputFolder, `slide_${i + 1}.png`)
+            await fs.promises.writeFile(pngPath, buffer)
+          }
+
+          shell.openPath(outputFolder)
+          return { success: true, path: outputFolder }
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'PNG export failed'
+          console.error('[ipc] EXPORT_PNG error:', message)
+          return { success: false, error: message }
+        } finally {
+          if (captureWindow) {
+            captureWindow.destroy()
+          }
+          if (tempHtmlPath) {
+            try {
+              await fs.promises.unlink(tempHtmlPath)
+            } catch (e) {
+              console.error('Failed to unlink temporary HTML file:', e)
+            }
+          }
+        }
+      }
+
+      // Case 4b: Markdown Presentation Outline Export
+      if (presentation.exportFormat === 'md') {
+        const defaultPath = join(desktopPath, `${slug}.md`)
+        const { canceled, filePath } = await dialog.showSaveDialog(window, {
+          title: 'Export Markdown Presentation Outline',
+          defaultPath,
+          filters: [{ name: 'Markdown Outline', extensions: ['md'] }]
+        })
+
+        if (canceled || !filePath) return { success: false }
+
+        try {
+          let mdContent = `# ${presentation.title || 'Untitled Presentation'}\n\n`
+          
+          if (presentation.prompt) {
+            mdContent += `> **Source Prompt**: ${presentation.prompt}\n\n`
+          }
+          
+          mdContent += `**Theme**: ${theme.name || 'Default'}\n`
+          mdContent += `**Aspect Ratio**: ${presentation.aspectRatio || '16:9'}\n\n`
+          mdContent += `---\n\n`
+
+          presentation.slides.forEach((slide, index) => {
+            mdContent += `## Slide ${index + 1}: ${slide.title || 'Untitled Slide'}\n\n`
+            
+            const slideText = cleanHtmlToMarkdown(slide.html)
+            if (slideText) {
+              mdContent += `${slideText}\n\n`
+            }
+
+            const exportOptions = presentation.exportOptions || {}
+            if (exportOptions.includeSpeakerNotes && slide.notes) {
+              mdContent += `### Speaker Notes\n`
+              mdContent += `> *${slide.notes.trim().replace(/\n/g, '\n> *')}*\n\n`
+            }
+
+            mdContent += `---\n\n`
+          })
+
+          await fs.promises.writeFile(filePath, mdContent.trim() + '\n', 'utf-8')
+          shell.showItemInFolder(filePath)
+          return { success: true, path: filePath }
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Markdown export failed'
+          console.error('[ipc] EXPORT_MD error:', message)
+          return { success: false, error: message }
+        }
+      }
+
+      // Case 4c: Raw JSON Schema Export
+      if (presentation.exportFormat === 'json') {
+        const defaultPath = join(desktopPath, `${slug}.json`)
+        const { canceled, filePath } = await dialog.showSaveDialog(window, {
+          title: 'Export Raw JSON Presentation Schema',
+          defaultPath,
+          filters: [{ name: 'JSON Document', extensions: ['json'] }]
+        })
+
+        if (canceled || !filePath) return { success: false }
+
+        try {
+          const jsonSchema = {
+            $schema: 'https://opengamma.app/schemas/presentation.schema.json',
+            id: presentation.id,
+            title: presentation.title,
+            prompt: presentation.prompt,
+            theme: presentation.theme,
+            aspectRatio: presentation.aspectRatio,
+            createdAt: presentation.createdAt,
+            slides: presentation.slides.map((s) => ({
+              id: s.id,
+              index: s.index,
+              title: s.title,
+              slideType: s.slideType,
+              html: s.html,
+              notes: s.notes
+            }))
+          }
+
+          await fs.promises.writeFile(filePath, JSON.stringify(jsonSchema, null, 2), 'utf-8')
+          shell.showItemInFolder(filePath)
+          return { success: true, path: filePath }
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'JSON export failed'
+          console.error('[ipc] EXPORT_JSON error:', message)
+          return { success: false, error: message }
+        }
+      }
+
+      // Case 5: PowerPoint (.pptx) Export
       const defaultPath = join(desktopPath, `${slug}.pptx`)
       const { canceled, filePath } = await dialog.showSaveDialog(window, {
         title: 'Export PowerPoint Presentation',
@@ -649,4 +1077,46 @@ export function registerIpcHandlers(): void {
     }
   })
 }
+
+/**
+ * Clean up HTML formatting tags to produce a clean Markdown representation
+ * for presentation outlines and slide text content.
+ */
+function cleanHtmlToMarkdown(html: string): string {
+  if (!html) return ''
+
+  let md = html
+
+  // 1. Replace blockquotes
+  md = md.replace(/<blockquote>([\s\S]*?)<\/blockquote>/gi, (_, content) => {
+    return '\n> ' + content.trim().replace(/\n/g, '\n> ') + '\n'
+  })
+
+  // 2. Replace headers
+  md = md.replace(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi, (_, content) => {
+    return `\n### ${content.replace(/<[^>]*>/g, '').trim()}\n`
+  })
+
+  // 3. Replace list items
+  md = md.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, (_, content) => {
+    return `* ${content.replace(/<[^>]*>/g, '').trim()}\n`
+  })
+
+  // 4. Replace paragraphs
+  md = md.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, (_, content) => {
+    return `\n${content.replace(/<[^>]*>/g, '').trim()}\n`
+  })
+
+  // 5. Replace line breaks
+  md = md.replace(/<br\s*\/?>/gi, '\n')
+
+  // 6. Strip any other HTML tags
+  md = md.replace(/<[^>]*>/g, '')
+
+  // 7. Clean up multiple empty lines
+  md = md.replace(/\n{3,}/g, '\n\n')
+
+  return md.trim()
+}
+
 

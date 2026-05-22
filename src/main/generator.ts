@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { GenerationConfig, Slide, StreamStatus, Presentation, AppSettings } from '../renderer/src/types'
 import { buildSystemPrompt } from './contextLoader'
 import { parseSlideHtml, extractCompleteSlides } from './slideParser'
-import { generateWithCLI } from './cliRunner'
+import { generateWithCLI, runResearchWithCLI } from './cliRunner'
 import { scanInstalledCLIs } from './cliScanner'
 
 /**
@@ -87,8 +87,35 @@ export async function generatePresentation(
       throw new Error(`Selected CLI agent "${settings.selectedCliId}" not found or not installed.`)
     }
 
+    // Step 1: Research Pass
+    onStatus({
+      state: 'researching',
+      slidesGenerated: 0,
+      totalSlides: config.slideCount
+    })
+    
+    let researchOutline = ''
+    try {
+      researchOutline = await runResearchWithCLI(config, selected.executablePath, selected.id, abortSignal)
+    } catch (researchErr) {
+      console.warn('[generator] CLI Research pass failed, falling back to direct prompt:', researchErr)
+    }
+
+    if (abortSignal.aborted) {
+      onStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+      return
+    }
+
+    // Step 2: Slide Layout Generation
+    const configWithOutline = {
+      ...config,
+      prompt: researchOutline 
+        ? `Here is a detailed research blueprint outline for the presentation:\n\n${researchOutline}\n\nUse this research outline to guide the slide generation. Ensure you generate exactly ${config.slideCount} slides with high-fidelity Reveal.js structures matching the blueprint.\n\nOriginal prompt: ${config.prompt}`
+        : config.prompt
+    }
+
     return generateWithCLI(
-      config, 
+      configWithOutline, 
       selected.executablePath, 
       selected.id,
       onSlide, 
@@ -101,6 +128,39 @@ export async function generatePresentation(
 
   let attempt = 1
   const maxAttempts = 2
+  let researchOutline = ''
+
+  if (settings.executionMode === 'anthropic-api') {
+    // Step 1: Research Pass
+    onStatus({
+      state: 'researching',
+      slidesGenerated: 0,
+      totalSlides: config.slideCount
+    })
+
+    try {
+      if (abortSignal.aborted) {
+        throw new Error('AbortError')
+      }
+      const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
+      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const researchResponse = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 2048,
+        system: researchSystemPrompt,
+        messages: [{ role: 'user', content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.` }]
+      })
+      if (researchResponse.content && researchResponse.content[0] && researchResponse.content[0].type === 'text') {
+        researchOutline = researchResponse.content[0].text
+      }
+    } catch (researchErr: any) {
+      if (researchErr.message === 'AbortError' || abortSignal.aborted) {
+        onStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+        return
+      }
+      console.warn('[generator] API Research pass failed, falling back to direct prompt:', researchErr)
+    }
+  }
 
   while (attempt <= maxAttempts) {
     try {
@@ -117,11 +177,15 @@ export async function generatePresentation(
         totalSlides: config.slideCount
       })
 
+      const finalUserPrompt = researchOutline
+        ? `Here is a detailed research blueprint outline for the presentation:\n\n${researchOutline}\n\nUse this research outline to guide the slide generation. Ensure you generate exactly ${config.slideCount} slides with high-fidelity Reveal.js structures matching the blueprint.\n\nOriginal prompt: ${config.prompt}`
+        : config.prompt
+
       const stream = await anthropic.messages.stream({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 8192,
         system: systemPrompt,
-        messages: [{ role: 'user', content: config.prompt }]
+        messages: [{ role: 'user', content: finalUserPrompt }]
       })
 
       let buffer = ''

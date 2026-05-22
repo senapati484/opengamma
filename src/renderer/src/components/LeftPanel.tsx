@@ -25,6 +25,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
   const [title, setTitle] = useState('')
   const [slideCount, setSlideCount] = useState(settings?.defaultSlideCount || 8)
   const [themeId, setThemeId] = useState(settings?.defaultTheme || 'startup-gradient')
+  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | '1:1'>('16:9')
 
   const handleGenerate = () => {
     if (!prompt.trim()) return
@@ -32,7 +33,8 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
     onGenerate({
       prompt: title ? `Title: ${title}\n\n${prompt}` : prompt,
       theme,
-      slideCount
+      slideCount,
+      aspectRatio
     })
   }
 
@@ -107,6 +109,36 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                 onChange={e => setSlideCount(parseInt(e.target.value))}
                 className="w-full h-1 bg-[#222] rounded-full appearance-none accent-[#e8ff57] cursor-pointer outline-none"
               />
+            </div>
+
+            {/* Aspect Ratio Selector */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">Aspect Ratio</label>
+              <div className="grid grid-cols-3 gap-1 bg-[#1a1a1a] p-1 rounded-xl border border-white/5">
+                {(['16:9', '9:16', '1:1'] as const).map(ratio => (
+                  <button
+                    key={ratio}
+                    type="button"
+                    onClick={() => setAspectRatio(ratio)}
+                    className={`py-2 text-[10px] font-black rounded-lg transition-all flex flex-col items-center justify-center gap-1 ${
+                      aspectRatio === ratio
+                        ? 'bg-[#e8ff57] text-black shadow-lg shadow-[#e8ff57]/10'
+                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {ratio === '16:9' && (
+                      <div className={`w-4 h-2.5 rounded-sm border ${aspectRatio === ratio ? 'border-black' : 'border-neutral-500'} bg-transparent`} />
+                    )}
+                    {ratio === '9:16' && (
+                      <div className={`w-2.5 h-4 rounded-sm border ${aspectRatio === ratio ? 'border-black' : 'border-neutral-500'} bg-transparent`} />
+                    )}
+                    {ratio === '1:1' && (
+                      <div className={`w-3.5 h-3.5 rounded-sm border ${aspectRatio === ratio ? 'border-black' : 'border-neutral-500'} bg-transparent`} />
+                    )}
+                    <span>{ratio}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Prompt Area */}

@@ -32,6 +32,15 @@ export function initDb(): void {
         created_at INTEGER
       )
     `)
+
+    // Schema Migration: Add aspect_ratio column if it does not exist
+    try {
+      db.exec('ALTER TABLE presentations ADD COLUMN aspect_ratio TEXT')
+      console.log('[db] Database schema migrated successfully: aspect_ratio column verified.')
+    } catch (e) {
+      // Column already exists or table is empty
+    }
+
     console.log('[db] SQLite presentations table initialised successfully.')
   } catch (err: unknown) {
     console.error('[db] Failed to initialise SQLite database:', err)
@@ -58,8 +67,8 @@ export function savePresentation(p: Presentation): void {
   const database = getDb()
   const stmt = database.prepare(`
     INSERT OR REPLACE INTO presentations (
-      id, title, prompt, theme_id, slide_count, slides_json, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   stmt.run(
@@ -69,9 +78,10 @@ export function savePresentation(p: Presentation): void {
     p.theme || '',
     p.slides ? p.slides.length : 0,
     JSON.stringify(p.slides || []),
-    p.createdAt || Date.now()
+    p.createdAt || Date.now(),
+    p.aspectRatio || '16:9'
   )
-  console.log(`[db] Presentation saved successfully — ID: ${p.id}, Title: "${p.title}"`)
+  console.log(`[db] Presentation saved successfully — ID: ${p.id}, Title: "${p.title}", Ratio: ${p.aspectRatio || '16:9'}`)
 }
 
 /**
@@ -83,7 +93,7 @@ export function savePresentation(p: Presentation): void {
 export function getHistory(limit = 50): Presentation[] {
   const database = getDb()
   const stmt = database.prepare(`
-    SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at
+    SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio
     FROM presentations
     ORDER BY created_at DESC
     LIMIT ?
@@ -97,6 +107,7 @@ export function getHistory(limit = 50): Presentation[] {
     slide_count: number
     slides_json: string
     created_at: number
+    aspect_ratio?: string
   }>
 
   return rows.map((row) => ({
@@ -105,7 +116,8 @@ export function getHistory(limit = 50): Presentation[] {
     prompt: row.prompt || '',
     theme: row.theme_id || '',
     slides: JSON.parse(row.slides_json || '[]'),
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    aspectRatio: (row.aspect_ratio as any) || '16:9'
   }))
 }
 
@@ -130,7 +142,7 @@ export function deletePresentation(id: string): void {
 export function getPresentationById(id: string): Presentation | null {
   const database = getDb()
   const stmt = database.prepare(`
-    SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at
+    SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio
     FROM presentations
     WHERE id = ?
   `)
@@ -144,6 +156,7 @@ export function getPresentationById(id: string): Presentation | null {
         slide_count: number
         slides_json: string
         created_at: number
+        aspect_ratio?: string
       }
     | undefined
 
@@ -155,6 +168,7 @@ export function getPresentationById(id: string): Presentation | null {
     prompt: row.prompt || '',
     theme: row.theme_id || '',
     slides: JSON.parse(row.slides_json || '[]'),
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    aspectRatio: (row.aspect_ratio as any) || '16:9'
   }
 }

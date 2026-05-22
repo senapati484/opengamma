@@ -8,9 +8,22 @@ export interface SlidePreviewProps {
   activeTheme: Theme
   /** Stream status reflecting the current Claude generation lifecycle state */
   status: StreamStatus
+  /** Selected aspect ratio */
+  aspectRatio?: '9:16' | '16:9' | '1:1'
+  /** The active slide index for synchronization */
+  activeSlideIndex?: number
+  /** Callback triggered when the active slide changes inside the preview */
+  onActiveSlideChange?: (index: number) => void
 }
 
-export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme, status }) => {
+export const SlidePreview: React.FC<SlidePreviewProps> = ({
+  slides,
+  activeTheme,
+  status,
+  aspectRatio = '16:9',
+  activeSlideIndex,
+  onActiveSlideChange
+}) => {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const injectedSlideIds = useRef<string[]>([])
@@ -46,12 +59,55 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
       }
       injectedSlideIds.current.push(slide.id)
     })
+
+    if (typeof activeSlideIndex === 'number') {
+      contentWindow.postMessage({ type: 'GO_TO_SLIDE', index: activeSlideIndex }, '*')
+    }
   }
 
   // ─── Handle Iframe Load ──────────────────────────────────────────────────
   const handleLoad = () => {
     setIsLoaded(true)
   }
+
+  // ─── Watch aspect ratio changes ──────────────────────────────────────────
+  useEffect(() => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+    const contentWindow = iframe.contentWindow
+    if (!contentWindow || !isLoaded) return
+
+    contentWindow.postMessage({ type: 'SET_ASPECT_RATIO', aspectRatio }, '*')
+  }, [isLoaded, aspectRatio])
+
+  // ─── Watch activeSlideIndex changes ──────────────────────────────────────
+  useEffect(() => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+    const contentWindow = iframe.contentWindow
+    if (!contentWindow || !isLoaded) return
+    if (typeof activeSlideIndex === 'number') {
+      contentWindow.postMessage({ type: 'GO_TO_SLIDE', index: activeSlideIndex }, '*')
+    }
+  }, [isLoaded, activeSlideIndex])
+
+  // ─── Listen for SLIDE_CHANGED events from iframe ───────────────────────────
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data
+      if (!data || typeof data !== 'object') return
+      if (data.type === 'SLIDE_CHANGED' && typeof data.index === 'number') {
+        if (data.index !== activeSlideIndex && onActiveSlideChange) {
+          onActiveSlideChange(data.index)
+        }
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => {
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [activeSlideIndex, onActiveSlideChange])
 
   // ─── Watch loaded state and activeTheme ────────────────────────────────────
   useEffect(() => {
@@ -119,12 +175,19 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
         }
         injectedSlideIds.current.push(slide.id)
       }
+      
+      if (typeof activeSlideIndex === 'number') {
+        contentWindow.postMessage({ type: 'GO_TO_SLIDE', index: activeSlideIndex }, '*')
+      }
     }
-  }, [slides, isLoaded])
+  }, [slides, isLoaded, activeSlideIndex])
+
+  // Resolve standard css aspect ratio fraction
+  const cssAspectRatio = aspectRatio === '9:16' ? '9/16' : aspectRatio === '1:1' ? '1/1' : '16/9'
 
   return (
     <div
-      className="relative w-full h-full min-h-[400px] overflow-hidden rounded-xl border transition-all duration-500 no-drag"
+      className="relative w-full h-full min-h-[400px] overflow-hidden rounded-xl border transition-all duration-500 no-drag flex items-center justify-center"
       style={{
         boxShadow: `0 20px 40px -12px rgba(0, 0, 0, 0.12), 0 0 0 1px ${activeTheme?.colors?.accent || '#0047ff'}10`,
         borderColor: `${activeTheme?.colors?.accent || '#0047ff'}20`,
@@ -136,13 +199,20 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
         ref={iframeRef}
         src="/reveal-host.html"
         onLoad={handleLoad}
-        className="w-full h-full border-none outline-none bg-transparent"
+        style={{
+          aspectRatio: cssAspectRatio,
+          width: '100%',
+          height: '100%',
+          maxWidth: '100%',
+          maxHeight: '100%'
+        }}
+        className="border-none outline-none bg-transparent transition-all duration-500"
         title="Live Slide Preview"
       />
 
       {/* Generation Status Badge */}
-      {status.state === 'generating' && (
-        <div className="absolute top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full border bg-white/95 border-neutral-200 text-neutral-700 shadow-lg backdrop-blur-sm transition-all duration-300">
+      {(status.state === 'generating' || status.state === 'researching') && (
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full border bg-white/95 border-neutral-200 text-neutral-700 shadow-lg backdrop-blur-sm transition-all duration-300 animate-fade-in">
           <div
             className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin"
             style={{
@@ -150,7 +220,9 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({ slides, activeTheme,
             }}
           />
           <span className="text-xs font-semibold tracking-wide">
-            Generating slide {status.slidesGenerated} of {status.totalSlides}
+            {status.state === 'researching'
+              ? 'Analyzing topic & researching content...'
+              : `Generating slide ${status.slidesGenerated} of ${status.totalSlides}`}
           </span>
         </div>
       )}

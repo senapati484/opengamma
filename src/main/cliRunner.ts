@@ -31,9 +31,18 @@ function buildCliArgs(
       // We spawn from an empty temp directory with GEMINI_CLI_TRUST_WORKSPACE=true,
       // so Gemini has nothing to scan and responds purely to the prompt.
       // The -p flag is what triggers non-interactive/headless mode.
+      // We pipe the long prompt via stdin to avoid macOS/CLI argument limit/parsing issues.
       return {
-        args: ['-p', fullPrompt, '--approval-mode', 'plan', '-o', 'text', '--skip-trust'],
-        useStdin: false
+        args: [
+          '-p',
+          'Generate slides based on the system prompt and instructions provided on stdin.',
+          '--approval-mode',
+          'plan',
+          '-o',
+          'text',
+          '--skip-trust'
+        ],
+        useStdin: true
       }
 
     case 'claude-code':
@@ -88,14 +97,16 @@ export async function generateWithCLI(
   abortSignal: AbortSignal
 ): Promise<void> {
   const systemPrompt = await buildSystemPrompt(config)
-  const tempFile = join(os.tmpdir(), `og-context-${randomUUID()}.md`)
+  
+  // Resolve real path of temporary directory to prevent symlink-based uv_cwd spawn errors on macOS
+  const rawTmpDir = os.tmpdir()
+  const tmpDir = fs.existsSync(rawTmpDir) ? fs.realpathSync(rawTmpDir) : rawTmpDir
+  const tempFile = join(tmpDir, `og-context-${randomUUID()}.md`)
 
   // ── Create an empty isolated workspace for the CLI agent ─────────────────
   // CRITICAL: Gemini CLI scans the current working directory for project context.
-  // If spawned from the opengamma project folder, it behaves as a coding agent
-  // for that project instead of responding to the slide-generation prompt.
   // Spawning from a fresh empty temp dir prevents any workspace scanning.
-  const workDir = join(os.tmpdir(), `og-gen-${randomUUID()}`)
+  const workDir = join(tmpDir, `og-gen-${randomUUID()}`)
 
   try {
     // Write system prompt to temp file (used by claude-code --system-prompt-file)
@@ -154,7 +165,7 @@ export async function generateWithCLI(
       return cleaned
     }
 
-    return new Promise((resolve, reject) => {
+    return await new Promise<void>((resolve, reject) => {
       child.stdout.on('data', (data: Buffer) => {
         const chunk = data.toString('utf-8')
         buffer += chunk
@@ -252,6 +263,90 @@ export async function generateWithCLI(
     })
   } finally {
     // Cleanup temp files and the isolated workspace directory
+    await fs.promises.unlink(tempFile).catch(() => {})
+    await fs.promises.rm(workDir, { recursive: true, force: true }).catch(() => {})
+  }
+}
+
+/**
+ * Runs a local AI CLI tool to conduct research on a topic before generating slides.
+ */
+export async function runResearchWithCLI(
+  config: GenerationConfig,
+  cliPath: string,
+  cliId: string,
+  abortSignal: AbortSignal
+): Promise<string> {
+  const rawTmpDir = os.tmpdir()
+  const tmpDir = fs.existsSync(rawTmpDir) ? fs.realpathSync(rawTmpDir) : rawTmpDir
+  const tempFile = join(tmpDir, `og-context-research-${randomUUID()}.md`)
+  const workDir = join(tmpDir, `og-gen-research-${randomUUID()}`)
+
+  const systemPrompt = `You are a researcher preparing a presentation blueprint. Your task is to perform deep research and create a detailed structured outline for a ${config.slideCount}-slide presentation about: "${config.prompt}". Do NOT output any HTML code or Reveal.js tags. Provide structured concepts, target layouts, and key points in pure Markdown.`
+
+  try {
+    await fs.promises.writeFile(tempFile, systemPrompt, 'utf-8')
+    await fs.promises.mkdir(workDir, { recursive: true })
+
+    const userPrompt = `Please research the topic: "${config.prompt}" and provide a slide-by-slide concepts plan for a ${config.slideCount}-slide presentation.`
+    const { args, useStdin } = buildCliArgs(cliId, systemPrompt, userPrompt, tempFile)
+
+    console.log(`[cliRunner] Spawning CLI for research: ${cliId} cwd: ${workDir}`)
+
+    const child = spawn(cliPath, args, {
+      shell: false,
+      cwd: workDir,
+      env: {
+        ...process.env,
+        NO_COLOR: '1',
+        FORCE_COLOR: '0',
+        GEMINI_CLI_TRUST_WORKSPACE: 'true'
+      }
+    })
+
+    if (useStdin) {
+      const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${userPrompt}`
+      child.stdin.write(fullPrompt)
+      child.stdin.end()
+    }
+
+    return await new Promise<string>((resolve, reject) => {
+      let output = ''
+
+      child.stdout.on('data', (data: Buffer) => {
+        output += data.toString('utf-8')
+      })
+
+      child.stderr.on('data', (data: Buffer) => {
+        const line = data.toString('utf-8').trim()
+        if (line) {
+          console.error(`[cliRunner-research] ${cliId} stderr:`, line)
+        }
+      })
+
+      child.on('close', (_code: number | null) => {
+        if (abortSignal.aborted) {
+          resolve(output)
+          return
+        }
+        resolve(output)
+      })
+
+      child.on('error', (err: Error) => {
+        console.error(`[cliRunner-research] Spawn error:`, err.message)
+        reject(err)
+      })
+
+      abortSignal.addEventListener('abort', () => {
+        try {
+          child.kill('SIGKILL')
+        } catch {
+          // Already dead
+        }
+        resolve(output)
+      })
+    })
+  } finally {
     await fs.promises.unlink(tempFile).catch(() => {})
     await fs.promises.rm(workDir, { recursive: true, force: true }).catch(() => {})
   }

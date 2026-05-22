@@ -1,6 +1,9 @@
 node_modules
 dist
+dist-electron
 out
 .DS_Store
 .eslintcache
 *.log*
+*.tsbuildinfo
+*.pptx

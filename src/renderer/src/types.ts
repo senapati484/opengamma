@@ -1,5 +1,18 @@
 // ─── Slide ────────────────────────────────────────────────────────────────────
 
+export interface SlideStyle {
+  titleSize?: number     // Font size in em unit
+  contentSize?: number   // Font size in em unit
+  textAlign?: 'left' | 'center' | 'right'
+  headingFont?: string
+  bodyFont?: string
+  bgColor?: string
+  textColor?: string
+  accentColor?: string
+  accentText?: string    // Highlight/subtitle paragraph
+  layout?: 'title' | 'content' | 'split' | 'data' | 'cta'
+}
+
 export interface Slide {
   /** Unique identifier for the slide */
   id: string
@@ -15,6 +28,8 @@ export interface Slide {
   index: number
   /** List of bullet points extracted from the slide content */
   bullets?: string[]
+  /** Custom styles configured for this slide */
+  style?: SlideStyle
 }
 
 // ─── Presentation ─────────────────────────────────────────────────────────────
@@ -32,6 +47,8 @@ export interface Presentation {
   createdAt: number
   /** Derived from the title slide — used in history & exports */
   title: string
+  /** Aspect ratio of the presentation slides */
+  aspectRatio?: '9:16' | '16:9' | '1:1'
 }
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
@@ -70,11 +87,13 @@ export interface GenerationConfig {
   theme: Theme
   /** Requested number of slides — must be between 4 and 20 */
   slideCount: number
+  /** Aspect ratio configuration */
+  aspectRatio?: '9:16' | '16:9' | '1:1'
 }
 
 // ─── StreamStatus ─────────────────────────────────────────────────────────────
 
-export type StreamState = 'idle' | 'generating' | 'done' | 'error'
+export type StreamState = 'idle' | 'researching' | 'generating' | 'done' | 'error'
 
 export interface StreamStatus {
   /** Current generation lifecycle state */

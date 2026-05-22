@@ -11,7 +11,9 @@ import { SettingsPanel } from './components/SettingsPanel'
 import { useStream } from './lib/useStream'
 import { useElectron } from './lib/useElectron'
 import { themes } from './lib/themes'
-import type { Presentation, GenerationConfig, Slide } from './types'
+import type { Presentation, GenerationConfig, Slide, SlideStyle } from './types'
+import { compileSlideHtml } from './lib/slideCompiler'
+import { PdfEditorView } from './components/PdfEditorView'
 
 function AppInner() {
   const electronAPI = useElectron()
@@ -38,7 +40,7 @@ function AppInner() {
   const [activeSlideIndex, setActiveSlideIndex] = useState(0)
   const [editingSlide, setEditingSlide] = useState<Slide | null>(null)
   const [showSettings, setShowSettings] = useState(false)
-  const [currentView, setCurrentView] = useState<'home' | 'editor'>('home')
+  const [currentView, setCurrentView] = useState<'home' | 'editor' | 'export-studio'>('home')
 
   // Effect: Auto-save streamed presentation when generation finishes
   const hasSavedRef = useRef(false)
@@ -51,6 +53,7 @@ function AppInner() {
         id: crypto.randomUUID(),
         prompt: currentConfigRef.current?.prompt || '',
         theme: activeTheme?.id || 'startup-gradient',
+        aspectRatio: currentConfigRef.current?.aspectRatio || '16:9',
         slides: streamedSlides,
         createdAt: Date.now(),
         title: streamedSlides[0]?.title || 'Untitled Presentation'
@@ -65,7 +68,7 @@ function AppInner() {
 
   // Effect: Sync active presentation with streamed slides during generation
   useEffect(() => {
-    if (status.state === 'generating') {
+    if (status.state === 'generating' || status.state === 'researching') {
       setActivePresentation(null)
       setCurrentView('editor')
     }
@@ -126,12 +129,27 @@ function AppInner() {
     resetStream()
   }
 
-  const handleSaveEditedSlide = async (title: string, bullets: string[], notes: string) => {
+  const handleSaveEditedSlide = async (
+    title: string,
+    bullets: string[],
+    notes: string,
+    layout: 'title' | 'content' | 'split' | 'data' | 'cta',
+    style: SlideStyle
+  ) => {
     if (!editingSlide || !activePresentation) return
 
     const updatedSlides = activePresentation.slides.map((s) => {
       if (s.id === editingSlide.id) {
-        return { ...s, title, bullets, notes }
+        const compiledHtml = compileSlideHtml(title, bullets, notes, layout, style, s.id)
+        return {
+          ...s,
+          title,
+          bullets,
+          notes,
+          slideType: layout,
+          style,
+          html: compiledHtml
+        }
       }
       return s
     })
@@ -149,15 +167,14 @@ function AppInner() {
     }
   }
 
-  const handleExport = async (pres: Presentation) => {
-    try {
-      const result = await electronAPI.exportPptx(pres)
-      if (result.success) {
-        console.log(`Exported to: ${result.path}`)
-      }
-    } catch (err) {
-      console.error('[App] Export error:', err)
+  const handleExport = (pres: Presentation) => {
+    setActivePresentation(pres)
+    const themeId = pres.theme
+    const matchedTheme = themes.find((t) => t.id === themeId)
+    if (matchedTheme) {
+      setActiveTheme(matchedTheme)
     }
+    setCurrentView('export-studio')
   }
 
   return (
@@ -171,15 +188,17 @@ function AppInner() {
       <div className="flex-1 flex min-h-0 overflow-hidden">
         
         {/* Left Control Panel */}
-        <LeftPanel 
-          onGenerate={handleGenerate}
-          isGenerating={status.state === 'generating'}
-          onCancel={cancel}
-          settings={settings}
-          onOpenSettings={() => setShowSettings(true)}
-          onOpenHelp={() => {}}
-          onImport={() => {}}
-        />
+        {currentView !== 'export-studio' && (
+          <LeftPanel 
+            onGenerate={handleGenerate}
+            isGenerating={status.state === 'generating' || status.state === 'researching'}
+            onCancel={cancel}
+            settings={settings}
+            onOpenSettings={() => setShowSettings(true)}
+            onOpenHelp={() => {}}
+            onImport={() => {}}
+          />
+        )}
 
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col min-w-0 bg-[#0d0d0d] relative">
@@ -192,6 +211,14 @@ function AppInner() {
               onExport={handleExport}
               onNew={() => {}}
             />
+          ) : currentView === 'export-studio' ? (
+            activePresentation && (
+              <PdfEditorView 
+                presentation={activePresentation}
+                activeTheme={activeTheme || themes[0]}
+                onBack={() => setCurrentView('editor')}
+              />
+            )
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden animate-fade-in">
               
@@ -211,6 +238,11 @@ function AppInner() {
                    <div className="text-xs font-black text-white uppercase tracking-wider truncate max-w-[300px]">
                      {activePresentation?.title || currentConfigRef.current?.prompt?.split('\n')[0] || 'Generating Presentation...'}
                    </div>
+                   {status.state === 'researching' && (
+                     <div className="text-[9px] font-bold text-[#57e8ff] uppercase tracking-widest animate-pulse">
+                       Researching & outlining concepts...
+                     </div>
+                   )}
                    {status.state === 'generating' && (
                      <div className="text-[9px] font-bold text-[#e8ff57] uppercase tracking-widest animate-pulse">
                        Writing slide {status.slidesGenerated} of {status.totalSlides}
@@ -236,6 +268,9 @@ function AppInner() {
                     slides={displayedSlides}
                     activeTheme={activeTheme || themes[0]}
                     status={status}
+                    aspectRatio={activePresentation?.aspectRatio || currentConfigRef.current?.aspectRatio || '16:9'}
+                    activeSlideIndex={activeSlideIndex}
+                    onActiveSlideChange={setActiveSlideIndex}
                   />
                 </ErrorBoundary>
               </div>
@@ -263,6 +298,7 @@ function AppInner() {
       
       <SlideEditModal 
         slide={editingSlide}
+        activeTheme={activeTheme || themes[0]}
         isOpen={editingSlide !== null}
         onSave={handleSaveEditedSlide}
         onClose={() => setEditingSlide(null)}
