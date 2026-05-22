@@ -1,4 +1,4 @@
-appId: com.opengemma.app
+appId: com.opengamma.app
 productName: opengamma
 directories:
   buildResources: build
@@ -33,11 +33,11 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: OpenGamma Team (https://opengemma.vercel.app)
+  maintainer: OpenGamma Team (https://opengamma.vercel.app)
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
   provider: generic
-  url: https://opengemma.vercel.app/api/updates
+  url: https://opengamma.vercel.app/api/updates
