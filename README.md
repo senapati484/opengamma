@@ -1,17 +1,49 @@
-# 🎨 Open Gamma
+# Open Gamma — the open-source Gamma.app alternative
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/Language-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Electron](https://img.shields.io/badge/Framework-Electron-47848F.svg)](https://www.electronjs.org/)
-[![Vite](https://img.shields.io/badge/Build%20Tool-Vite-646CFF.svg)](https://vite.dev/)
+> **Open Gamma is the premium, open-source, local-first alternative to [Gamma.app](https://gamma.app/).** Built on a modern Electron, React, and TypeScript desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security and BYOK model flexibility.
 
-> **Open Gamma** is the premier, open-source, local-first alternative to Gamma.app. Built on a modern Electron, React, and TypeScript desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security.
+> [!IMPORTANT]
+> ### 🚀 Local AI Slide Generation & Complete Privacy
+> All draft presentations, generated assets, slide history, and system settings are securely stored locally inside a lightweight, fast, local SQLite database. No cloud lock-in, no recurring subscription fees.
+
+<p align="center">
+  <a href="https://github.com/sayansenapati/opengamma/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/sayansenapati/opengamma?style=for-the-badge&labelColor=0d1117&color=ffd700&logo=github&logoColor=white" /></a>
+  <a href="https://github.com/sayansenapati/opengamma/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/sayansenapati/opengamma?style=for-the-badge&labelColor=0d1117&color=2ecc71&logo=github&logoColor=white" /></a>
+  <a href="https://github.com/sayansenapati/opengamma/issues"><img alt="Issues" src="https://img.shields.io/github/issues/sayansenapati/opengamma?style=for-the-badge&labelColor=0d1117&color=ff6b6b&logo=github&logoColor=white" /></a>
+  <a href="https://github.com/sayansenapati/opengamma/pulls"><img alt="Pull Requests" src="https://img.shields.io/github/issues-pr/sayansenapati/opengamma?style=for-the-badge&labelColor=0d1117&color=9b59b6&logo=github&logoColor=white" /></a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square" /></a>
+  <a href="#core-features"><img alt="Features" src="https://img.shields.io/badge/features-interactive%20editor%20%2B%20exporter-orange?style=flat-square" /></a>
+  <a href="#keyboard-shortcuts"><img alt="Shortcuts" src="https://img.shields.io/badge/shortcuts-global%20hotkeys-teal?style=flat-square" /></a>
+</p>
+
+---
+
+## 💡 Why this exists
+
+Gamma.app showed how powerful AI-driven slide compilation and content scaffolding can be. However, it remains a closed-source, cloud-locked platform with paid tiers and potential privacy concerns for sensitive business proposals, pitches, or educational material.
+
+**Open Gamma is the open-source alternative.** Built to run locally on your laptop, it provides an artifact-first visual editor, offline SQLite database storage, dynamic theme switching, and robust PDF/PPTX/HTML exporters. You bring your own API keys (BYOK) for local or cloud AI models, keeping complete ownership of your data and creations.
+
+---
+
+## ⚡ At a Glance
+
+| Feature | Description |
+|---|---|
+| **AI Outline Scaffolding** | Paste prompts or outlines to auto-generate styled slide booklets in real-time. |
+| **High-Fidelity Exporter** | Export to premium PDF booklets, editable native PowerPoint (`.pptx`), static images (`.png`), or interactive standalone web pages (`.html`). |
+| **Theme Engine** | Instantly switch between modern, high-contrast, tech, neon-accented, or geometric style systems with dynamic HSL mapping. |
+| **Visual Booklet Editor** | Rearrange layouts (`Title`, `Content`, `Split Grid`, `Data Metrics`, `CTA`), control typography, override slide colors, and edit content in-place. |
+| **Privacy First** | 100% offline-compatible database (SQLite) for draft preservation and history tracking. |
 
 ---
 
 ## 🚀 The Local-First Slide Architecture
 
-Unlike cloud-locked web SaaS platforms, Open Gamma keeps your creative data and presentation outlines where they belong: **on your hard drive**.
+Open Gamma acts as a compiler that takes structured text outlines and transforms them into interactive slides.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -35,90 +67,45 @@ Unlike cloud-locked web SaaS platforms, Open Gamma keeps your creative data and 
 
 ---
 
-## ✨ Core Features
+## ⌨️ Keyboard Shortcuts
 
-### ⚡ AI-Powered Presentation Drafting
+Press the **Help & Shortcuts** `(?)` button in the app or use these shortcuts to speed up your design iterations:
 
-Outline your slides by writing a short description or pasting a complete text prompt. The generative system drafts structured slides, layouts, and slide-by-slide summaries in real-time.
-
-### 🎨 Premium HSL-Tailored Design Systems
-
-Open Gamma comes packed with professional CSS-in-JS themes. Select from beautiful modern, high-contrast, tech, neon-accented, or geometric style sets. Every component respects global typography and color variables dynamically mapped in CSS.
-
-### 📖 The Visual Booklet Editor
-
-- **Layout Scaffolding**: Effortlessly toggle layouts between `Title`, `Content`, `Split Grid`, `Data Metrics`, and `Call to Action (CTA)`.
-- **Dynamic Sizing**: Fine-tune individual headings, body font sizes, and layout parameters.
-- **Premium Typography**: Select heading and body fonts from a hand-picked Google Font catalog featuring **Inter**, **Outfit**, **Space Grotesk**, **Playfair Display**, **Syne**, and **Sora**.
-- **Color Customization**: Easily override theme colors or background styling per slide.
-
-### 📦 Robust Multi-Format Export Studio
-
-- **High-Fidelity PDF Exporter**: Generate beautifully formatted booklet reports with pixel-perfect pagination, print-media queries, and customized aspect-ratio controls.
-- **Editable PowerPoint (`.pptx`)**: Direct conversion of slide text, bullets, and geometric grids into native editable PowerPoint presentations.
-- **Static Images (`.png`)**: Single-click rendering of full presentations into static image packs.
-- **Self-Contained Web Pages (`.html`)**: Share your interactive slides online as highly compatible, responsive standalone web pages.
-
-### 🔒 Privacy-First Offline Database
-
-All draft presentations, generated assets, slide history, and system settings are securely stored locally inside a lightweight, fast, local SQLite database.
-
----
-
-## ⌨️ Keyboard Shortcuts Cheat Sheet
-
-Press the **Help & Shortcuts** button `(?)` in the Left Panel footer or use these handy keyboard combinations to accelerate your creative workflow:
-
-| Shortcut                               | Action                                 | Scope                      |
-| :------------------------------------- | :------------------------------------- | :------------------------- |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd> | Generate slides / submit draft outline | Main Form / Editor         |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>E</kbd>     | Open the Export Studio                 | Global                     |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>S</kbd>     | Save current slide editing changes     | Slide Edit Modal           |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>,</kbd>     | Open Settings & Configurations         | Global                     |
-| <kbd>Escape</kbd>                      | Close active modal / cancel generation | Global                     |
-| <kbd>←</kbd> / <kbd>→</kbd>            | Navigate slide history                 | Canvas (Focus independent) |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>Z</kbd>     | Undo last slide modification           | Canvas (Focus independent) |
+| Shortcut | Action | Scope |
+|---|---|---|
+| <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd> | Generate slides / submit draft outline | Main Form / Editor |
+| <kbd>⌘ / Ctrl</kbd> + <kbd>E</kbd> | Open the Export Studio | Global |
+| <kbd>⌘ / Ctrl</kbd> + <kbd>S</kbd> | Save current slide editing changes | Slide Edit Modal |
+| <kbd>⌘ / Ctrl</kbd> + <kbd>,</kbd> | Open Settings & Configurations | Global |
+| <kbd>Escape</kbd> | Close active modal / cancel generation | Global |
+| <kbd>←</kbd> / <kbd>→</kbd> | Navigate slide history | Canvas (Focus independent) |
+| <kbd>⌘ / Ctrl</kbd> + <kbd>Z</kbd> | Undo last slide modification | Canvas (Focus independent) |
 
 ---
 
 ## 🛠️ Project Setup & Installation
 
-Follow these quick commands to install, run, and package Open Gamma on your local system:
+Follow these commands to install, run, and package Open Gamma on your local system:
 
-### 1. Prerequisites
-
-Make sure you have [Node.js](https://nodejs.org/) (v18+ recommended) and `npm` installed.
-
-### 2. Installation
+### 1. Installation
 
 Clone the repository and install developer dependencies:
-
 ```bash
 git clone https://github.com/sayansenapati/opengamma.git
 cd opengamma
 npm install
 ```
 
-### 3. Running in Development
+### 2. Running in Development
 
 Start the hot-reloading dev server for both the Electron main process and React renderer:
-
 ```bash
 npm run dev
 ```
 
-### 4. Running TypeScript Checks
+### 3. Compiling & Packaging
 
-Ensure all TypeScript definitions and configurations are correct:
-
-```bash
-npm run typecheck
-```
-
-### 5. Compiling & Packaging for Production
-
-Compile the React code and package the native desktop applications:
-
+Build production bundles and package native desktop installers:
 ```bash
 # General Production Build
 npm run build
@@ -164,18 +151,12 @@ opengamma/
 
 ---
 
-## 🤝 Contribution Guidelines
+## 🤝 Contributing
 
-We love open-source contributions! If you'd like to improve OpenGamma:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/amazing-feature`).
-3. Commit your changes with clear descriptions (`git commit -m 'Add support for view transitions'`).
-4. Push your branch (`git push origin feature/amazing-feature`).
-5. Open a Pull Request.
+Contributions are welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md) to get started.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
