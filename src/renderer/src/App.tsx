@@ -14,6 +14,9 @@ import { themes } from './lib/themes'
 import type { Presentation, GenerationConfig, Slide, SlideStyle } from './types'
 import { compileSlideHtml } from './lib/slideCompiler'
 import { PdfEditorView } from './components/PdfEditorView'
+import { useKeyboardShortcuts } from './lib/useKeyboardShortcuts'
+import { HelpModal } from './components/HelpModal'
+
 
 function AppInner() {
   const electronAPI = useElectron()
@@ -40,7 +43,44 @@ function AppInner() {
   const [activeSlideIndex, setActiveSlideIndex] = useState(0)
   const [editingSlide, setEditingSlide] = useState<Slide | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const [currentView, setCurrentView] = useState<'home' | 'editor' | 'export-studio'>('home')
+
+  const displayedSlides = activePresentation ? activePresentation.slides : streamedSlides
+
+  // Global Keyboard Shortcuts
+  useKeyboardShortcuts({
+    onExport: () => {
+      if (activePresentation) {
+        handleExport(activePresentation)
+      }
+    },
+    onOpenSettings: () => {
+      setShowSettings(true)
+    },
+    onEscape: () => {
+      if (status.state === 'generating' || status.state === 'researching') {
+        cancel()
+      } else if (editingSlide) {
+        setEditingSlide(null)
+      } else if (showSettings) {
+        setShowSettings(false)
+      } else if (showHelp) {
+        setShowHelp(false)
+      }
+    },
+    onPrevSlide: () => {
+      if (currentView === 'editor' && activeSlideIndex > 0) {
+        setActiveSlideIndex((prev) => prev - 1)
+      }
+    },
+    onNextSlide: () => {
+      if (currentView === 'editor' && activeSlideIndex < displayedSlides.length - 1) {
+        setActiveSlideIndex((prev) => prev + 1)
+      }
+    }
+  })
+
 
   // Effect: Auto-save streamed presentation when generation finishes
   const hasSavedRef = useRef(false)
@@ -73,8 +113,6 @@ function AppInner() {
       setCurrentView('editor')
     }
   }, [status.state])
-
-  const displayedSlides = activePresentation ? activePresentation.slides : streamedSlides
 
   // Ensure activeSlideIndex stays in bounds
   useEffect(() => {
@@ -195,7 +233,7 @@ function AppInner() {
             onCancel={cancel}
             settings={settings}
             onOpenSettings={() => setShowSettings(true)}
-            onOpenHelp={() => {}}
+            onOpenHelp={() => setShowHelp(true)}
             onImport={() => {}}
           />
         )}
@@ -295,6 +333,8 @@ function AppInner() {
       <StatusBar />
 
       <SettingsPanel isOpen={showSettings} onClose={() => setShowSettings(false)} />
+      
+      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
       
       <SlideEditModal 
         slide={editingSlide}
