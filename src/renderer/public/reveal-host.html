@@ -9,11 +9,11 @@
     <title>OpenGamma Reveal.js Host</title>
 
     <!-- Reveal.js Core Stylesheets -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
-    <!-- Default Reveal.js Base Theme (white) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+    <!-- Default Reveal.js Base Theme (black for dark blending) -->
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css"
+      href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css"
       id="reveal-theme"
     />
 
@@ -25,7 +25,7 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        background-color: transparent;
+        background-color: #0d0d0d;
       }
       .reveal {
         width: 100%;
@@ -37,28 +37,27 @@
 
       /* Design System Token Mappings */
       .reveal {
-        background: var(--og-slide-bg) !important;
-        color: var(--og-slide-text) !important;
+        background: var(--og-slide-bg, #0d0d0d) !important;
+        color: var(--og-slide-text, #bab6ae) !important;
       }
       .reveal h1,
       .reveal h2,
       .reveal h3 {
-        font-family: var(--og-slide-font-heading) !important;
-        color: var(--og-slide-text) !important;
+        font-family: var(--og-slide-font-heading, sans-serif) !important;
+        color: var(--og-slide-text, #ede9e1) !important;
       }
       .reveal p,
       .reveal li {
-        font-family: var(--og-slide-font-body) !important;
-        font-size: var(--og-slide-body-size) !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
       }
       .reveal section .accent {
-        color: var(--og-slide-accent) !important;
+        color: var(--og-slide-accent, #e8ff57) !important;
       }
       .reveal section strong {
-        color: var(--og-slide-accent) !important;
+        color: var(--og-slide-accent, #e8ff57) !important;
       }
       .reveal .slide-background {
-        background: var(--og-slide-bg) !important;
+        background: var(--og-slide-bg, #0d0d0d) !important;
       }
     </style>
   </head>
@@ -70,7 +69,7 @@
     </div>
 
     <!-- Reveal.js Core Library -->
-    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 
     <script>
       // 1. Initialize Reveal.js with specified configurations
@@ -83,7 +82,7 @@
         transitionSpeed: 'fast',
         width: 1280,
         height: 720,
-        margin: 0
+        margin: 0.1
       })
 
       // 2. Expose window.addSlide(html: string) to append new slides and navigate
@@ -165,7 +164,7 @@
               if (themeLink) {
                 themeLink.setAttribute(
                   'href',
-                  'https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/' + data.themeName + '.css'
+                  'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/' + data.themeName + '.css'
                 )
               }
             }
@@ -184,6 +183,25 @@
               Reveal.slide(data.index)
             }
             break
+          
+          case 'REPLACE_SLIDE':
+             if (typeof data.index === 'number' && typeof data.html === 'string') {
+                const slidesContainer = document.querySelector('.reveal .slides')
+                if (slidesContainer) {
+                   const sections = slidesContainer.querySelectorAll('section')
+                   const target = sections[data.index]
+                   if (target) {
+                      const temp = document.createElement('div')
+                      temp.innerHTML = data.html
+                      const newSec = temp.firstElementChild || document.createElement('section')
+                      if (!temp.firstElementChild) newSec.innerHTML = data.html
+                      slidesContainer.replaceChild(newSec, target)
+                      Reveal.sync()
+                      Reveal.slide(data.index)
+                   }
+                }
+             }
+             break
         }
       })
     </script>

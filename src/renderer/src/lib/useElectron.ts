@@ -1,4 +1,4 @@
-import type { Slide, Presentation, StreamStatus, GenerationConfig, AppSettings } from '../types'
+import type { Slide, Presentation, StreamStatus, GenerationConfig, AppSettings, DetectedCLI } from '../types'
 
 // ─── ElectronAPI type (re-used from the ambient declaration) ──────────────────
 // Pull the type off the global Window so this hook stays in sync with
@@ -95,7 +95,9 @@ const browserMock: ElectronAPI = {
       claudeApiKey: '',
       defaultTheme: 'midnight',
       defaultSlideCount: 8,
-      defaultNarrative: 'explainer'
+      defaultNarrative: 'explainer',
+      executionMode: 'local-cli',
+      selectedCliId: ''
     }
   },
 
@@ -108,9 +110,19 @@ const browserMock: ElectronAPI = {
     return noop
   },
 
-  detectCliTools: async (): Promise<any[]> => {
-    console.warn('[useElectron] detectCliTools called outside Electron — returning []')
+  scanCLIs: async (): Promise<DetectedCLI[]> => {
+    console.warn('[useElectron] scanCLIs called outside Electron — returning []')
     return []
+  },
+
+  rescanCLIs: async (): Promise<DetectedCLI[]> => {
+    console.warn('[useElectron] rescanCLIs called outside Electron — returning []')
+    return []
+  },
+
+  getAppInfo: async () => {
+    console.warn('[useElectron] getAppInfo called outside Electron — returning mock')
+    return { version: '1.0.0', platform: 'browser', arch: 'arm64' }
   },
 
   testApiKey: async (apiKey: string): Promise<{ valid: boolean; message: string }> => {

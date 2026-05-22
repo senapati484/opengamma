@@ -5,7 +5,7 @@ import type {
   StreamStatus,
   GenerationConfig,
   AppSettings,
-  CliTool
+  DetectedCLI
 } from '../renderer/src/types'
 import { IpcChannels } from '../main/types'
 
@@ -42,8 +42,8 @@ export interface ElectronAPI {
   openFileDialog: (options?: any) => Promise<{ canceled: boolean; filePaths: string[] }>
 
   // ── CLI Tools ───────────────────────────────────────────────────────────────
-  /** Auto-detect installed system CLI tools */
-  detectCliTools: () => Promise<CliTool[]>
+  scanCLIs: () => Promise<DetectedCLI[]>
+  rescanCLIs: () => Promise<DetectedCLI[]>
 
   // ── API Key Validation ──────────────────────────────────────────────────────
   /** Test if a Claude API key is valid */
@@ -63,6 +63,9 @@ export interface ElectronAPI {
   onUpdateReady: (callback: () => void) => () => void
   /** Request the main process to restart and install the downloaded update. */
   restartAndInstall: () => void
+
+  /** Get application metadata */
+  getAppInfo: () => Promise<{ version: string; platform: string; arch: string }>
 }
 
 const electronAPI: ElectronAPI = {
@@ -114,7 +117,8 @@ const electronAPI: ElectronAPI = {
   openFileDialog: (options) => ipcRenderer.invoke(IpcChannels.OPEN_FILE_DIALOG, options),
 
   // ── CLI Tools ───────────────────────────────────────────────────────────────
-  detectCliTools: () => ipcRenderer.invoke(IpcChannels.DETECT_CLI_TOOLS),
+  scanCLIs: () => ipcRenderer.invoke(IpcChannels.SCAN_CLIS),
+  rescanCLIs: () => ipcRenderer.invoke(IpcChannels.RESCAN_CLIS),
 
   // ── API Key Validation ──────────────────────────────────────────────────────
   testApiKey: (apiKey: string) =>
@@ -144,7 +148,9 @@ const electronAPI: ElectronAPI = {
 
   restartAndInstall: () => {
     ipcRenderer.send('updater:restart')
-  }
+  },
+
+  getAppInfo: () => ipcRenderer.invoke('app:get-info')
 }
 
 if (process.contextIsolated) {

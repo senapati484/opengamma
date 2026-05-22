@@ -98,12 +98,6 @@ export interface AppSettings {
   defaultSlideCount: number
   /** Narrative style to pre-select in the generation form */
   defaultNarrative: string
-  /** Local CLI tool selected (e.g. 'gemini', 'opencode', or empty/'claude') */
-  cliTool?: string
-  /** Path to the local CLI binary */
-  cliPath?: string
-  /** Custom model name/routing path to use for local CLI tool execution */
-  modelName?: string
   /** Path to default save folder for presentations */
   defaultSaveLocation?: string
   /** Whether to export speaker notes on PPTX files */
@@ -112,6 +106,11 @@ export interface AppSettings {
   addReferralFooter?: boolean
   /** Whether the onboarding experience has been fully completed */
   onboardingComplete?: boolean
+  
+  // Execution Mode (Fix 1)
+  executionMode: 'local-cli' | 'anthropic-api'
+  selectedCliId: string
+
   /** Local CLI temperature */
   cliTemperature?: number
   /** Local CLI max tokens */
@@ -128,13 +127,10 @@ export interface AppSettings {
 
 // ─── CLI Tool ─────────────────────────────────────────────────────────────────
 
-export interface CliTool {
-  /** The name of the binary */
+export interface DetectedCLI {
+  id: string
   name: string
-  /** The absolute path of the binary on the system */
-  path: string
-  /** The version string of the binary (for featured/known tools) */
-  version?: string
-  /** Whether this tool is highlighted/featured */
-  isFeatured: boolean
+  installed: boolean
+  executablePath: string | null
+  version: string | null
 }

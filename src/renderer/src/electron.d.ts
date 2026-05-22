@@ -12,7 +12,7 @@ import type {
   StreamStatus,
   GenerationConfig,
   AppSettings,
-  CliTool
+  DetectedCLI
 } from './types'
 
 // Re-declare (not re-export) the ElectronAPI interface here so this file is
@@ -71,8 +71,8 @@ interface ElectronAPI {
 
   // ── CLI Tools ───────────────────────────────────────────────────────────────
 
-  /** Auto-detect installed system CLI tools */
-  detectCliTools(): Promise<CliTool[]>
+  scanCLIs(): Promise<DetectedCLI[]>
+  rescanCLIs(): Promise<DetectedCLI[]>
 
   // ── API Key Validation ──────────────────────────────────────────────────────
 
@@ -95,6 +95,8 @@ interface ElectronAPI {
 
   /** Request the main process to restart and install the downloaded update. */
   restartAndInstall(): void
+
+  getAppInfo(): Promise<{ version: string; platform: string; arch: string }>
 }
 
 declare global {

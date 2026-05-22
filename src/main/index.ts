@@ -18,7 +18,8 @@ function createWindow(): BrowserWindow {
     show: false,
     title: 'OpenGamma',
     titleBarStyle: 'hidden',
-    ...(process.platform === 'darwin' ? { trafficLightPosition: { x: 18, y: 18 } } : {}),
+    backgroundColor: '#0d0d0d',
+    trafficLightPosition: { x: 14, y: 10 },
     // Show icon on Linux; macOS and Windows handle this via app bundle / exe
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -75,6 +76,13 @@ app.whenReady().then(() => {
   // Register all IPC handlers before creating the window so the renderer
   // never fires a channel that has no handler yet
   registerIpcHandlers()
+  
+  // Warm up the CLI tools cache
+  import('./cliScanner').then((scanner) => {
+    scanner.scanInstalledCLIs().catch(err => {
+      console.error('[main] Background CLI scan failed:', err)
+    })
+  })
 
   const mainWindow = createWindow()
   initUpdater()

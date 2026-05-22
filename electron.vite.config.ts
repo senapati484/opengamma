@@ -22,6 +22,10 @@ export default defineConfig({
     plugins: [react()],
     build: {
       outDir: 'dist'
-    }
+    },
+    optimizeDeps: {
+      exclude: ['reveal.js']
+    },
+    assetsInclude: ['**/*.md']
   }
 })

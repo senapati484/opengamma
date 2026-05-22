@@ -1,10 +1,9 @@
 import { ipcMain, dialog, BrowserWindow, app, shell } from 'electron'
 import { IpcChannels } from './types'
-import type { Presentation, AppSettings, StreamStatus, Theme, CliTool } from '../renderer/src/types'
+import type { Presentation, AppSettings, StreamStatus, Theme, DetectedCLI } from '../renderer/src/types'
 import { join } from 'path'
 import * as path from 'path'
 import * as fs from 'fs'
-import * as os from 'os'
 import { exec } from 'child_process'
 import { themes } from '../renderer/src/lib/themes'
 
@@ -68,13 +67,12 @@ async function getStore(): Promise<{
         defaultTheme: 'midnight',
         defaultSlideCount: 8,
         defaultNarrative: 'explainer',
-        cliTool: '',
-        cliPath: '',
-        modelName: '',
         defaultSaveLocation: '',
         includeSpeakerNotes: true,
         addReferralFooter: true,
         onboardingComplete: false,
+        executionMode: 'local-cli',
+        selectedCliId: '',
         cliTemperature: 0.7,
         cliMaxTokens: 2048,
         cliOutputMode: 'stream',
@@ -101,13 +99,12 @@ async function getStore(): Promise<{
         defaultTheme: 'midnight',
         defaultSlideCount: 8,
         defaultNarrative: 'explainer',
-        cliTool: '',
-        cliPath: '',
-        modelName: '',
         defaultSaveLocation: '',
         includeSpeakerNotes: true,
         addReferralFooter: true,
         onboardingComplete: false,
+        executionMode: 'local-cli',
+        selectedCliId: '',
         cliTemperature: 0.7,
         cliMaxTokens: 2048,
         cliOutputMode: 'stream',
@@ -240,12 +237,26 @@ export function registerIpcHandlers(): void {
 
     // Guard: require an API key or CLI tool before we generate
     const store = await getStore()
-    const cliTool = store.get('cliTool', '') as string
-    const cliPath = store.get('cliPath', '') as string
-    const apiKey = store.get('claudeApiKey', '') as string
-    const isCliMode = cliTool && cliTool !== 'claude'
+    const currentSettings: AppSettings = {
+      claudeApiKey: store.get('claudeApiKey', '') as string,
+      defaultTheme: store.get('defaultTheme', 'midnight') as string,
+      defaultSlideCount: store.get('defaultSlideCount', 8) as number,
+      defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
+      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api',
+      selectedCliId: store.get('selectedCliId', '') as string,
+      defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
+      includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
+      addReferralFooter: store.get('addReferralFooter', true) as boolean,
+      onboardingComplete: store.get('onboardingComplete', false) as boolean,
+      cliTemperature: store.get('cliTemperature', 0.7) as number,
+      cliMaxTokens: store.get('cliMaxTokens', 2048) as number,
+      cliOutputMode: store.get('cliOutputMode', 'stream') as 'stream' | 'buffered',
+      cliCustomArgs: store.get('cliCustomArgs', '') as string,
+      cliWorkingDir: store.get('cliWorkingDir', '') as string,
+      cliEnvVars: store.get('cliEnvVars', '') as string
+    }
 
-    if (!isCliMode && !apiKey.trim()) {
+    if (currentSettings.executionMode === 'anthropic-api' && !currentSettings.claudeApiKey.trim()) {
       pushStatus(window, {
         state: 'error',
         slidesGenerated: 0,
@@ -255,28 +266,14 @@ export function registerIpcHandlers(): void {
       return
     }
 
-    if (isCliMode) {
-      if (!cliPath) {
-        pushStatus(window, {
-          state: 'error',
-          slidesGenerated: 0,
-          totalSlides: config.slideCount ?? 0,
-          errorMessage:
-            'Local CLI tool is selected but no CLI path is configured. Please check your Settings.'
-        })
-        return
-      }
-      try {
-        await fs.promises.access(cliPath, fs.constants.X_OK)
-      } catch (err) {
-        pushStatus(window, {
-          state: 'error',
-          slidesGenerated: 0,
-          totalSlides: config.slideCount ?? 0,
-          errorMessage: `Local CLI tool path is invalid or binary is not executable at: ${cliPath}`
-        })
-        return
-      }
+    if (currentSettings.executionMode === 'local-cli' && !currentSettings.selectedCliId) {
+      pushStatus(window, {
+        state: 'error',
+        slidesGenerated: 0,
+        totalSlides: config.slideCount ?? 0,
+        errorMessage: 'Local CLI mode selected but no agent is picked in Settings.'
+      })
+      return
     }
 
     // Notify the renderer that generation is starting
@@ -287,10 +284,7 @@ export function registerIpcHandlers(): void {
     })
 
     try {
-      // generatePresentation streams individual slides via the onSlide callback.
-      // This function is stubbed in generator.ts and will be implemented in
-      // Session 03 with the actual Anthropic SDK streaming call.
-      await generatePresentation(config, apiKey, signal, (slide) => {
+      await generatePresentation(config, currentSettings, signal, (slide) => {
         if (signal.aborted) return
         // Push each slide to the renderer as it arrives
         window.webContents.send(IpcChannels.GENERATE_SLIDES, slide)
@@ -334,27 +328,35 @@ export function registerIpcHandlers(): void {
     IpcChannels.REGENERATE_SLIDE,
     async (_event, slideIndex: number, currentPresentation: Presentation) => {
       const store = await getStore()
-      const cliTool = store.get('cliTool', '') as string
-      const cliPath = store.get('cliPath', '') as string
-      const apiKey = store.get('claudeApiKey', '') as string
-      const isCliMode = cliTool && cliTool !== 'claude'
-
-      if (!isCliMode && !apiKey.trim()) {
-        throw new Error(
-          'No Claude API key configured. Add your key in Settings before regenerating.'
-        )
+      const currentSettings: AppSettings = {
+        claudeApiKey: store.get('claudeApiKey', '') as string,
+        defaultTheme: store.get('defaultTheme', 'midnight') as string,
+        defaultSlideCount: store.get('defaultSlideCount', 8) as number,
+        defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
+        executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api',
+        selectedCliId: store.get('selectedCliId', '') as string,
+        defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
+        includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
+        addReferralFooter: store.get('addReferralFooter', true) as boolean,
+        onboardingComplete: store.get('onboardingComplete', false) as boolean,
+        cliTemperature: store.get('cliTemperature', 0.7) as number,
+        cliMaxTokens: store.get('cliMaxTokens', 2048) as number,
+        cliOutputMode: store.get('cliOutputMode', 'stream') as 'stream' | 'buffered',
+        cliCustomArgs: store.get('cliCustomArgs', '') as string,
+        cliWorkingDir: store.get('cliWorkingDir', '') as string,
+        cliEnvVars: store.get('cliEnvVars', '') as string
       }
 
-      if (isCliMode) {
-        if (!cliPath) {
-          throw new Error(
-            'Local CLI tool is selected but no CLI path is configured. Please check your Settings.'
-          )
-        }
+      if (currentSettings.executionMode === 'anthropic-api' && !currentSettings.claudeApiKey.trim()) {
+        throw new Error('No Claude API key configured. Add your key in Settings before regenerating.')
+      }
+
+      if (currentSettings.executionMode === 'local-cli' && !currentSettings.selectedCliId) {
+        throw new Error('Local CLI mode selected but no agent is picked in Settings.')
       }
 
       return new Promise((resolve, reject) => {
-        regenerateSlide(slideIndex, currentPresentation, apiKey, (newSlide) => {
+        regenerateSlide(slideIndex, currentPresentation, currentSettings, (newSlide) => {
           resolve(newSlide)
         }).catch(reject)
       })
@@ -497,9 +499,8 @@ export function registerIpcHandlers(): void {
       defaultTheme: store.get('defaultTheme', 'midnight') as string,
       defaultSlideCount: store.get('defaultSlideCount', 8) as number,
       defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-      cliTool: store.get('cliTool', '') as string,
-      cliPath: store.get('cliPath', '') as string,
-      modelName: store.get('modelName', '') as string,
+      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api',
+      selectedCliId: store.get('selectedCliId', '') as string,
       defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
       includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
       addReferralFooter: store.get('addReferralFooter', true) as boolean,
@@ -520,9 +521,8 @@ export function registerIpcHandlers(): void {
     store.set('defaultTheme', settings.defaultTheme)
     store.set('defaultSlideCount', settings.defaultSlideCount)
     store.set('defaultNarrative', settings.defaultNarrative)
-    store.set('cliTool', settings.cliTool ?? '')
-    store.set('cliPath', settings.cliPath ?? '')
-    store.set('modelName', settings.modelName ?? '')
+    store.set('executionMode', settings.executionMode)
+    store.set('selectedCliId', settings.selectedCliId)
     store.set('defaultSaveLocation', settings.defaultSaveLocation ?? '')
     store.set('includeSpeakerNotes', settings.includeSpeakerNotes ?? true)
     store.set('addReferralFooter', settings.addReferralFooter ?? true)
@@ -542,13 +542,34 @@ export function registerIpcHandlers(): void {
     return dialog.showOpenDialog(window, options ?? {})
   })
 
-  // ── DETECT_CLI_TOOLS ────────────────────────────────────────────────────────
-  ipcMain.handle(IpcChannels.DETECT_CLI_TOOLS, async () => {
+  // ── SCAN_CLIS ────────────────────────────────────────────────────────
+  ipcMain.handle(IpcChannels.SCAN_CLIS, async (): Promise<DetectedCLI[]> => {
     try {
-      return await scanCliTools()
+      const { scanInstalledCLIs } = await import('./cliScanner')
+      return await scanInstalledCLIs()
     } catch (err: unknown) {
-      console.error('[ipc] DETECT_CLI_TOOLS error:', err)
+      console.error('[ipc] SCAN_CLIS error:', err)
       return []
+    }
+  })
+
+  // ── RESCAN_CLIS ──────────────────────────────────────────────────────
+  ipcMain.handle(IpcChannels.RESCAN_CLIS, async (): Promise<DetectedCLI[]> => {
+    try {
+      const { rescanCLIs } = await import('./cliScanner')
+      return await rescanCLIs()
+    } catch (err: unknown) {
+      console.error('[ipc] RESCAN_CLIS error:', err)
+      return []
+    }
+  })
+
+  // ── GET_APP_INFO ──────────────────────────────────────────────────────
+  ipcMain.handle('app:get-info', async () => {
+    return {
+      version: app.getVersion(),
+      platform: process.platform,
+      arch: process.arch
     }
   })
 
@@ -629,171 +650,3 @@ export function registerIpcHandlers(): void {
   })
 }
 
-// ─── CLI Tool Scanner Helpers ──────────────────────────────────────────────────
-
-const CANDIDATE_DIRS = [
-  '/usr/local/bin',
-  '/opt/homebrew/bin',
-  '/opt/homebrew/opt/node@20/bin',
-  '/opt/anaconda3/bin',
-  '~/.opencode/bin',
-  '~/.local/bin',
-  '~/.cargo/bin',
-  '~/.bun/bin',
-  '/usr/bin',
-  '/bin',
-  '/usr/sbin',
-  '/sbin'
-]
-
-const FEATURED_TOOLS = [
-  'gemini',
-  'opencode',
-  'git',
-  'node',
-  'npm',
-  'yarn',
-  'pnpm',
-  'docker',
-  'python',
-  'python3',
-  'aws',
-  'gcloud',
-  'gh',
-  'vercel',
-  'deno',
-  'bun',
-  'cargo',
-  'rustc',
-  'go'
-]
-
-async function getToolVersion(toolPath: string, toolName: string): Promise<string | undefined> {
-  const isNpmOrNode = toolName === 'node' || toolName === 'npm'
-  const primaryFlag = isNpmOrNode ? '-v' : '--version'
-  const secondaryFlag = isNpmOrNode ? '--version' : '-v'
-
-  const tryFlag = (flag: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      exec(`"${toolPath}" ${flag}`, { timeout: 800 }, (error, stdout, stderr) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve((stdout || stderr || '').trim())
-        }
-      })
-    })
-  }
-
-  try {
-    const out = await tryFlag(primaryFlag)
-    if (out) {
-      const line = out.split('\n')[0].trim()
-      if (line) return line
-    }
-  } catch (err) {
-    try {
-      const out = await tryFlag(secondaryFlag)
-      if (out) {
-        const line = out.split('\n')[0].trim()
-        if (line) return line
-      }
-    } catch (e) {
-      // Ignore
-    }
-  }
-  return undefined
-}
-
-async function scanCliTools(): Promise<CliTool[]> {
-  const searchPaths: string[] = []
-
-  // Add process.env.PATH
-  if (process.env.PATH) {
-    process.env.PATH.split(':').forEach((p) => {
-      if (p) searchPaths.push(p)
-    })
-  }
-
-  // Add default candidate directories
-  CANDIDATE_DIRS.forEach((p) => {
-    searchPaths.push(p)
-  })
-
-  // Resolve directories, replacing `~` with user homedir, and filter unique/valid directories
-  const homedir = os.homedir()
-  const uniqueDirs = new Set<string>()
-
-  for (const rawPath of searchPaths) {
-    let resolved = rawPath.trim()
-    if (!resolved) continue
-    if (resolved.startsWith('~')) {
-      resolved = path.join(homedir, resolved.slice(1))
-    }
-    resolved = path.resolve(resolved)
-    uniqueDirs.add(resolved)
-  }
-
-  const detected: Map<string, CliTool> = new Map()
-
-  for (const dir of uniqueDirs) {
-    try {
-      const stats = await fs.promises.stat(dir)
-      if (!stats.isDirectory()) continue
-
-      const files = await fs.promises.readdir(dir, { withFileTypes: true })
-      for (const entry of files) {
-        // Skip subdirectories
-        if (entry.isDirectory()) continue
-
-        const name = entry.name
-        // Filter out hidden files
-        if (name.startsWith('.')) continue
-
-        const fullPath = path.join(dir, name)
-
-        // Check executable permission
-        try {
-          await fs.promises.access(fullPath, fs.constants.X_OK)
-          const lowerName = name.toLowerCase()
-          const isFeatured = FEATURED_TOOLS.includes(lowerName)
-
-          // If we already detected this binary name, prefer the one from a more specific user directory or the one detected first in PATH
-          if (detected.has(name)) {
-            continue
-          }
-
-          detected.set(name, {
-            name,
-            path: fullPath,
-            isFeatured
-          })
-        } catch (e) {
-          // Not executable or no read permission, ignore
-        }
-      }
-    } catch (err) {
-      // Directory doesn't exist or is not readable, ignore
-    }
-  }
-
-  const list = Array.from(detected.values())
-
-  // Query versions for featured tools that were detected in parallel with a short timeout
-  const featuredTools = list.filter((t) => t.isFeatured)
-  await Promise.all(
-    featuredTools.map(async (tool) => {
-      const version = await getToolVersion(tool.path, tool.name)
-      if (version) {
-        tool.version = version
-      }
-    })
-  )
-
-  // Sort list: featured first, then alphabetically by name
-  return list.sort((a, b) => {
-    if (a.isFeatured && !b.isFeatured) return -1
-    if (!a.isFeatured && b.isFeatured) return 1
-    return a.name.localeCompare(b.name)
-  })
-}

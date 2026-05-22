@@ -5,28 +5,36 @@
 @tailwind utilities;
 
 :root {
-  --og-bg: #ffffff;
-  --og-surface: #faf9f6;
-  --og-surface2: #f3f4f6;
-  --og-border: rgba(0, 0, 0, 0.08);
-  --og-text: #1f2937;
-  --og-white: #111827;
-  --og-accent: #0047ff;
-  --og-accent-glow: rgba(0, 71, 255, 0.15);
-  --og-blue: #0047ff;
-  --og-purple: #8b5cf6;
-  --og-muted: #6b7280;
+  --og-bg: #0d0d0d;
+  --og-surface: #141414;
+  --og-surface2: #1a1a1a;
+  --og-surface3: #222222;
+  --og-border: rgba(255, 255, 255, 0.05);
+  --og-text: #bab6ae;
+  --og-white: #ede9e1;
+  --og-accent: #e8ff57;
+  --og-accent-glow: rgba(232, 255, 87, 0.15);
+  --og-blue: #74c0fc;
+  --og-purple: #cc5de8;
+  --og-muted: #555555;
+  --og-red: #ff6b6b;
+  --og-green: #51cf66;
+  --og-mono: 'JetBrains Mono', monospace;
+  --og-font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 html,
-body {
+body,
+#root {
   margin: 0;
   padding: 0;
   background-color: var(--og-bg);
   color: var(--og-text);
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-family: var(--og-font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -34,33 +42,39 @@ body {
 code,
 pre,
 .font-mono {
-  font-family:
-    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace !important;
+  font-family: var(--og-mono) !important;
 }
 
-/* Custom Scrollbars: thin, custom styled (2px track, surface color) */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--og-surface) transparent;
-}
-*::-webkit-scrollbar {
+/* Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
-*::-webkit-scrollbar-track {
-  background: var(--og-bg);
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--og-surface);
 }
-*::-webkit-scrollbar-thumb {
-  background-color: var(--og-surface);
-  border-radius: 9999px;
-  border: 1px solid var(--og-bg);
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--og-surface3);
+  border-radius: 2px;
 }
-*::-webkit-scrollbar-thumb:hover {
-  background-color: var(--og-accent);
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--og-muted);
 }
 
-/* Custom Drag Region helper classes */
+/* Global focus rings */
+*:focus-visible {
+  outline: none !important;
+  border-color: var(--og-accent) !important;
+  box-shadow: 0 0 0 2px var(--og-accent-glow) !important;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(232, 255, 87, 0.2);
+  color: var(--og-white);
+}
+
+/* Custom Drag Region */
 .drag-region {
   -webkit-app-region: drag;
 }
@@ -68,58 +82,19 @@ pre,
   -webkit-app-region: no-drag;
 }
 
-/* Global keyboard focus rings using the accent color */
-*:focus-visible {
-  outline: none !important;
-  border-color: var(--og-accent) !important;
-  box-shadow: 0 0 0 2px var(--og-accent-glow) !important;
-}
-
-/* Premium Animations */
+/* Animations */
 @keyframes scale-bounce {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.25);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 .animate-scale-bounce {
-  animation: scale-bounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes export-pulse {
-  0%,
-  100% {
-    box-shadow:
-      0 10px 20px -6px rgba(139, 92, 246, 0.15),
-      0 0 0 0px rgba(139, 92, 246, 0.2);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow:
-      0 10px 25px -3px rgba(139, 92, 246, 0.35),
-      0 0 0 6px rgba(139, 92, 246, 0);
-    transform: scale(1.02);
-  }
-}
-.animate-export-pulse {
-  animation: export-pulse 2s infinite ease-in-out;
+  animation: scale-bounce 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in {
-  animation: fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

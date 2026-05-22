@@ -40,8 +40,20 @@ export enum IpcChannels {
   // ── CLI Tools ───────────────────────────────────────────────────────────────
   /** Renderer → Main: auto-detect system CLI tools */
   DETECT_CLI_TOOLS = 'settings:detect-cli-tools',
+  SCAN_CLIS = 'settings:scan-clis',
+  RESCAN_CLIS = 'settings:rescan-clis',
+  
   /** Renderer → Main: test if a Claude API key is valid */
   TEST_API_KEY = 'settings:test-api-key',
   /** Renderer → Main: test if a detected CLI tool is accessible */
   TEST_CLI_TOOL = 'settings:test-cli-tool'
 }
+
+export interface DetectedCLI {
+  id: string
+  name: string
+  installed: boolean
+  executablePath: string | null
+  version: string | null
+}
+
