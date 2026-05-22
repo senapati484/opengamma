@@ -102,7 +102,7 @@
     "publish": {
       "provider": "github",
       "owner": "senapati484",
-      "repo": "opengemma"
+      "repo": "opengamma"
     }
   }
 }
