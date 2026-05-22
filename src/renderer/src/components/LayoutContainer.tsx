@@ -95,7 +95,7 @@ export const LayoutContainer: React.FC<LayoutContainerProps> = ({
       </div>
 
       {/* PROMPT AREA (FULL WIDTH BOTTOM) */}
-      <div className="h-40 flex-none border-t border-neutral-100 bg-white/80 backdrop-blur-sm overflow-hidden flex flex-col">
+      <div className="h-48 flex-none border-t border-neutral-100 bg-white/80 backdrop-blur-sm overflow-hidden flex flex-col">
         {promptArea}
       </div>
     </div>
