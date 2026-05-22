@@ -1,5 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk'
-import type { GenerationConfig, Slide, StreamStatus, Presentation, AppSettings } from '../renderer/src/types'
+import type {
+  GenerationConfig,
+  Slide,
+  StreamStatus,
+  Presentation,
+  AppSettings
+} from '../renderer/src/types'
 import { buildSystemPrompt } from './contextLoader'
 import { parseSlideHtml, extractCompleteSlides } from './slideParser'
 import { generateWithCLI, runResearchWithCLI } from './cliRunner'
@@ -70,7 +76,7 @@ export async function generatePresentation(
   if (arg3 instanceof AbortSignal || (arg3 && typeof arg3 === 'object' && 'aborted' in arg3)) {
     abortSignal = arg3 as AbortSignal
     onSlide = arg4 as (slide: Slide) => void
-    onStatus = () => {} 
+    onStatus = () => {}
   } else {
     onSlide = arg3 as (slide: Slide) => void
     onStatus = arg4 as (status: StreamStatus) => void
@@ -81,8 +87,8 @@ export async function generatePresentation(
 
   if (settings.executionMode === 'local-cli') {
     const clis = await scanInstalledCLIs()
-    const selected = clis.find(c => c.id === settings.selectedCliId)
-    
+    const selected = clis.find((c) => c.id === settings.selectedCliId)
+
     if (!selected || !selected.installed || !selected.executablePath) {
       throw new Error(`Selected CLI agent "${settings.selectedCliId}" not found or not installed.`)
     }
@@ -93,12 +99,20 @@ export async function generatePresentation(
       slidesGenerated: 0,
       totalSlides: config.slideCount
     })
-    
+
     let researchOutline = ''
     try {
-      researchOutline = await runResearchWithCLI(config, selected.executablePath, selected.id, abortSignal)
+      researchOutline = await runResearchWithCLI(
+        config,
+        selected.executablePath,
+        selected.id,
+        abortSignal
+      )
     } catch (researchErr) {
-      console.warn('[generator] CLI Research pass failed, falling back to direct prompt:', researchErr)
+      console.warn(
+        '[generator] CLI Research pass failed, falling back to direct prompt:',
+        researchErr
+      )
     }
 
     if (abortSignal.aborted) {
@@ -109,17 +123,17 @@ export async function generatePresentation(
     // Step 2: Slide Layout Generation
     const configWithOutline = {
       ...config,
-      prompt: researchOutline 
+      prompt: researchOutline
         ? `Here is a detailed research blueprint outline for the presentation:\n\n${researchOutline}\n\nUse this research outline to guide the slide generation. Ensure you generate exactly ${config.slideCount} slides with high-fidelity Reveal.js structures matching the blueprint.\n\nOriginal prompt: ${config.prompt}`
         : config.prompt
     }
 
     return generateWithCLI(
-      configWithOutline, 
-      selected.executablePath, 
+      configWithOutline,
+      selected.executablePath,
       selected.id,
-      onSlide, 
-      onStatus, 
+      onSlide,
+      onStatus,
       abortSignal
     )
   }
@@ -148,9 +162,18 @@ export async function generatePresentation(
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2048,
         system: researchSystemPrompt,
-        messages: [{ role: 'user', content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.` }]
+        messages: [
+          {
+            role: 'user',
+            content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.`
+          }
+        ]
       })
-      if (researchResponse.content && researchResponse.content[0] && researchResponse.content[0].type === 'text') {
+      if (
+        researchResponse.content &&
+        researchResponse.content[0] &&
+        researchResponse.content[0].type === 'text'
+      ) {
         researchOutline = researchResponse.content[0].text
       }
     } catch (researchErr: any) {
@@ -158,7 +181,10 @@ export async function generatePresentation(
         onStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
         return
       }
-      console.warn('[generator] API Research pass failed, falling back to direct prompt:', researchErr)
+      console.warn(
+        '[generator] API Research pass failed, falling back to direct prompt:',
+        researchErr
+      )
     }
   }
 
@@ -222,7 +248,7 @@ export async function generatePresentation(
         totalSlides: config.slideCount
       })
 
-      break 
+      break
     } catch (error: any) {
       if (abortSignal.aborted || error.message === 'AbortError') {
         onStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
@@ -255,7 +281,9 @@ export async function regenerateSlide(
   onResult: (slide: Slide) => void
 ): Promise<void> {
   const themeId = currentPresentation.theme
-  const matchedTheme = (await import('../renderer/src/lib/themes')).themes.find((t) => t.id === themeId) || (await import('../renderer/src/lib/themes')).themes[0]
+  const matchedTheme =
+    (await import('../renderer/src/lib/themes')).themes.find((t) => t.id === themeId) ||
+    (await import('../renderer/src/lib/themes')).themes[0]
 
   const pseudoConfig: GenerationConfig = {
     prompt: currentPresentation.prompt,
@@ -269,21 +297,21 @@ export async function regenerateSlide(
   const userPrompt = `Rewrite only slide ${slideIndex + 1} (${slideToRegen.slideType}: ${slideToRegen.title}) for this presentation about: ${currentPresentation.prompt}. Output only one <section> tag.`
 
   if (settings.executionMode === 'local-cli') {
-     const clis = await scanInstalledCLIs()
-     const selected = clis.find(c => c.id === settings.selectedCliId)
-     if (!selected || !selected.installed || !selected.executablePath) {
-       throw new Error(`Selected CLI agent "${settings.selectedCliId}" not found.`)
-     }
-     
-     const abortController = new AbortController()
-     return generateWithCLI(
-       { ...pseudoConfig, prompt: userPrompt },
-       selected.executablePath,
-       selected.id,
-       onResult,
-       () => {},
-       abortController.signal
-     )
+    const clis = await scanInstalledCLIs()
+    const selected = clis.find((c) => c.id === settings.selectedCliId)
+    if (!selected || !selected.installed || !selected.executablePath) {
+      throw new Error(`Selected CLI agent "${settings.selectedCliId}" not found.`)
+    }
+
+    const abortController = new AbortController()
+    return generateWithCLI(
+      { ...pseudoConfig, prompt: userPrompt },
+      selected.executablePath,
+      selected.id,
+      onResult,
+      () => {},
+      abortController.signal
+    )
   }
 
   const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })

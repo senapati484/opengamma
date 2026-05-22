@@ -26,7 +26,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [presentations, setPresentations] = useState<Presentation[]>([])
   const [activePresentation, setActivePresentation] = useState<Presentation | null>(null)
   const [settings, setSettings] = useState<AppSettings | null>(null)
-  const [selectedDesignSystem, setSelectedDesignSystem] = useState<DesignSystemMetadata | null>(null)
+  const [selectedDesignSystem, setSelectedDesignSystem] = useState<DesignSystemMetadata | null>(
+    null
+  )
 
   useEffect(() => {
     const initData = async () => {

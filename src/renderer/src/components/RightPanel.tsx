@@ -66,7 +66,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({
             className="p-1 hover:bg-neutral-100 rounded transition-colors"
             title="Collapse panel"
           >
-            <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-4 h-4 text-neutral-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -81,7 +86,9 @@ export const RightPanel: React.FC<RightPanelProps> = ({
             onClick={() => toggleSection('export')}
             className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-50 transition-colors"
           >
-            <span className="text-xs font-bold text-neutral-700 uppercase tracking-wider">Export</span>
+            <span className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+              Export
+            </span>
             <svg
               className={`w-3.5 h-3.5 text-neutral-400 transition-transform ${
                 expandedSection === 'export' ? 'rotate-180' : ''
@@ -110,7 +117,14 @@ export const RightPanel: React.FC<RightPanelProps> = ({
               >
                 {isExporting ? (
                   <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
                     <path
                       className="opacity-75"
                       fill="currentColor"
@@ -118,8 +132,18 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                     />
                   </svg>
                 ) : (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
                   </svg>
                 )}
                 <span>Export as PowerPoint</span>
@@ -130,8 +154,18 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                 disabled={!canExport || isExporting}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-white border border-neutral-200 hover:border-amber-300 hover:bg-amber-50 transition-all text-[11px] font-semibold text-neutral-700 hover:text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3H5.25A2.25 2.25 0 003 5.25v13.5A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V9.75M3 12h18M3 6h18" />
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.75 3H5.25A2.25 2.25 0 003 5.25v13.5A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V9.75M3 12h18M3 6h18"
+                  />
                 </svg>
                 <span>Export as HTML</span>
               </button>
@@ -145,7 +179,9 @@ export const RightPanel: React.FC<RightPanelProps> = ({
             onClick={() => toggleSection('theme')}
             className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-50 transition-colors"
           >
-            <span className="text-xs font-bold text-neutral-700 uppercase tracking-wider">Theme</span>
+            <span className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+              Theme
+            </span>
             <svg
               className={`w-3.5 h-3.5 text-neutral-400 transition-transform ${
                 expandedSection === 'theme' ? 'rotate-180' : ''
@@ -172,10 +208,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                     }`}
                     title={theme.name}
                   >
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br" 
-                         style={{
-                           backgroundImage: `linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%)`
-                         }}>
+                    <div
+                      className="w-full h-full flex items-center justify-center bg-gradient-to-br"
+                      style={{
+                        backgroundImage: `linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%)`
+                      }}
+                    >
                       <span className="text-[9px] font-bold text-white drop-shadow-sm text-center px-1">
                         {theme.name}
                       </span>
@@ -183,10 +221,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                   </button>
                 ))}
               </div>
-              <a
-                href="#"
-                className="text-[10px] text-blue-600 hover:underline font-medium"
-              >
+              <a href="#" className="text-[10px] text-blue-600 hover:underline font-medium">
                 View all themes →
               </a>
             </div>
@@ -199,7 +234,9 @@ export const RightPanel: React.FC<RightPanelProps> = ({
             onClick={() => toggleSection('design')}
             className="flex-shrink-0 w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-50 transition-colors"
           >
-            <span className="text-xs font-bold text-neutral-700 uppercase tracking-wider">Design</span>
+            <span className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+              Design
+            </span>
             <svg
               className={`w-3.5 h-3.5 text-neutral-400 transition-transform ${
                 expandedSection === 'design' ? 'rotate-180' : ''

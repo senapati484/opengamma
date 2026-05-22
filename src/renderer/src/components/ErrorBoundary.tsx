@@ -48,12 +48,21 @@ export class ErrorBoundary extends React.Component<Props, State> {
               fontFamily: 'system-ui, -apple-system, sans-serif'
             }}
           >
-            <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px', color: '#d32f2f' }}>
+            <div
+              style={{
+                fontSize: '18px',
+                fontWeight: 'bold',
+                marginBottom: '10px',
+                color: '#d32f2f'
+              }}
+            >
               Something went wrong
             </div>
-            <div style={{ fontSize: '14px', color: '#666', marginBottom: '10px', maxWidth: '300px' }}>
-              The preview encountered an error and could not render. Try regenerating the slide or check
-              the developer console for details.
+            <div
+              style={{ fontSize: '14px', color: '#666', marginBottom: '10px', maxWidth: '300px' }}
+            >
+              The preview encountered an error and could not render. Try regenerating the slide or
+              check the developer console for details.
             </div>
             <div
               style={{

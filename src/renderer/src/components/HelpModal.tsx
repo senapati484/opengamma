@@ -53,18 +53,31 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in"
     >
       <div className="w-full max-w-3xl bg-[#141414] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transform scale-100 transition-all duration-300">
-        
         {/* Header */}
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#e8ff57]/10 flex items-center justify-center border border-[#e8ff57]/20">
-              <svg className="w-4 h-4 text-[#e8ff57]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-4 h-4 text-[#e8ff57]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="2.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-black text-white uppercase tracking-wider">Help & Keyboard Shortcuts</h2>
-              <p className="text-[10px] text-neutral-500 font-medium mt-0.5">Learn how to maximize your presentation workflow in OpenGamma</p>
+              <h2 className="text-sm font-black text-white uppercase tracking-wider">
+                Help & Keyboard Shortcuts
+              </h2>
+              <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
+                Learn how to maximize your presentation workflow in OpenGamma
+              </p>
             </div>
           </div>
           <button
@@ -72,7 +85,13 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-all active:scale-95"
             title="Close"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2.5"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -80,24 +99,27 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-          
           {/* Section 1: How to Use */}
           <div className="space-y-4">
             <h3 className="text-xs font-black text-neutral-400 uppercase tracking-widest flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#e8ff57] shadow-[0_0_8px_rgba(232,255,87,0.6)]" />
               Workflow Guide
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {steps.map((step, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all flex gap-3 group"
                 >
-                  <span className="text-xs font-black text-[#e8ff57] opacity-60 group-hover:opacity-100 transition-opacity mt-0.5 select-none">{step.num}</span>
+                  <span className="text-xs font-black text-[#e8ff57] opacity-60 group-hover:opacity-100 transition-opacity mt-0.5 select-none">
+                    {step.num}
+                  </span>
                   <div className="space-y-1">
                     <h4 className="text-xs font-bold text-white tracking-wide">{step.title}</h4>
-                    <p className="text-[10px] text-neutral-500 leading-relaxed font-medium">{step.desc}</p>
+                    <p className="text-[10px] text-neutral-500 leading-relaxed font-medium">
+                      {step.desc}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -110,7 +132,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#e8ff57] shadow-[0_0_8px_rgba(232,255,87,0.6)]" />
               Keyboard Shortcuts
             </h3>
-            
+
             <div className="border border-white/5 rounded-xl overflow-hidden bg-white/[0.02]">
               <div className="grid grid-cols-3 p-3 bg-white/5 border-b border-white/5 text-[9px] font-black text-neutral-500 uppercase tracking-widest">
                 <div className="col-span-1">Action</div>
@@ -118,7 +140,10 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               </div>
               <div className="divide-y divide-white/5">
                 {shortcuts.map((shortcut, idx) => (
-                  <div key={idx} className="grid grid-cols-3 items-center p-3 hover:bg-white/[0.02] transition-colors">
+                  <div
+                    key={idx}
+                    className="grid grid-cols-3 items-center p-3 hover:bg-white/[0.02] transition-colors"
+                  >
                     <div className="col-span-1 text-[11px] font-bold text-white tracking-wide">
                       {shortcut.action}
                     </div>
@@ -144,21 +169,29 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               <span className="text-[10px] font-black text-[#e8ff57] select-none">!</span>
             </div>
             <div className="space-y-1">
-              <h4 className="text-xs font-bold text-white tracking-wide">Local-First & Open Source Alternative</h4>
+              <h4 className="text-xs font-bold text-white tracking-wide">
+                Local-First & Open Source Alternative
+              </h4>
               <p className="text-[10px] text-neutral-400 leading-relaxed font-medium">
-                OpenGamma runs completely locally with SQLite and built-in CSS/Reveal.js tools. Your data remains fully secure on your hard drive, allowing zero-latency custom modifications and private presentations without expensive cloud subscription gates.
+                OpenGamma runs completely locally with SQLite and built-in CSS/Reveal.js tools. Your
+                data remains fully secure on your hard drive, allowing zero-latency custom
+                modifications and private presentations without expensive cloud subscription gates.
               </p>
             </div>
           </div>
-
         </div>
 
         {/* Footer */}
         <div className="p-4 bg-[#0d0d0d] border-t border-white/5 flex items-center justify-between text-[10px] text-neutral-600 font-bold tracking-widest uppercase">
           <span>OpenGamma v1.0</span>
-          <span>Press <kbd className="px-1.5 py-0.5 rounded bg-white/5 text-neutral-400 font-mono text-[9px]">ESC</kbd> to Close</span>
+          <span>
+            Press{' '}
+            <kbd className="px-1.5 py-0.5 rounded bg-white/5 text-neutral-400 font-mono text-[9px]">
+              ESC
+            </kbd>{' '}
+            to Close
+          </span>
         </div>
-
       </div>
     </div>
   )

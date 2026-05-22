@@ -175,7 +175,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
         }
         injectedSlideIds.current.push(slide.id)
       }
-      
+
       if (typeof activeSlideIndex === 'number') {
         contentWindow.postMessage({ type: 'GO_TO_SLIDE', index: activeSlideIndex }, '*')
       }

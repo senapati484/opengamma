@@ -1,6 +1,12 @@
 import { ipcMain, dialog, BrowserWindow, app, shell } from 'electron'
 import { IpcChannels } from './types'
-import type { Presentation, AppSettings, StreamStatus, Theme, DetectedCLI } from '../renderer/src/types'
+import type {
+  Presentation,
+  AppSettings,
+  StreamStatus,
+  Theme,
+  DetectedCLI
+} from '../renderer/src/types'
 import { join } from 'path'
 import * as path from 'path'
 import * as fs from 'fs'
@@ -56,7 +62,7 @@ async function getStore(): Promise<{
   if (_store) return _store
   // Dynamic import required because electron-store v11+ is ESM-only
   const { default: Store } = await import('electron-store')
-  
+
   try {
     _store = new Store({
       name: 'opengamma-settings',
@@ -87,9 +93,9 @@ async function getStore(): Promise<{
     const message = err instanceof Error ? err.message : 'Unknown store initialization error'
     console.error('[ipc] Failed to initialize settings store:', message)
     console.log('[ipc] Recovering by clearing corrupted settings...')
-    
+
     clearCorruptedSettingsFile()
-    
+
     // Retry store initialization with fresh file
     _store = new Store({
       name: 'opengamma-settings',
@@ -114,7 +120,7 @@ async function getStore(): Promise<{
       } satisfies AppSettings
     })
   }
-  
+
   return _store
 }
 
@@ -239,19 +245,20 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
       if (!slideContent.startsWith('<section')) {
         slideContent = `<section>${slideContent}</section>`
       }
-      
+
       // If notes are enabled and exist, inject them in the format Reveal.js expects: <aside class="notes">
       if (options.includeSpeakerNotes && slide.notes) {
-        if (!slideContent.includes('class="notes"') && !slideContent.includes('class=\'notes\'')) {
+        if (!slideContent.includes('class="notes"') && !slideContent.includes("class='notes'")) {
           const lastIndex = slideContent.lastIndexOf('</section>')
           if (lastIndex !== -1) {
-            slideContent = slideContent.substring(0, lastIndex) + 
-              `<aside class="notes">${slide.notes}</aside>` + 
+            slideContent =
+              slideContent.substring(0, lastIndex) +
+              `<aside class="notes">${slide.notes}</aside>` +
               slideContent.substring(lastIndex)
           }
         }
       }
-      
+
       return slideContent
     })
     .join('\n')
@@ -262,7 +269,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
   // Typography Overrides
   let typographyStyles = ''
   let extraFontsImport = ''
-  
+
   if (options.headingFont && options.headingFont !== 'original') {
     extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${options.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
     typographyStyles += `
@@ -529,8 +536,13 @@ export function registerIpcHandlers(): void {
         cliEnvVars: store.get('cliEnvVars', '') as string
       }
 
-      if (currentSettings.executionMode === 'anthropic-api' && !currentSettings.claudeApiKey.trim()) {
-        throw new Error('No Claude API key configured. Add your key in Settings before regenerating.')
+      if (
+        currentSettings.executionMode === 'anthropic-api' &&
+        !currentSettings.claudeApiKey.trim()
+      ) {
+        throw new Error(
+          'No Claude API key configured. Add your key in Settings before regenerating.'
+        )
       }
 
       if (currentSettings.executionMode === 'local-cli' && !currentSettings.selectedCliId) {
@@ -649,7 +661,7 @@ export function registerIpcHandlers(): void {
           })
 
           await printWindow.loadURL(`file://${tempHtmlPath}?print-pdf`)
-          
+
           // Give Reveal.js ample time to load libraries from CDN and perform calculations
           await new Promise((resolve) => setTimeout(resolve, 2000))
 
@@ -703,7 +715,10 @@ export function registerIpcHandlers(): void {
 
         try {
           const exportOptions = presentation.exportOptions || {}
-          const htmlContent = compilePrintHtml(presentation, theme, { ...exportOptions, includeSpeakerNotes: false })
+          const htmlContent = compilePrintHtml(presentation, theme, {
+            ...exportOptions,
+            includeSpeakerNotes: false
+          })
           tempHtmlPath = join(app.getPath('temp'), `png-${presentation.id}-${Date.now()}.html`)
           await fs.promises.writeFile(tempHtmlPath, htmlContent, 'utf-8')
 
@@ -777,18 +792,18 @@ export function registerIpcHandlers(): void {
 
         try {
           let mdContent = `# ${presentation.title || 'Untitled Presentation'}\n\n`
-          
+
           if (presentation.prompt) {
             mdContent += `> **Source Prompt**: ${presentation.prompt}\n\n`
           }
-          
+
           mdContent += `**Theme**: ${theme.name || 'Default'}\n`
           mdContent += `**Aspect Ratio**: ${presentation.aspectRatio || '16:9'}\n\n`
           mdContent += `---\n\n`
 
           presentation.slides.forEach((slide, index) => {
             mdContent += `## Slide ${index + 1}: ${slide.title || 'Untitled Slide'}\n\n`
-            
+
             const slideText = cleanHtmlToMarkdown(slide.html)
             if (slideText) {
               mdContent += `${slideText}\n\n`
@@ -1118,5 +1133,3 @@ function cleanHtmlToMarkdown(html: string): string {
 
   return md.trim()
 }
-
-

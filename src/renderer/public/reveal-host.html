@@ -17,7 +17,10 @@
       id="reveal-theme"
     />
     <!-- Google Fonts Imports for Custom Typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Outfit:wght@400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@400;500;700&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=Atkinson+Hyperlegible:wght@400;700&family=Fredoka:wght@400;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Outfit:wght@400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@400;500;700&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=Atkinson+Hyperlegible:wght@400;700&family=Fredoka:wght@400;600;700&family=Sora:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <style>
       html,
@@ -87,8 +90,8 @@
         margin: 0.1
       })
 
-      Reveal.on('slidechanged', event => {
-        window.parent.postMessage({ type: 'SLIDE_CHANGED', index: event.indexh }, '*');
+      Reveal.on('slidechanged', (event) => {
+        window.parent.postMessage({ type: 'SLIDE_CHANGED', index: event.indexh }, '*')
       })
 
       // 2. Expose window.addSlide(html: string) to append new slides and navigate
@@ -150,7 +153,8 @@
         switch (data.type) {
           case 'SET_ASPECT_RATIO':
             if (typeof data.aspectRatio === 'string') {
-              let w = 1280, h = 720
+              let w = 1280,
+                h = 720
               if (data.aspectRatio === '9:16') {
                 w = 720
                 h = 1280
@@ -185,7 +189,9 @@
               if (themeLink) {
                 themeLink.setAttribute(
                   'href',
-                  'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/' + data.themeName + '.css'
+                  'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/' +
+                    data.themeName +
+                    '.css'
                 )
               }
             }
@@ -204,25 +210,25 @@
               Reveal.slide(data.index)
             }
             break
-          
+
           case 'REPLACE_SLIDE':
-             if (typeof data.index === 'number' && typeof data.html === 'string') {
-                const slidesContainer = document.querySelector('.reveal .slides')
-                if (slidesContainer) {
-                   const sections = slidesContainer.querySelectorAll('section')
-                   const target = sections[data.index]
-                   if (target) {
-                      const temp = document.createElement('div')
-                      temp.innerHTML = data.html
-                      const newSec = temp.firstElementChild || document.createElement('section')
-                      if (!temp.firstElementChild) newSec.innerHTML = data.html
-                      slidesContainer.replaceChild(newSec, target)
-                      Reveal.sync()
-                      Reveal.slide(data.index)
-                   }
+            if (typeof data.index === 'number' && typeof data.html === 'string') {
+              const slidesContainer = document.querySelector('.reveal .slides')
+              if (slidesContainer) {
+                const sections = slidesContainer.querySelectorAll('section')
+                const target = sections[data.index]
+                if (target) {
+                  const temp = document.createElement('div')
+                  temp.innerHTML = data.html
+                  const newSec = temp.firstElementChild || document.createElement('section')
+                  if (!temp.firstElementChild) newSec.innerHTML = data.html
+                  slidesContainer.replaceChild(newSec, target)
+                  Reveal.sync()
+                  Reveal.slide(data.index)
                 }
-             }
-             break
+              }
+            }
+            break
         }
       })
     </script>

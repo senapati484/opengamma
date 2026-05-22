@@ -38,24 +38,29 @@ Unlike cloud-locked web SaaS platforms, OpenGamma keeps your creative data and p
 ## ✨ Core Features
 
 ### ⚡ AI-Powered Presentation Drafting
+
 Outline your slides by writing a short description or pasting a complete text prompt. The generative system drafts structured slides, layouts, and slide-by-slide summaries in real-time.
 
 ### 🎨 Premium HSL-Tailored Design Systems
+
 OpenGamma comes packed with professional CSS-in-JS themes. Select from beautiful modern, high-contrast, tech, neon-accented, or geometric style sets. Every component respects global typography and color variables dynamically mapped in CSS.
 
 ### 📖 The Visual Booklet Editor
-* **Layout Scaffolding**: Effortlessly toggle layouts between `Title`, `Content`, `Split Grid`, `Data Metrics`, and `Call to Action (CTA)`.
-* **Dynamic Sizing**: Fine-tune individual headings, body font sizes, and layout parameters.
-* **Premium Typography**: Select heading and body fonts from a hand-picked Google Font catalog featuring **Inter**, **Outfit**, **Space Grotesk**, **Playfair Display**, **Syne**, and **Sora**.
-* **Color Customization**: Easily override theme colors or background styling per slide.
+
+- **Layout Scaffolding**: Effortlessly toggle layouts between `Title`, `Content`, `Split Grid`, `Data Metrics`, and `Call to Action (CTA)`.
+- **Dynamic Sizing**: Fine-tune individual headings, body font sizes, and layout parameters.
+- **Premium Typography**: Select heading and body fonts from a hand-picked Google Font catalog featuring **Inter**, **Outfit**, **Space Grotesk**, **Playfair Display**, **Syne**, and **Sora**.
+- **Color Customization**: Easily override theme colors or background styling per slide.
 
 ### 📦 Robust Multi-Format Export Studio
-* **High-Fidelity PDF Exporter**: Generate beautifully formatted booklet reports with pixel-perfect pagination, print-media queries, and customized aspect-ratio controls.
-* **Editable PowerPoint (`.pptx`)**: Direct conversion of slide text, bullets, and geometric grids into native editable PowerPoint presentations.
-* **Static Images (`.png`)**: Single-click rendering of full presentations into static image packs.
-* **Self-Contained Web Pages (`.html`)**: Share your interactive slides online as highly compatible, responsive standalone web pages.
+
+- **High-Fidelity PDF Exporter**: Generate beautifully formatted booklet reports with pixel-perfect pagination, print-media queries, and customized aspect-ratio controls.
+- **Editable PowerPoint (`.pptx`)**: Direct conversion of slide text, bullets, and geometric grids into native editable PowerPoint presentations.
+- **Static Images (`.png`)**: Single-click rendering of full presentations into static image packs.
+- **Self-Contained Web Pages (`.html`)**: Share your interactive slides online as highly compatible, responsive standalone web pages.
 
 ### 🔒 Privacy-First Offline Database
+
 All draft presentations, generated assets, slide history, and system settings are securely stored locally inside a lightweight, fast, local SQLite database.
 
 ---
@@ -64,15 +69,15 @@ All draft presentations, generated assets, slide history, and system settings ar
 
 Press the **Help & Shortcuts** button `(?)` in the Left Panel footer or use these handy keyboard combinations to accelerate your creative workflow:
 
-| Shortcut | Action | Scope |
-| :--- | :--- | :--- |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd> | Generate slides / submit draft outline | Main Form / Editor |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>E</kbd> | Open the Export Studio | Global |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>S</kbd> | Save current slide editing changes | Slide Edit Modal |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>,</kbd> | Open Settings & Configurations | Global |
-| <kbd>Escape</kbd> | Close active modal / cancel generation | Global |
-| <kbd>←</kbd> / <kbd>→</kbd> | Navigate slide history | Canvas (Focus independent) |
-| <kbd>⌘ / Ctrl</kbd> + <kbd>Z</kbd> | Undo last slide modification | Canvas (Focus independent) |
+| Shortcut                               | Action                                 | Scope                      |
+| :------------------------------------- | :------------------------------------- | :------------------------- |
+| <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd> | Generate slides / submit draft outline | Main Form / Editor         |
+| <kbd>⌘ / Ctrl</kbd> + <kbd>E</kbd>     | Open the Export Studio                 | Global                     |
+| <kbd>⌘ / Ctrl</kbd> + <kbd>S</kbd>     | Save current slide editing changes     | Slide Edit Modal           |
+| <kbd>⌘ / Ctrl</kbd> + <kbd>,</kbd>     | Open Settings & Configurations         | Global                     |
+| <kbd>Escape</kbd>                      | Close active modal / cancel generation | Global                     |
+| <kbd>←</kbd> / <kbd>→</kbd>            | Navigate slide history                 | Canvas (Focus independent) |
+| <kbd>⌘ / Ctrl</kbd> + <kbd>Z</kbd>     | Undo last slide modification           | Canvas (Focus independent) |
 
 ---
 
@@ -81,10 +86,13 @@ Press the **Help & Shortcuts** button `(?)` in the Left Panel footer or use thes
 Follow these quick commands to install, run, and package OpenGamma on your local system:
 
 ### 1. Prerequisites
+
 Make sure you have [Node.js](https://nodejs.org/) (v18+ recommended) and `npm` installed.
 
 ### 2. Installation
+
 Clone the repository and install developer dependencies:
+
 ```bash
 git clone https://github.com/sayansenapati/opengamma.git
 cd opengamma
@@ -92,18 +100,23 @@ npm install
 ```
 
 ### 3. Running in Development
+
 Start the hot-reloading dev server for both the Electron main process and React renderer:
+
 ```bash
 npm run dev
 ```
 
 ### 4. Running TypeScript Checks
+
 Ensure all TypeScript definitions and configurations are correct:
+
 ```bash
 npm run typecheck
 ```
 
 ### 5. Compiling & Packaging for Production
+
 Compile the React code and package the native desktop applications:
 
 ```bash
@@ -154,6 +167,7 @@ opengamma/
 ## 🤝 Contribution Guidelines
 
 We love open-source contributions! If you'd like to improve OpenGamma:
+
 1. Fork the repository.
 2. Create a new branch (`git checkout -b feature/amazing-feature`).
 3. Commit your changes with clear descriptions (`git commit -m 'Add support for view transitions'`).

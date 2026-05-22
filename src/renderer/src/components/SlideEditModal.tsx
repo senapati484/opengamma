@@ -150,7 +150,10 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
     try {
       contentWindow.postMessage({ type: 'SET_THEME', cssTokens: activeTheme.cssTokens }, '*')
       if (activeTheme.revealTheme) {
-        contentWindow.postMessage({ type: 'SET_REVEAL_THEME', themeName: activeTheme.revealTheme }, '*')
+        contentWindow.postMessage(
+          { type: 'SET_REVEAL_THEME', themeName: activeTheme.revealTheme },
+          '*'
+        )
       }
     } catch (err) {
       console.warn('Iframe styling failed:', err)
@@ -189,7 +192,8 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
             <div>
               <h3 className="text-sm font-bold text-neutral-100">Visual Slide Designer</h3>
               <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
-                Customize content, layouts, typography, sizes, and alignments on Slide {slide.index + 1}
+                Customize content, layouts, typography, sizes, and alignments on Slide{' '}
+                {slide.index + 1}
               </p>
             </div>
           </div>
@@ -198,17 +202,20 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
             className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
         {/* Side-by-Side Main Container */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-0 divide-y lg:divide-y-0 lg:divide-x divide-white/5">
-          
           {/* LEFT: Designer Options Panel (5 columns) */}
           <div className="lg:col-span-5 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[#141414]">
-            
             {/* 1. Layout Archetype Selector */}
             <div className="space-y-2">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400">
@@ -218,8 +225,16 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                 {[
                   { key: 'title', label: 'Title', icon: 'M4 6h16M4 12h16M4 18h7' },
                   { key: 'content', label: 'Bullet', icon: 'M4 6h16M4 10h16M4 14h16M4 18h16' },
-                  { key: 'split', label: 'Split', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h2m3-16h2a2 2 0 012 2v12a2 2 0 01-2 2h-2' },
-                  { key: 'data', label: 'Data', icon: 'M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z' },
+                  {
+                    key: 'split',
+                    label: 'Split',
+                    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h2m3-16h2a2 2 0 012 2v12a2 2 0 01-2 2h-2'
+                  },
+                  {
+                    key: 'data',
+                    label: 'Data',
+                    icon: 'M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z'
+                  },
                   { key: 'cta', label: 'CTA', icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5' }
                 ].map((item) => (
                   <button
@@ -231,8 +246,18 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                         : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'
                     }`}
                   >
-                    <svg className="w-4 h-4 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={item.icon} />
+                    <svg
+                      className="w-4 h-4 mb-1.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d={item.icon}
+                      />
                     </svg>
                     {item.label}
                   </button>
@@ -265,7 +290,11 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                     value={accentText}
                     onChange={(e) => setAccentText(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/20 transition-all font-sans"
-                    placeholder={layout === 'title' ? 'Enter presentation subtitle...' : 'Enter premium target tagline statement...'}
+                    placeholder={
+                      layout === 'title'
+                        ? 'Enter presentation subtitle...'
+                        : 'Enter premium target tagline statement...'
+                    }
                   />
                 </div>
               )}
@@ -274,10 +303,14 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                      {layout === 'data' ? 'Table Rows (Pipe "|" Separated)' : 'Bullet Points / Core Insights'}
+                      {layout === 'data'
+                        ? 'Table Rows (Pipe "|" Separated)'
+                        : 'Bullet Points / Core Insights'}
                     </label>
                     <span className="text-[9px] text-neutral-500 font-medium">
-                      {layout === 'data' ? 'Metric Name | Value | Description' : 'One item per line'}
+                      {layout === 'data'
+                        ? 'Metric Name | Value | Description'
+                        : 'One item per line'}
                     </span>
                   </div>
                   <textarea
@@ -321,8 +354,12 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
               {/* Title Size Slider */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Title Size</span>
-                  <span className="text-[10px] font-bold text-yellow-400">{titleSize.toFixed(1)}em</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    Title Size
+                  </span>
+                  <span className="text-[10px] font-bold text-yellow-400">
+                    {titleSize.toFixed(1)}em
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -339,8 +376,12 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
               {layout !== 'data' && (
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Content Size</span>
-                    <span className="text-[10px] font-bold text-yellow-400">{contentSize.toFixed(1)}em</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      Content Size
+                    </span>
+                    <span className="text-[10px] font-bold text-yellow-400">
+                      {contentSize.toFixed(1)}em
+                    </span>
                   </div>
                   <input
                     type="range"
@@ -362,7 +403,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
               </label>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <span className="block text-[9px] text-neutral-500 font-bold uppercase tracking-wider">Heading Font</span>
+                  <span className="block text-[9px] text-neutral-500 font-bold uppercase tracking-wider">
+                    Heading Font
+                  </span>
                   <select
                     value={headingFont}
                     onChange={(e) => setHeadingFont(e.target.value)}
@@ -376,7 +419,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <span className="block text-[9px] text-neutral-500 font-bold uppercase tracking-wider">Body Font</span>
+                  <span className="block text-[9px] text-neutral-500 font-bold uppercase tracking-wider">
+                    Body Font
+                  </span>
                   <select
                     value={bodyFont}
                     onChange={(e) => setBodyFont(e.target.value)}
@@ -399,7 +444,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
               </label>
               <div className="grid grid-cols-3 gap-3 p-4 rounded-xl bg-neutral-900/40 border border-white/5">
                 <div className="space-y-1.5 flex flex-col items-center">
-                  <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider">Background</span>
+                  <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider">
+                    Background
+                  </span>
                   <div className="flex items-center gap-1.5 mt-1">
                     <input
                       type="color"
@@ -419,7 +466,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                 </div>
 
                 <div className="space-y-1.5 flex flex-col items-center">
-                  <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider">Text Color</span>
+                  <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider">
+                    Text Color
+                  </span>
                   <div className="flex items-center gap-1.5 mt-1">
                     <input
                       type="color"
@@ -439,7 +488,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                 </div>
 
                 <div className="space-y-1.5 flex flex-col items-center">
-                  <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider">Accent Color</span>
+                  <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider">
+                    Accent Color
+                  </span>
                   <div className="flex items-center gap-1.5 mt-1">
                     <input
                       type="color"
@@ -468,7 +519,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 Live Editor WYSIWYG
               </span>
-              <span className="text-[9px] text-neutral-500 font-medium">Updates automatically in 16:9 ratio</span>
+              <span className="text-[9px] text-neutral-500 font-medium">
+                Updates automatically in 16:9 ratio
+              </span>
             </div>
 
             {/* Scale aspect-ratio container for the preview iframe */}

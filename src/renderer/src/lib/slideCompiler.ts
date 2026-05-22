@@ -1,6 +1,19 @@
 import type { SlideStyle } from '../types'
 
 /**
+ * Renders a slide bullet item.
+ * If the bullet contains an <img> tag, we render it without a list bullet dot
+ * and center it beautifully.
+ */
+function compileBulletItem(b: string): string {
+  const trimmed = b.trim()
+  if (trimmed.startsWith('<img') || trimmed.includes('<img')) {
+    return `<li style="list-style-type: none !important; margin: 15px 0; padding: 0; display: flex; justify-content: center; width: 100%;">${b}</li>`
+  }
+  return `<li>${b}</li>`
+}
+
+/**
  * Compiles slide text elements, layout types, and custom design styles
  * into a valid, optimized Reveal.js `<section>` HTML block.
  *
@@ -54,7 +67,9 @@ export function compileSlideHtml(
 
   // Inline font sizes for text elements
   const titleStyle = style.titleSize ? ` style="font-size: ${style.titleSize}em !important;"` : ''
-  const contentStyle = style.contentSize ? ` style="font-size: ${style.contentSize}em !important;"` : ''
+  const contentStyle = style.contentSize
+    ? ` style="font-size: ${style.contentSize}em !important;"`
+    : ''
 
   let contentHtml = ''
 
@@ -69,14 +84,14 @@ export function compileSlideHtml(
 
     case 'split': {
       const heading = `<h2${titleStyle}>${title || 'Insights comparison'}</h2>`
-      
+
       // Heuristic to split bullets into two columns
       const half = Math.ceil(bullets.length / 2)
       const leftColBullets = bullets.slice(0, half)
       const rightColBullets = bullets.slice(half)
 
-      const leftList = leftColBullets.map(b => `<li>${b}</li>`).join('\n        ')
-      const rightList = rightColBullets.map(b => `<li>${b}</li>`).join('\n        ')
+      const leftList = leftColBullets.map(compileBulletItem).join('\n        ')
+      const rightList = rightColBullets.map(compileBulletItem).join('\n        ')
 
       contentHtml = `
   ${heading}
@@ -99,18 +114,22 @@ export function compileSlideHtml(
 
     case 'data': {
       const heading = `<h2${titleStyle}>${title || 'Metric Insights'}</h2>`
-      
+
       // Parse bullets by pipe '|' into table headers and rows
       let headers = ['Metric', 'Current Value', 'Growth Status']
       const rows: string[][] = []
 
       bullets.forEach((bullet, idx) => {
-        const parts = bullet.split('|').map(p => p.trim())
-        if (idx === 0 && parts.length >= 2 && bullet.toLowerCase().includes('category') || bullet.toLowerCase().includes('metric') || bullet.toLowerCase().includes('|')) {
+        const parts = bullet.split('|').map((p) => p.trim())
+        if (
+          (idx === 0 && parts.length >= 2 && bullet.toLowerCase().includes('category')) ||
+          bullet.toLowerCase().includes('metric') ||
+          bullet.toLowerCase().includes('|')
+        ) {
           // If first line contains pipe, we can optionally use it as headers or as a data row
           if (parts.length >= 2) {
-             headers = parts
-             return
+            headers = parts
+            return
           }
         }
         if (parts.length > 0 && bullet.trim().length > 0) {
@@ -124,11 +143,23 @@ export function compileSlideHtml(
         rows.push(['Metric B', '84,100', '+12.1% YoY'])
       }
 
-      const thead = headers.map(h => `<th style="padding: 12px; font-weight: bold; border-bottom: 2px solid var(--og-slide-accent, #e8ff57); text-align: left;">${h}</th>`).join('')
-      const tbody = rows.map(r => {
-        const cells = r.map(c => `<td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left;">${c}</td>`).join('')
-        return `<tr style="transition: background-color 0.2s hover: bg-white/5">${cells}</tr>`
-      }).join('\n      ')
+      const thead = headers
+        .map(
+          (h) =>
+            `<th style="padding: 12px; font-weight: bold; border-bottom: 2px solid var(--og-slide-accent, #e8ff57); text-align: left;">${h}</th>`
+        )
+        .join('')
+      const tbody = rows
+        .map((r) => {
+          const cells = r
+            .map(
+              (c) =>
+                `<td style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left;">${c}</td>`
+            )
+            .join('')
+          return `<tr style="transition: background-color 0.2s hover: bg-white/5">${cells}</tr>`
+        })
+        .join('\n      ')
 
       contentHtml = `
   ${heading}
@@ -148,24 +179,28 @@ export function compileSlideHtml(
     case 'cta': {
       const heading = `<h2${titleStyle}>${title || 'Join the movement'}</h2>`
       const statement = style.accentText || 'Take immediate action now'
-      const listItems = bullets.map(b => `<li>${b}</li>`).join('\n      ')
+      const listItems = bullets.map(compileBulletItem).join('\n      ')
 
       contentHtml = `
   ${heading}
   <div class="cta-block" style="background: var(--og-slide-accent, #e8ff57) !important; color: #000000 !important; padding: 24px; border-radius: 12px; margin-top: 30px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
     <p style="font-size: 1.25em; font-weight: 800; margin: 0; font-family: var(--og-slide-font-heading, sans-serif);">${statement}</p>
   </div>
-  ${bullets.length > 0 ? `
+  ${
+    bullets.length > 0
+      ? `
   <ul style="margin-top: 25px; padding-left: 20px; text-align: left; ${style.contentSize ? `font-size: ${style.contentSize}em;` : 'font-size: 0.9em;'}">
     ${listItems}
-  </ul>` : ''}`
+  </ul>`
+      : ''
+  }`
       break
     }
 
     case 'content':
     default: {
       const heading = `<h2${titleStyle}>${title || 'Core insights'}</h2>`
-      const listItems = bullets.map(b => `<li>${b}</li>`).join('\n    ')
+      const listItems = bullets.map(compileBulletItem).join('\n    ')
       const ul = listItems ? `<ul${contentStyle}>\n    ${listItems}\n  </ul>` : ''
       contentHtml = `\n  ${heading}\n  ${ul}`
       break

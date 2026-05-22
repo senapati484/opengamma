@@ -51,7 +51,10 @@ export interface ElectronAPI {
 
   // ── CLI Tool Validation ─────────────────────────────────────────────────────
   /** Test if a CLI tool is accessible */
-  testCliTool: (cliPath: string, cliName: string) => Promise<{ success: boolean; message: string; version?: string }>
+  testCliTool: (
+    cliPath: string,
+    cliName: string
+  ) => Promise<{ success: boolean; message: string; version?: string }>
 
   // ── Native Menu ─────────────────────────────────────────────────────────────
   /** Subscribe to native application-menu command events sent from the main
@@ -121,8 +124,7 @@ const electronAPI: ElectronAPI = {
   rescanCLIs: () => ipcRenderer.invoke(IpcChannels.RESCAN_CLIS),
 
   // ── API Key Validation ──────────────────────────────────────────────────────
-  testApiKey: (apiKey: string) =>
-    ipcRenderer.invoke(IpcChannels.TEST_API_KEY, apiKey),
+  testApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_API_KEY, apiKey),
 
   // ── CLI Tool Validation ─────────────────────────────────────────────────────
   testCliTool: (cliPath: string, cliName: string) =>

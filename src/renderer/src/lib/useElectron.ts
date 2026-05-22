@@ -1,4 +1,11 @@
-import type { Slide, Presentation, StreamStatus, GenerationConfig, AppSettings, DetectedCLI } from '../types'
+import type {
+  Slide,
+  Presentation,
+  StreamStatus,
+  GenerationConfig,
+  AppSettings,
+  DetectedCLI
+} from '../types'
 
 // ─── ElectronAPI type (re-used from the ambient declaration) ──────────────────
 // Pull the type off the global Window so this hook stays in sync with

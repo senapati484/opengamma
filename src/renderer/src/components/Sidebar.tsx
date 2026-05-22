@@ -105,7 +105,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="cursor-pointer transition-transform hover:scale-105 active:scale-95 mb-2 mt-2"
             title="OpenGamma Home"
           >
-            <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              viewBox="0 0 24 24"
+              className="w-8 h-8"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
                 fill="#0047ff"
@@ -123,8 +128,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="flex flex-col items-center justify-center w-11 h-11 rounded-lg text-neutral-500 hover:text-[var(--og-accent)] hover:bg-neutral-50 transition-colors group cursor-pointer"
             title="Home"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2.2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
             </svg>
             <span className="text-[8px] font-bold mt-0.5 tracking-tight">Home</span>
           </button>
@@ -134,8 +149,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="flex flex-col items-center justify-center w-11 h-11 rounded-lg text-neutral-500 hover:text-[var(--og-accent)] hover:bg-neutral-50 transition-colors group cursor-pointer"
             title="Create Template"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2.2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
             </svg>
             <span className="text-[8px] font-bold mt-0.5 tracking-tight font-sans">Templates</span>
           </button>
@@ -145,8 +170,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="flex flex-col items-center justify-center w-11 h-11 rounded-lg text-neutral-500 hover:text-[var(--og-accent)] hover:bg-neutral-50 transition-colors group cursor-pointer"
             title="Library"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H20" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2.2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H20"
+              />
             </svg>
             <span className="text-[8px] font-bold mt-0.5 tracking-tight">Library</span>
           </button>
@@ -156,9 +191,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="flex flex-col items-center justify-center w-11 h-11 rounded-lg text-neutral-500 hover:text-[var(--og-accent)] hover:bg-neutral-50 transition-colors group cursor-pointer"
             title="Settings"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2.2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
             <span className="text-[8px] font-bold mt-0.5 tracking-tight font-sans">Settings</span>
           </button>
@@ -168,8 +217,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="flex flex-col items-center justify-center w-11 h-11 rounded-lg text-neutral-500 hover:text-[var(--og-accent)] hover:bg-neutral-50 transition-colors group cursor-pointer"
             title="Shortcuts Help"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2.2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span className="text-[8px] font-bold mt-0.5 tracking-tight font-sans">Shortcuts</span>
           </button>
@@ -199,7 +258,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="absolute left-[266px] top-6 z-50 flex items-center justify-center w-7 h-7 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-500 hover:text-neutral-700 shadow-md cursor-pointer transition-transform duration-200 active:scale-90"
           title="Collapse Sidebar"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth="2.5"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
@@ -208,10 +273,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex flex-col p-4 pb-3 border-b border-[var(--og-border)] drag-region">
           <div className="flex items-center justify-between no-drag bg-white/40 hover:bg-white/80 border border-neutral-200/50 hover:border-neutral-200 p-2 rounded-xl transition-all cursor-pointer">
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-neutral-800 leading-tight">Sayan's Workspace</span>
-              <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5 bg-neutral-200/40 text-neutral-500 px-1 rounded w-fit">Free</span>
+              <span className="text-[11px] font-bold text-neutral-800 leading-tight">
+                Sayan's Workspace
+              </span>
+              <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5 bg-neutral-200/40 text-neutral-500 px-1 rounded w-fit">
+                Free
+              </span>
             </div>
-            <svg className="w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <svg
+              className="w-3.5 h-3.5 text-neutral-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2.5"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
@@ -229,8 +304,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'bg-transparent border-transparent text-neutral-600 hover:text-neutral-800 hover:bg-white/40'
               }`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="2.2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
               </svg>
               <span>Gammas</span>
             </button>
@@ -239,18 +324,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => setIsSettingsOpen(true)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-neutral-600 hover:text-neutral-800 hover:bg-white/40 border border-transparent transition-all"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="2.2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
-              <span>Search <kbd className="text-[10px] bg-neutral-200/60 px-1 rounded ml-auto text-neutral-500 border border-neutral-300/40">⌘K</kbd></span>
+              <span>
+                Search{' '}
+                <kbd className="text-[10px] bg-neutral-200/60 px-1 rounded ml-auto text-neutral-500 border border-neutral-300/40">
+                  ⌘K
+                </kbd>
+              </span>
             </button>
 
             <button
               onClick={onGoToDashboard}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-neutral-600 hover:text-neutral-800 hover:bg-white/40 border border-transparent transition-all"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="2.2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
               </svg>
               <span>Shared with you</span>
             </button>
@@ -259,8 +369,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={onGoToDashboard}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-neutral-600 hover:text-neutral-800 hover:bg-white/40 border border-transparent transition-all"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="2.2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                />
               </svg>
               <span>Sites</span>
             </button>
@@ -269,8 +389,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={onGoToDashboard}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-neutral-600 hover:text-neutral-800 hover:bg-white/40 border border-transparent transition-all"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="2.2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                />
               </svg>
               <span>API Generated</span>
             </button>
@@ -278,7 +408,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* FOLDERS block */}
           <div className="flex flex-col gap-1 bg-white/40 border border-neutral-200/60 rounded-xl p-3.5 text-xs text-neutral-600">
-            <span className="font-bold text-[9px] text-neutral-400 uppercase tracking-widest mb-1.5">Folders</span>
+            <span className="font-bold text-[9px] text-neutral-400 uppercase tracking-widest mb-1.5">
+              Folders
+            </span>
             <p className="leading-relaxed text-[11px] text-neutral-500 font-medium">
               Organize your gammas by topic and share them with your team.
             </p>
@@ -345,7 +477,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               className="p-0.5 rounded text-neutral-400 hover:text-red-500 hover:bg-neutral-100 transition-colors"
                               title="Delete Presentation"
                             >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -373,7 +510,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {/* Empty history indicator */}
                 {presentations.length === 0 && (
                   <div className="flex flex-col items-center justify-center text-center mt-3 py-3 select-none border border-dashed border-neutral-200 rounded-lg bg-neutral-50/50">
-                    <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">No Decks</span>
+                    <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">
+                      No Decks
+                    </span>
                   </div>
                 )}
               </div>
@@ -387,12 +526,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onGoToDashboard}
             className="flex items-center gap-1.5 hover:text-neutral-700 text-xs cursor-pointer"
           >
-            <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <svg
+              className="w-4 h-4 text-neutral-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2.2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
             <span>Trash</span>
           </button>
-          <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold">OpenGamma</span>
+          <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold">
+            OpenGamma
+          </span>
         </div>
       </div>
     </div>

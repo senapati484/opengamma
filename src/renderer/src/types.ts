@@ -1,15 +1,15 @@
 // ─── Slide ────────────────────────────────────────────────────────────────────
 
 export interface SlideStyle {
-  titleSize?: number     // Font size in em unit
-  contentSize?: number   // Font size in em unit
+  titleSize?: number // Font size in em unit
+  contentSize?: number // Font size in em unit
   textAlign?: 'left' | 'center' | 'right'
   headingFont?: string
   bodyFont?: string
   bgColor?: string
   textColor?: string
   accentColor?: string
-  accentText?: string    // Highlight/subtitle paragraph
+  accentText?: string // Highlight/subtitle paragraph
   layout?: 'title' | 'content' | 'split' | 'data' | 'cta'
 }
 
@@ -125,7 +125,7 @@ export interface AppSettings {
   addReferralFooter?: boolean
   /** Whether the onboarding experience has been fully completed */
   onboardingComplete?: boolean
-  
+
   // Execution Mode (Fix 1)
   executionMode: 'local-cli' | 'anthropic-api'
   selectedCliId: string

@@ -63,7 +63,9 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
         <div className="flex items-center gap-6">
           {/* Slide count control */}
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-neutral-500 uppercase tracking-wide">Slides</span>
+            <span className="text-xs font-bold text-neutral-500 uppercase tracking-wide">
+              Slides
+            </span>
             <div className="flex items-center gap-3 bg-neutral-100 px-3 py-1.5 rounded-lg border border-neutral-200">
               <input
                 type="range"
@@ -94,7 +96,13 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
               onClick={onCancel}
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all active:scale-95 border border-red-200 text-sm font-bold shadow-sm"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="3"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
               Stop
@@ -106,7 +114,13 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
               className="flex items-center gap-2 px-8 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200 disabled:opacity-40 disabled:bg-neutral-300 disabled:shadow-none text-sm font-black uppercase tracking-wider"
             >
               Generate
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth="3"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
               </svg>
             </button>

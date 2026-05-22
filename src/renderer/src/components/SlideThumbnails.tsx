@@ -73,8 +73,8 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
           Slides
         </label>
         <span className="text-[10px] text-neutral-400 font-medium">
-          <span className="font-semibold text-[#0047ff]">{activeSlideIndex + 1}</span>
-          {' '}of {slides.length}
+          <span className="font-semibold text-[#0047ff]">{activeSlideIndex + 1}</span> of{' '}
+          {slides.length}
         </span>
       </div>
 

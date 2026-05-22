@@ -74,9 +74,7 @@ export const DesignSystemPicker: React.FC<DesignSystemPickerProps> = ({
               {cat === 'airline' && '🛫'}
               {cat === 'media' && '📰'}
               {cat === 'lifestyle' && '🎨'}
-              {cat === 'other' && '⭐'}
-              {' '}
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              {cat === 'other' && '⭐'} {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </button>
           ))}
         </div>
@@ -134,7 +132,11 @@ export const DesignSystemPicker: React.FC<DesignSystemPickerProps> = ({
           viewBox="0 0 24 24"
           strokeWidth="2"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
         <input
           type="text"

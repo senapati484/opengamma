@@ -81,7 +81,9 @@ export function savePresentation(p: Presentation): void {
     p.createdAt || Date.now(),
     p.aspectRatio || '16:9'
   )
-  console.log(`[db] Presentation saved successfully — ID: ${p.id}, Title: "${p.title}", Ratio: ${p.aspectRatio || '16:9'}`)
+  console.log(
+    `[db] Presentation saved successfully — ID: ${p.id}, Title: "${p.title}", Ratio: ${p.aspectRatio || '16:9'}`
+  )
 }
 
 /**

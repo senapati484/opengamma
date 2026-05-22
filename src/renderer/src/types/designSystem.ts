@@ -74,7 +74,15 @@ export interface DesignSystemMetadata {
   id: string
   slug: string
   name: string
-  category: 'tech' | 'ecommerce' | 'travel' | 'cosmetics' | 'lifestyle' | 'airline' | 'media' | 'other'
+  category:
+    | 'tech'
+    | 'ecommerce'
+    | 'travel'
+    | 'cosmetics'
+    | 'lifestyle'
+    | 'airline'
+    | 'media'
+    | 'other'
   description: string
   brandColor: string
   textColor: string
@@ -328,9 +336,7 @@ export const CURATED_DESIGN_SYSTEMS: DesignSystemMetadata[] = [
  * Helper function to fetch a full design system from GitHub
  * Given a slug like 'pola', fetches the DESIGN.md and parses it
  */
-export async function fetchDesignSystemFromGitHub(
-  slug: string
-): Promise<DesignSystem | null> {
+export async function fetchDesignSystemFromGitHub(slug: string): Promise<DesignSystem | null> {
   const baseUrl = 'https://raw.githubusercontent.com/kzhrknt/awesome-design-md-jp/main/design-md'
   const designMdUrl = `${baseUrl}/${slug}/DESIGN.md`
 

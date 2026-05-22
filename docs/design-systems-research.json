@@ -88,10 +88,7 @@
     },
     "section_7": {
       "name": "Do's and Don'ts",
-      "fields": [
-        "推奨 (Recommended practices)",
-        "禁止 (Prohibited practices)"
-      ]
+      "fields": ["推奨 (Recommended practices)", "禁止 (Prohibited practices)"]
     },
     "section_8": {
       "name": "Responsive Behavior",
@@ -299,12 +296,53 @@
     }
   ],
   "additional_design_systems_found": [
-    "10yc", "1616arita", "2121designsight", "45r", "abema", "actus", "aesop", "afternoontea",
-    "akomeya", "amadana", "aman-tokyo", "andwander", "anrealage", "apple", "asahibeer", "aton",
-    "auralee", "bake", "balmuda", "bape", "base", "basefood", "bluebottlecoffee", "botanist",
-    "brutus", "buttersand", "calbee", "canon", "casa-brutus", "casio", "cfcl", "citizen",
-    "claska", "coedo", "cohina", "cado", "cibone", "kuon", "sanu", "osaji", "shiro",
-    "ships", "tiger", "spiral", "keyuca", "ndc", "uka"
+    "10yc",
+    "1616arita",
+    "2121designsight",
+    "45r",
+    "abema",
+    "actus",
+    "aesop",
+    "afternoontea",
+    "akomeya",
+    "amadana",
+    "aman-tokyo",
+    "andwander",
+    "anrealage",
+    "apple",
+    "asahibeer",
+    "aton",
+    "auralee",
+    "bake",
+    "balmuda",
+    "bape",
+    "base",
+    "basefood",
+    "bluebottlecoffee",
+    "botanist",
+    "brutus",
+    "buttersand",
+    "calbee",
+    "canon",
+    "casa-brutus",
+    "casio",
+    "cfcl",
+    "citizen",
+    "claska",
+    "coedo",
+    "cohina",
+    "cado",
+    "cibone",
+    "kuon",
+    "sanu",
+    "osaji",
+    "shiro",
+    "ships",
+    "tiger",
+    "spiral",
+    "keyuca",
+    "ndc",
+    "uka"
   ],
   "recommended_integration_approach": {
     "for_opengamma": {

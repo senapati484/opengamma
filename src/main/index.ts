@@ -76,10 +76,10 @@ app.whenReady().then(() => {
   // Register all IPC handlers before creating the window so the renderer
   // never fires a channel that has no handler yet
   registerIpcHandlers()
-  
+
   // Warm up the CLI tools cache
   import('./cliScanner').then((scanner) => {
-    scanner.scanInstalledCLIs().catch(err => {
+    scanner.scanInstalledCLIs().catch((err) => {
       console.error('[main] Background CLI scan failed:', err)
     })
   })

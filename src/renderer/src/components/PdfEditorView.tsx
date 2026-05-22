@@ -84,7 +84,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
 
       setExportProgress(30)
       setExportStage('Preparing dynamic print booklet stylesheets...')
-      
+
       // Simulate rendering progress for a slick native feel
       const progressInterval = setInterval(() => {
         setExportProgress((p) => {
@@ -97,14 +97,15 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
         setExportStage((stage) => {
           if (stage.includes('Preparing')) return 'Spawning hidden Electron browser viewport...'
           if (stage.includes('Spawning')) return 'Rendering individual slides in high resolution...'
-          if (stage.includes('Rendering')) return 'Injecting custom styling & typography overrides...'
+          if (stage.includes('Rendering'))
+            return 'Injecting custom styling & typography overrides...'
           if (stage.includes('Injecting')) return 'Compiling document frames...'
           return stage
         })
       }, 700)
 
       const result = await electronAPI.exportPptx(presentationToExport as any)
-      
+
       clearInterval(progressInterval)
       setExportProgress(100)
 
@@ -153,22 +154,35 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
 
   return (
     <div className="absolute inset-0 bg-[#0d0d0d] text-neutral-300 flex flex-col z-50 animate-fade-in font-sans">
-      
       {/* Custom Title Bar / Header */}
       <div className="h-14 px-6 flex-none bg-[#141414] border-b border-white/5 flex items-center justify-between z-10">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-xs font-bold text-neutral-400 hover:text-white transition-all uppercase tracking-widest cursor-pointer group"
         >
-          <svg className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+          <svg
+            className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.5"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Back to Workspace
         </button>
 
         <div className="flex flex-col items-center">
-          <span className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.25em]">Export Studio</span>
-          <span className="text-xs font-bold text-white max-w-[320px] truncate">{presentation.title}</span>
+          <span className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.25em]">
+            Export Studio
+          </span>
+          <span className="text-xs font-bold text-white max-w-[320px] truncate">
+            {presentation.title}
+          </span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -183,11 +197,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
 
       {/* Main Split Interface */}
       <div className="flex-1 flex min-h-0 relative">
-        
         {/* Left Side Options Panel */}
         <div className="w-[360px] flex-none bg-[#101010] border-r border-white/5 flex flex-col min-h-0 select-none overflow-y-auto custom-scrollbar no-drag">
           <div className="p-6 flex flex-col gap-6">
-            
             {/* Format Segmented Selection Tabs */}
             <div className="flex flex-col gap-2">
               <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
@@ -223,7 +235,6 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
 
             {/* Dynamic settings categories */}
             <div className="flex flex-col gap-5 border-t border-white/5 pt-5">
-              
               {/* Preset Color Schemes (Applies to PDF & PNG) */}
               {(settings.format === 'pdf' || settings.format === 'png') && (
                 <div className="flex flex-col gap-2">
@@ -264,7 +275,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                         >
                           <div className={`w-4 h-4 rounded-full flex-none mt-0.5 ${p.color}`} />
                           <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className={`text-[11px] font-bold ${isSel ? 'text-white' : 'text-neutral-300'}`}>
+                            <span
+                              className={`text-[11px] font-bold ${isSel ? 'text-white' : 'text-neutral-300'}`}
+                            >
                               {p.name}
                             </span>
                             <span className="text-[9px] text-neutral-500 leading-normal">
@@ -288,10 +301,14 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <span className="text-[9px] text-neutral-500 block mb-1">Standard Size</span>
+                        <span className="text-[9px] text-neutral-500 block mb-1">
+                          Standard Size
+                        </span>
                         <select
                           value={settings.pageSize}
-                          onChange={(e) => setSettings((s) => ({ ...s, pageSize: e.target.value as any }))}
+                          onChange={(e) =>
+                            setSettings((s) => ({ ...s, pageSize: e.target.value as any }))
+                          }
                           className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#0047ff]"
                         >
                           <option value="A4">A4 (Standard)</option>
@@ -302,7 +319,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                         <span className="text-[9px] text-neutral-500 block mb-1">Orientation</span>
                         <select
                           value={settings.orientation}
-                          onChange={(e) => setSettings((s) => ({ ...s, orientation: e.target.value as any }))}
+                          onChange={(e) =>
+                            setSettings((s) => ({ ...s, orientation: e.target.value as any }))
+                          }
                           className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#0047ff]"
                         >
                           <option value="landscape">Landscape</option>
@@ -318,7 +337,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                       <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
                         Booklet Margins
                       </label>
-                      <span className="text-[10px] font-bold text-neutral-400 capitalize">{settings.margins}</span>
+                      <span className="text-[10px] font-bold text-neutral-400 capitalize">
+                        {settings.margins}
+                      </span>
                     </div>
                     <div className="grid grid-cols-4 gap-1 p-1 bg-white/2 rounded-lg border border-white/5">
                       {['none', 'small', 'medium', 'large'].map((m) => {
@@ -328,7 +349,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                             key={m}
                             onClick={() => setSettings((s) => ({ ...s, margins: m as any }))}
                             className={`py-1 rounded-md text-[10px] font-bold transition-all capitalize cursor-pointer ${
-                              isSel ? 'bg-white/10 text-white' : 'text-neutral-400 hover:text-neutral-200'
+                              isSel
+                                ? 'bg-white/10 text-white'
+                                : 'text-neutral-400 hover:text-neutral-200'
                             }`}
                           >
                             {m}
@@ -358,7 +381,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                           key={s.val}
                           onClick={() => setSettings((st) => ({ ...st, pngScale: s.val as any }))}
                           className={`py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                            isSel ? 'bg-[#0047ff] text-white shadow-md shadow-blue-500/10' : 'text-neutral-400 hover:text-neutral-200'
+                            isSel
+                              ? 'bg-[#0047ff] text-white shadow-md shadow-blue-500/10'
+                              : 'text-neutral-400 hover:text-neutral-200'
                           }`}
                         >
                           {s.label}
@@ -377,10 +402,14 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                   </label>
                   <div className="flex flex-col gap-2">
                     <div>
-                      <span className="text-[9px] text-neutral-500 block mb-1">Heading Typography</span>
+                      <span className="text-[9px] text-neutral-500 block mb-1">
+                        Heading Typography
+                      </span>
                       <select
                         value={settings.headingFont}
-                        onChange={(e) => setSettings((s) => ({ ...s, headingFont: e.target.value }))}
+                        onChange={(e) =>
+                          setSettings((s) => ({ ...s, headingFont: e.target.value }))
+                        }
                         className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#0047ff]"
                       >
                         {fontOptions.map((f) => (
@@ -391,7 +420,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                       </select>
                     </div>
                     <div>
-                      <span className="text-[9px] text-neutral-500 block mb-1">Body Text Typography</span>
+                      <span className="text-[9px] text-neutral-500 block mb-1">
+                        Body Text Typography
+                      </span>
                       <select
                         value={settings.bodyFont}
                         onChange={(e) => setSettings((s) => ({ ...s, bodyFont: e.target.value }))}
@@ -418,8 +449,12 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                   {settings.format !== 'html' && settings.format !== 'json' && (
                     <label className="flex items-center justify-between py-1.5 cursor-pointer">
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[11px] font-bold text-white">Include Speaker Notes</span>
-                        <span className="text-[9px] text-neutral-500">Renders presentation notes onto paper</span>
+                        <span className="text-[11px] font-bold text-white">
+                          Include Speaker Notes
+                        </span>
+                        <span className="text-[9px] text-neutral-500">
+                          Renders presentation notes onto paper
+                        </span>
                       </div>
                       <input
                         type="checkbox"
@@ -437,7 +472,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                     <label className="flex items-center justify-between py-1.5 border-t border-white/5 mt-1 pt-2.5 cursor-pointer">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-[11px] font-bold text-white">Page Numbering</span>
-                        <span className="text-[9px] text-neutral-500">Stamps page indices in bottom corners</span>
+                        <span className="text-[9px] text-neutral-500">
+                          Stamps page indices in bottom corners
+                        </span>
                       </div>
                       <input
                         type="checkbox"
@@ -449,32 +486,37 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                       />
                     </label>
                   )}
-                  
+
                   {/* PowerPoint details */}
                   {settings.format === 'pptx' && (
                     <div className="text-[10px] text-neutral-500 leading-relaxed py-1.5">
-                      📂 PPTX exports are built natively using shape coordinates. Background fills, font definitions, and speaker slides map perfectly into Microsoft PowerPoint.
+                      📂 PPTX exports are built natively using shape coordinates. Background fills,
+                      font definitions, and speaker slides map perfectly into Microsoft PowerPoint.
                     </div>
                   )}
 
                   {/* HTML details */}
                   {settings.format === 'html' && (
                     <div className="text-[10px] text-neutral-500 leading-relaxed py-1.5">
-                      ⚡ Standalone HTML encapsulates the entire Reveal.js bundle, themes, and CSS custom styling. You can open and present this directly inside any modern browser without dependencies!
+                      ⚡ Standalone HTML encapsulates the entire Reveal.js bundle, themes, and CSS
+                      custom styling. You can open and present this directly inside any modern
+                      browser without dependencies!
                     </div>
                   )}
 
                   {/* Markdown details */}
                   {settings.format === 'md' && (
                     <div className="text-[10px] text-neutral-500 leading-relaxed py-1.5">
-                      📝 Markdown export extracts your slide titles, clear text bullet points, and speaker notes directly into an elegant, standard, shareable document.
+                      📝 Markdown export extracts your slide titles, clear text bullet points, and
+                      speaker notes directly into an elegant, standard, shareable document.
                     </div>
                   )}
 
                   {/* JSON details */}
                   {settings.format === 'json' && (
                     <div className="text-[10px] text-neutral-500 leading-relaxed py-1.5">
-                      ⚙️ Raw JSON export compiles the entire slide presentation model (HTML nodes, styling settings, speaker scripts) to a backup file for developers.
+                      ⚙️ Raw JSON export compiles the entire slide presentation model (HTML nodes,
+                      styling settings, speaker scripts) to a backup file for developers.
                     </div>
                   )}
                 </div>
@@ -496,15 +538,20 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
 
         {/* Right Side Booklet real-time preview canvas */}
         <div className="flex-1 bg-[#090909] overflow-y-auto custom-scrollbar p-8 relative flex flex-col items-center">
-          
           {/* Section banner */}
           <div className="max-w-[720px] w-full flex items-center justify-between mb-6 px-1">
             <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
-              {settings.format === 'md' ? 'Live Markdown Document Outline' : settings.format === 'json' ? 'Live Presentation JSON Schema' : 'Live WYSIWYG Booklet Frame Grid'}
+              {settings.format === 'md'
+                ? 'Live Markdown Document Outline'
+                : settings.format === 'json'
+                  ? 'Live Presentation JSON Schema'
+                  : 'Live WYSIWYG Booklet Frame Grid'}
             </span>
             <span className="text-[9px] font-bold text-neutral-400">
-              {(settings.format === 'pdf' || settings.format === 'png') ? (
-                <>Preset: <span className="text-white uppercase font-bold">{settings.preset}</span></>
+              {settings.format === 'pdf' || settings.format === 'png' ? (
+                <>
+                  Preset: <span className="text-white uppercase font-bold">{settings.preset}</span>
+                </>
               ) : (
                 <span className="text-neutral-500">FORMAT OVERVIEW</span>
               )}
@@ -514,16 +561,25 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
           {/* Content display depending on format */}
           {settings.format === 'md' ? (
             <div className="max-w-[720px] w-full bg-[#121212] border border-white/5 rounded-2xl p-8 pb-16 shadow-2xl font-serif text-neutral-300 select-text leading-relaxed animate-slide-up">
-              <h1 className="text-3xl font-black mb-6 text-white border-b border-white/5 pb-4 font-sans tracking-tight">{presentation.title || 'Untitled Presentation'}</h1>
+              <h1 className="text-3xl font-black mb-6 text-white border-b border-white/5 pb-4 font-sans tracking-tight">
+                {presentation.title || 'Untitled Presentation'}
+              </h1>
               {presentation.slides.map((slide, index) => (
-                <div key={slide.id} className="mb-8 border-b border-white/5 pb-6 last:border-b-0 last:pb-0">
-                  <h2 className="text-xl font-bold text-white mb-3 font-sans">Slide {index + 1}: {slide.title || 'Untitled Slide'}</h2>
+                <div
+                  key={slide.id}
+                  className="mb-8 border-b border-white/5 pb-6 last:border-b-0 last:pb-0"
+                >
+                  <h2 className="text-xl font-bold text-white mb-3 font-sans">
+                    Slide {index + 1}: {slide.title || 'Untitled Slide'}
+                  </h2>
                   <div className="text-neutral-400 pl-4 border-l-2 border-neutral-700 font-sans text-sm leading-relaxed whitespace-pre-wrap mb-4">
                     {slide.html.replace(/<[^>]*>/g, '').trim()}
                   </div>
                   {settings.includeSpeakerNotes && slide.notes && (
                     <div className="bg-white/2 border border-white/5 rounded-xl p-4 text-xs font-sans mt-3">
-                      <span className="text-[9px] font-black uppercase text-[#0047ff] block mb-1 tracking-widest">Speaker Script Notes</span>
+                      <span className="text-[9px] font-black uppercase text-[#0047ff] block mb-1 tracking-widest">
+                        Speaker Script Notes
+                      </span>
                       <p className="text-neutral-400 italic">{slide.notes}</p>
                     </div>
                   )}
@@ -533,8 +589,12 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
           ) : settings.format === 'json' ? (
             <div className="max-w-[720px] w-full bg-[#121212] border border-white/5 rounded-2xl p-6 shadow-2xl font-mono text-xs text-neutral-400 overflow-x-auto custom-scrollbar select-text animate-slide-up">
               <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
-                <span className="text-[9px] font-black text-neutral-500 uppercase tracking-widest font-sans">Presentation Data Model</span>
-                <span className="text-[9px] font-bold text-neutral-400 bg-white/5 px-2 py-0.5 rounded font-sans font-bold">JSON</span>
+                <span className="text-[9px] font-black text-neutral-500 uppercase tracking-widest font-sans">
+                  Presentation Data Model
+                </span>
+                <span className="text-[9px] font-bold text-neutral-400 bg-white/5 px-2 py-0.5 rounded font-sans font-bold">
+                  JSON
+                </span>
               </div>
               <pre className="text-blue-400 whitespace-pre-wrap leading-relaxed">
                 {JSON.stringify(
@@ -565,7 +625,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
               {presentation.slides.map((slide, index) => {
                 // Custom compiler styling overrides specifically for this preview card iframe!
                 const fontImport = (activeTheme as any).fontImport || ''
-                
+
                 // We compile the scoped HTML specifically for this preview
                 // We enforce Ink Saver white backgrounds or standard theme backgrounds in preview!
                 let previewBg = 'var(--og-slide-bg, #0d0d0d)'
@@ -706,7 +766,11 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                 `
 
                 return (
-                  <div key={slide.id} className="flex flex-col gap-2.5 animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                  <div
+                    key={slide.id}
+                    className="flex flex-col gap-2.5 animate-slide-up"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
                     {/* Aspect Card wrapper */}
                     <div
                       className={`w-full relative rounded-xl border border-white/5 shadow-2xl overflow-hidden bg-[#121212] ${cardAspectRatio}`}
@@ -766,7 +830,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
         <div className="absolute inset-0 z-50 bg-[#0d0d0d]/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in no-drag">
           <div className="bg-[#121212] border border-white/5 rounded-2xl p-8 max-w-[400px] w-full flex flex-col items-center shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-pulse" />
-            
+
             {/* Spinning load icon */}
             <div className="relative w-16 h-16 mb-6">
               <div className="absolute inset-0 rounded-full border-4 border-white/5" />
@@ -801,7 +865,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
             <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-2xl flex items-center justify-center mb-5 animate-scale-up">
               ✓
             </div>
-            
+
             <h3 className="text-sm font-black uppercase tracking-widest text-white mb-2">
               Export Complete!
             </h3>
@@ -813,7 +877,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
             <div className="w-full bg-[#181818] border border-white/5 rounded-xl p-3 mb-6 text-left flex items-start gap-3">
               <span className="text-xl mt-0.5">📂</span>
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Save Path</span>
+                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
+                  Save Path
+                </span>
                 <span className="text-[10px] text-neutral-300 break-all font-mono select-text font-bold">
                   {exportSuccess}
                 </span>
@@ -845,7 +911,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
             <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-2xl flex items-center justify-center mb-5 animate-scale-up">
               ⚠️
             </div>
-            
+
             <h3 className="text-sm font-black uppercase tracking-widest text-white mb-2">
               Export Failed
             </h3>

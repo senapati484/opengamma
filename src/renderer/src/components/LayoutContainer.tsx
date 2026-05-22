@@ -30,7 +30,7 @@ interface LayoutContainerProps {
 
 /**
  * Modern 3-Column Editor Layout
- * 
+ *
  * Structure:
  * ┌────────────────────────────────────────┐
  * │          TITLEBAR                      │

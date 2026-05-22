@@ -97,7 +97,7 @@ export async function generateWithCLI(
   abortSignal: AbortSignal
 ): Promise<void> {
   const systemPrompt = await buildSystemPrompt(config)
-  
+
   // Resolve real path of temporary directory to prevent symlink-based uv_cwd spawn errors on macOS
   const rawTmpDir = os.tmpdir()
   const tmpDir = fs.existsSync(rawTmpDir) ? fs.realpathSync(rawTmpDir) : rawTmpDir

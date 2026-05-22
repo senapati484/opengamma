@@ -81,7 +81,10 @@ interface ElectronAPI {
   // ── CLI Tool Validation ────────────────────────────────────────────────────
 
   /** Test if a CLI tool is accessible */
-  testCliTool(cliPath: string, cliName: string): Promise<{ success: boolean; message: string; version?: string }>
+  testCliTool(
+    cliPath: string,
+    cliName: string
+  ): Promise<{ success: boolean; message: string; version?: string }>
   // ── Native Menu ─────────────────────────────────────────────────────────────
 
   /** Subscribe to native application-menu command events sent from the main

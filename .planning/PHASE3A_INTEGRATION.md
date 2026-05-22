@@ -2,16 +2,17 @@
 
 ## New Components Created ✅
 
-| Component | File | Purpose | Status |
-|-----------|------|---------|--------|
-| **LayoutContainer** | `LayoutContainer.tsx` | Main 3-column layout wrapper | ✅ Ready |
-| **PromptInputExpanded** | `PromptInputExpanded.tsx` | Bottom 120px prompt area | ✅ Ready |
-| **SidebarPanel** | `SidebarPanel.tsx` | Left sidebar (240px) | ✅ Ready |
-| **RightPanel** | `RightPanel.tsx` | Right collapsible panel (280px) | ✅ Ready |
+| Component               | File                      | Purpose                         | Status   |
+| ----------------------- | ------------------------- | ------------------------------- | -------- |
+| **LayoutContainer**     | `LayoutContainer.tsx`     | Main 3-column layout wrapper    | ✅ Ready |
+| **PromptInputExpanded** | `PromptInputExpanded.tsx` | Bottom 120px prompt area        | ✅ Ready |
+| **SidebarPanel**        | `SidebarPanel.tsx`        | Left sidebar (240px)            | ✅ Ready |
+| **RightPanel**          | `RightPanel.tsx`          | Right collapsible panel (280px) | ✅ Ready |
 
 ## Integration Steps
 
 ### Step 1: Update App.tsx Imports
+
 Add these imports to `src/renderer/src/App.tsx`:
 
 ```typescript
@@ -22,6 +23,7 @@ import { RightPanel } from './components/RightPanel'
 ```
 
 ### Step 2: Add State for Right Panel Toggle
+
 In the `AppInner` component, add:
 
 ```typescript
@@ -29,6 +31,7 @@ const [isRightPanelOpen, setIsRightPanelOpen] = useState(true)
 ```
 
 ### Step 3: Refactor Editor View to Use New Layout
+
 Replace the current editor view JSX (starting around line 817) with:
 
 ```typescript
@@ -58,7 +61,7 @@ Replace the current editor view JSX (starting around line 817) with:
       {/* Optional: Quick action buttons here */}
     </div>
   }
-  
+
   sidebar={
     <SidebarPanel
       slides={displayedSlides}
@@ -73,7 +76,7 @@ Replace the current editor view JSX (starting around line 817) with:
       regeneratingIndex={regeneratingIndex}
     />
   }
-  
+
   canvas={
     <>
       {displayedSlides.length > 0 ? (
@@ -95,7 +98,7 @@ Replace the current editor view JSX (starting around line 817) with:
       )}
     </>
   }
-  
+
   rightPanel={
     <RightPanel
       activeTheme={activeTheme}
@@ -109,10 +112,10 @@ Replace the current editor view JSX (starting around line 817) with:
       onClose={() => setIsRightPanelOpen(false)}
     />
   }
-  
+
   isRightPanelOpen={isRightPanelOpen}
   onRightPanelToggle={setIsRightPanelOpen}
-  
+
   promptArea={
     <PromptInputExpanded
       value={promptValue}
@@ -131,7 +134,9 @@ Replace the current editor view JSX (starting around line 817) with:
 ```
 
 ### Step 4: Clean Up Old Components
+
 Remove or comment out the old components that are now replaced:
+
 - Old `<PromptInput />` component usage
 - Old `<ThemePicker />` component usage
 - Old `<SlideThumbnails />` component usage
@@ -140,6 +145,7 @@ Remove or comment out the old components that are now replaced:
 The old component files can remain for reference, but won't be used in the new layout.
 
 ### Step 5: Add selectedDesignSystem from AppContext
+
 At the top of `AppInner`, update the context destructuring:
 
 ```typescript
@@ -151,29 +157,32 @@ const {
   activePresentation,
   setActivePresentation,
   selectedDesignSystem,
-  setSelectedDesignSystem  // ← NEW
+  setSelectedDesignSystem // ← NEW
 } = useAppContext()
 ```
 
 ## Dashboard View (No Changes)
+
 The dashboard view remains the same and doesn't use the new layout.
 
 ## New Component API Reference
 
 ### LayoutContainer Props
+
 ```typescript
 interface LayoutContainerProps {
-  sidebar: React.ReactNode              // Left panel content
-  canvas: React.ReactNode               // Center main content
-  rightPanel?: React.ReactNode          // Right collapsible panel
-  promptArea: React.ReactNode           // Bottom prompt area
-  titlebar: React.ReactNode             // Top titlebar
-  isRightPanelOpen?: boolean            // Right panel visibility
+  sidebar: React.ReactNode // Left panel content
+  canvas: React.ReactNode // Center main content
+  rightPanel?: React.ReactNode // Right collapsible panel
+  promptArea: React.ReactNode // Bottom prompt area
+  titlebar: React.ReactNode // Top titlebar
+  isRightPanelOpen?: boolean // Right panel visibility
   onRightPanelToggle?: (open: boolean) => void
 }
 ```
 
 ### PromptInputExpanded Props
+
 ```typescript
 interface PromptInputExpandedProps {
   value: string
@@ -190,6 +199,7 @@ interface PromptInputExpandedProps {
 ```
 
 ### SidebarPanel Props
+
 ```typescript
 interface SidebarPanelProps {
   slides: Slide[]
@@ -206,6 +216,7 @@ interface SidebarPanelProps {
 ```
 
 ### RightPanel Props
+
 ```typescript
 interface RightPanelProps {
   activeTheme: Theme | null
@@ -231,7 +242,7 @@ Total: 1920x1080 (example)
 │  L-Pad   │    Canvas    │  R-Panel  │
 │ 240px    │  flex-grow   │ 280px     │
 │ (240px)  │ (1400px)     │ (collap)  │
-│          │              │           │  
+│          │              │           │
 │ ~1000px  │              │           │  ← flex-1, fills
 │          │              │           │
 ├──────────┴──────────────┴───────────┤
@@ -264,6 +275,7 @@ Total: 1920x1080 (example)
 ## Rollback Plan
 
 If issues arise:
+
 1. The old component files remain intact
 2. Simply revert App.tsx imports
 3. Restore old editor view JSX
@@ -272,6 +284,7 @@ If issues arise:
 ## Next: Phase 3B - Visual Modernization
 
 After integration, next tasks:
+
 - [ ] Typography hierarchy improvements
 - [ ] Color palette modernization
 - [ ] Icon refinement

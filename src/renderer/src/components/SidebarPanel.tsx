@@ -89,7 +89,11 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
 
                     {regeneratingIndex === index && (
                       <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                        <svg className="animate-spin h-3 w-3 text-white" fill="none" viewBox="0 0 24 24">
+                        <svg
+                          className="animate-spin h-3 w-3 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
                           <circle
                             className="opacity-25"
                             cx="12"
