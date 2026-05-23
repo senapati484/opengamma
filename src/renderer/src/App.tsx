@@ -94,7 +94,8 @@ function AppInner() {
         aspectRatio: currentConfigRef.current?.aspectRatio || '16:9',
         slides: streamedSlides,
         createdAt: Date.now(),
-        title: streamedSlides[0]?.title || 'Untitled Presentation'
+        title: streamedSlides[0]?.title || 'Untitled Presentation',
+        bgMusicUrl: status.bgMusicUrl
       }
 
       electronAPI.savePresentation(newPresentation).then(() => {
@@ -102,7 +103,7 @@ function AppInner() {
         setActivePresentation(newPresentation)
       })
     }
-  }, [status.state, streamedSlides, activeTheme])
+  }, [status.state, status.bgMusicUrl, streamedSlides, activeTheme])
 
   // Effect: Sync active presentation with streamed slides during generation
   useEffect(() => {
@@ -369,6 +370,7 @@ function AppInner() {
                     }
                     activeSlideIndex={activeSlideIndex}
                     onActiveSlideChange={setActiveSlideIndex}
+                    bgMusicUrl={activePresentation ? activePresentation.bgMusicUrl : status.bgMusicUrl}
                   />
                 </ErrorBoundary>
               </div>

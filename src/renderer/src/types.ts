@@ -30,6 +30,8 @@ export interface Slide {
   bullets?: string[]
   /** Custom styles configured for this slide */
   style?: SlideStyle
+  /** Base64 MP3 narration audio data URL */
+  voiceoverUrl?: string
 }
 
 // ─── Presentation ─────────────────────────────────────────────────────────────
@@ -49,6 +51,8 @@ export interface Presentation {
   title: string
   /** Aspect ratio of the presentation slides */
   aspectRatio?: '9:16' | '16:9' | '1:1'
+  /** Base64 MP3 ambient loop background music URL */
+  bgMusicUrl?: string
 }
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
@@ -91,6 +95,10 @@ export interface GenerationConfig {
   aspectRatio?: '9:16' | '16:9' | '1:1'
   /** Whether to automatically generate images for the slides */
   generateImages?: boolean
+  /** Whether to generate slide-by-slide voice narration */
+  generateVoiceover?: boolean
+  /** Whether to fetch background music loop matching theme */
+  generateBgMusic?: boolean
 }
 
 // ─── StreamStatus ─────────────────────────────────────────────────────────────
@@ -106,6 +114,8 @@ export interface StreamStatus {
   totalSlides: number
   /** Human-readable error detail, present only when state === 'error' */
   errorMessage?: string
+  /** Generated background music loop URL passed at completion */
+  bgMusicUrl?: string
 }
 
 // ─── AppSettings ──────────────────────────────────────────────────────────────

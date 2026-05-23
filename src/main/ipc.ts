@@ -641,33 +641,20 @@ export function registerIpcHandlers(): void {
       return
     }
 
-    // Notify the renderer that generation is starting
-    pushStatus(window, {
-      state: 'generating',
-      slidesGenerated: 0,
-      totalSlides: config.slideCount
-    })
-
     try {
-      await generatePresentation(config, currentSettings, signal, (slide) => {
-        if (signal.aborted) return
-        // Push each slide to the renderer as it arrives
-        window.webContents.send(IpcChannels.GENERATE_SLIDES, slide)
-        // Update the progress counter
-        pushStatus(window, {
-          state: 'generating',
-          slidesGenerated: slide.index + 1,
-          totalSlides: config.slideCount
-        })
-      })
-
-      if (!signal.aborted) {
-        pushStatus(window, {
-          state: 'done',
-          slidesGenerated: config.slideCount,
-          totalSlides: config.slideCount
-        })
-      }
+      await generatePresentation(
+        config,
+        currentSettings,
+        (slide) => {
+          if (signal.aborted) return
+          window.webContents.send(IpcChannels.GENERATE_SLIDES, slide)
+        },
+        (status) => {
+          if (signal.aborted) return
+          pushStatus(window, status)
+        },
+        signal
+      )
     } catch (err: unknown) {
       if (signal.aborted) {
         // Cancellation is expected — reset to idle, not an error

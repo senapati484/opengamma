@@ -51,9 +51,35 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
     }
   })
 
+  const [autoGenerateVoiceover, setAutoGenerateVoiceover] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('og-auto-generate-voiceover')
+      return saved === 'true'
+    } catch (e) {
+      return false
+    }
+  })
+
+  const [autoGenerateBgMusic, setAutoGenerateBgMusic] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('og-auto-generate-bgmusic')
+      return saved === 'true'
+    } catch (e) {
+      return false
+    }
+  })
+
   useEffect(() => {
     localStorage.setItem('og-auto-generate-images', String(autoGenerateImages))
   }, [autoGenerateImages])
+
+  useEffect(() => {
+    localStorage.setItem('og-auto-generate-voiceover', String(autoGenerateVoiceover))
+  }, [autoGenerateVoiceover])
+
+  useEffect(() => {
+    localStorage.setItem('og-auto-generate-bgmusic', String(autoGenerateBgMusic))
+  }, [autoGenerateBgMusic])
 
   // Close theme dropdown on outside click
   useEffect(() => {
@@ -83,7 +109,9 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
       theme,
       slideCount,
       aspectRatio,
-      generateImages: autoGenerateImages
+      generateImages: autoGenerateImages,
+      generateVoiceover: autoGenerateVoiceover,
+      generateBgMusic: autoGenerateBgMusic
     })
   }
 
@@ -350,10 +378,10 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
           </div>
         </div>
 
-        {/* AI Image Studio */}
+        {/* AI Media Studio */}
         <div className="space-y-4 pt-1.5 border-t border-white/5">
           <div className="text-[10px] font-bold text-[#e8ff57] uppercase tracking-[0.2em] opacity-70">
-            AI Image Studio
+            AI Media Studio
           </div>
 
           <div className="space-y-3">
@@ -382,7 +410,55 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
               </button>
             </div>
 
+            {/* AI Voiceover Toggle */}
+            <div className="flex items-center justify-between bg-[#1a1a1a] p-3 rounded-xl border border-white/5">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider">
+                  AI Voiceover
+                </span>
+                <span className="text-[8px] text-neutral-500 font-semibold leading-tight">
+                  Narration based on notes
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAutoGenerateVoiceover((prev) => !prev)}
+                className={`w-9 h-5 rounded-full p-0.5 transition-all duration-300 outline-none ${
+                  autoGenerateVoiceover ? 'bg-[#e8ff57]' : 'bg-[#2a2a2a]'
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full bg-black transition-all duration-300 transform ${
+                    autoGenerateVoiceover ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
 
+            {/* AI Background Music Toggle */}
+            <div className="flex items-center justify-between bg-[#1a1a1a] p-3 rounded-xl border border-white/5">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider">
+                  AI Music
+                </span>
+                <span className="text-[8px] text-neutral-500 font-semibold leading-tight">
+                  Theme-matching soundtrack
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAutoGenerateBgMusic((prev) => !prev)}
+                className={`w-9 h-5 rounded-full p-0.5 transition-all duration-300 outline-none ${
+                  autoGenerateBgMusic ? 'bg-[#e8ff57]' : 'bg-[#2a2a2a]'
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full bg-black transition-all duration-300 transform ${
+                    autoGenerateBgMusic ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </div>
 

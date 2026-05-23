@@ -85,16 +85,61 @@ export async function generatePresentation(
   }
 
   const imagePromises: Promise<any>[] = []
+  let bgMusicBase64: string | undefined = undefined
+
+  const wrappedOnStatus = (status: StreamStatus) => {
+    if (status.state === 'done') {
+      ;(async () => {
+        try {
+          if (imagePromises.length > 0) {
+            await Promise.all(imagePromises)
+          }
+          if (config.generateBgMusic) {
+            bgMusicBase64 = await fetchMusicBase64(config.theme.id, abortSignal)
+          }
+        } catch (e) {
+          console.error('[generator] Error waiting for assets/music:', e)
+        } finally {
+          onStatus({
+            ...status,
+            bgMusicUrl: bgMusicBase64
+          })
+        }
+      })()
+    } else {
+      onStatus(status)
+    }
+  }
+
+  let slideQueue: Promise<void> = Promise.resolve()
 
   const wrappedOnSlide = (slide: Slide) => {
     onSlide(slide)
 
-    if (config.generateImages && slide.index > 0) {
-      const p = generateAndInjectImage(slide, config, settings, onSlide, abortSignal).catch((err) => {
-        console.error('[generator] Background image generation failed:', err)
-      })
-      imagePromises.push(p)
-    }
+    const assetTask = slideQueue.then(async () => {
+      if (abortSignal.aborted) return
+
+      if (config.generateImages && slide.index > 0) {
+        await generateAndInjectImage(slide, config, settings, onSlide, abortSignal).catch((err) => {
+          console.error('[generator] Image generation failed:', err)
+        })
+      }
+
+      if (config.generateVoiceover && slide.notes) {
+        try {
+          const voiceoverUrl = await fetchTtsAudioBase64(slide.notes, abortSignal)
+          if (voiceoverUrl && !abortSignal.aborted) {
+            slide.voiceoverUrl = voiceoverUrl
+            onSlide(slide)
+          }
+        } catch (err) {
+          console.error('[generator] Voiceover generation failed:', err)
+        }
+      }
+    })
+
+    slideQueue = assetTask
+    imagePromises.push(assetTask)
   }
 
   // ── ROUTE TO EXECUTION MODE ──────────────────────────────────────────────
@@ -108,7 +153,7 @@ export async function generatePresentation(
     }
 
     // Step 1: Research Pass
-    onStatus({
+    wrappedOnStatus({
       state: 'researching',
       slidesGenerated: 0,
       totalSlides: config.slideCount
@@ -130,7 +175,7 @@ export async function generatePresentation(
     }
 
     if (abortSignal.aborted) {
-      onStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+      wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
       return
     }
 
@@ -147,13 +192,9 @@ export async function generatePresentation(
       selected.executablePath,
       selected.id,
       wrappedOnSlide,
-      onStatus,
+      wrappedOnStatus,
       abortSignal
     )
-
-    if (imagePromises.length > 0) {
-      await Promise.all(imagePromises)
-    }
     return
   }
 
@@ -165,7 +206,7 @@ export async function generatePresentation(
 
   if (settings.executionMode === 'anthropic-api') {
     // Step 1: Research Pass
-    onStatus({
+    wrappedOnStatus({
       state: 'researching',
       slidesGenerated: 0,
       totalSlides: config.slideCount
@@ -197,7 +238,7 @@ export async function generatePresentation(
       }
     } catch (researchErr: any) {
       if (researchErr.message === 'AbortError' || abortSignal.aborted) {
-        onStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+        wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
         return
       }
       console.warn(
@@ -216,7 +257,7 @@ export async function generatePresentation(
       const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
       const systemPrompt = await buildSystemPrompt(config)
 
-      onStatus({
+      wrappedOnStatus({
         state: 'generating',
         slidesGenerated: 0,
         totalSlides: config.slideCount
@@ -247,7 +288,7 @@ export async function generatePresentation(
           for (const html of completeSlides) {
             if (abortSignal.aborted) throw new Error('AbortError')
             wrappedOnSlide(parseSlideHtml(html, count++))
-            onStatus({
+            wrappedOnStatus({
               state: 'generating',
               slidesGenerated: count,
               totalSlides: config.slideCount
@@ -261,11 +302,7 @@ export async function generatePresentation(
         wrappedOnSlide(parseSlideHtml(buffer, count++))
       }
 
-      if (imagePromises.length > 0) {
-        await Promise.all(imagePromises)
-      }
-
-      onStatus({
+      wrappedOnStatus({
         state: 'done',
         slidesGenerated: count,
         totalSlides: config.slideCount
@@ -274,7 +311,7 @@ export async function generatePresentation(
       break
     } catch (error: any) {
       if (abortSignal.aborted || error.message === 'AbortError') {
-        onStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+        wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
         break
       }
 
@@ -283,7 +320,7 @@ export async function generatePresentation(
         continue
       }
 
-      onStatus({
+      wrappedOnStatus({
         state: 'error',
         slidesGenerated: 0,
         totalSlides: config.slideCount,
@@ -435,5 +472,127 @@ async function generateAndInjectImage(
     }
   } catch (err) {
     console.error(`[generator] Failed to generate image for slide ${slide.index}:`, err)
+  }
+}
+
+function splitTextIntoChunks(text: string): string[] {
+  const cleanText = text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+  if (!cleanText) return []
+
+  const sentences = cleanText.split(/(?<=[.!?])\s+/)
+  const chunks: string[] = []
+  let currentChunk = ''
+
+  for (const sentence of sentences) {
+    if ((currentChunk + ' ' + sentence).trim().length <= 180) {
+      currentChunk = (currentChunk + ' ' + sentence).trim()
+    } else {
+      if (currentChunk) {
+        chunks.push(currentChunk)
+      }
+      if (sentence.length > 180) {
+        const clauses = sentence.split(/(?<=[,;])\s+/)
+        let subChunk = ''
+        for (const clause of clauses) {
+          if ((subChunk + ' ' + clause).trim().length <= 180) {
+            subChunk = (subChunk + ' ' + clause).trim()
+          } else {
+            if (subChunk) {
+              chunks.push(subChunk)
+            }
+            if (clause.length > 180) {
+              const words = clause.split(/\s+/)
+              let wordChunk = ''
+              for (const word of words) {
+                if ((wordChunk + ' ' + word).trim().length <= 180) {
+                  wordChunk = (wordChunk + ' ' + word).trim()
+                } else {
+                  if (wordChunk) {
+                    chunks.push(wordChunk)
+                  }
+                  wordChunk = word
+                }
+              }
+              if (wordChunk) {
+                subChunk = wordChunk
+              }
+            } else {
+              subChunk = clause
+            }
+          }
+        }
+        if (subChunk) {
+          currentChunk = subChunk
+        } else {
+          currentChunk = ''
+        }
+      } else {
+        currentChunk = sentence
+      }
+    }
+  }
+  if (currentChunk) {
+    chunks.push(currentChunk)
+  }
+  return chunks
+}
+
+async function fetchTtsAudioBase64(text: string, abortSignal?: AbortSignal): Promise<string | undefined> {
+  const chunks = splitTextIntoChunks(text)
+  if (chunks.length === 0) return undefined
+
+  try {
+    const buffers: Buffer[] = []
+    for (const chunk of chunks) {
+      if (abortSignal?.aborted) return undefined
+      const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(chunk)}`
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        },
+        signal: abortSignal
+      })
+      if (!res.ok) {
+        throw new Error(`Google TTS returned status ${res.status}`)
+      }
+      const arrayBuffer = await res.arrayBuffer()
+      buffers.push(Buffer.from(arrayBuffer))
+    }
+    const combinedBuffer = Buffer.concat(buffers)
+    return `data:audio/mp3;base64,${combinedBuffer.toString('base64')}`
+  } catch (err) {
+    console.error('[generator] TTS generation failed:', err)
+    return undefined
+  }
+}
+
+function getMusicUrlForTheme(themeId: string): string {
+  switch (themeId) {
+    case 'startup-gradient':
+    case 'midnight-violet':
+    case 'deep-ocean':
+      return 'https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3'
+    case 'academic-clean':
+    case 'corporate-minimal':
+    case 'warm-paper':
+    case 'grid-paper':
+    case 'red-accent':
+      return 'https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3'
+    default:
+      return 'https://assets.mixkit.co/music/preview/mixkit-hazy-after-hours-132.mp3'
+  }
+}
+
+async function fetchMusicBase64(themeId: string, abortSignal?: AbortSignal): Promise<string | undefined> {
+  const url = getMusicUrlForTheme(themeId)
+  try {
+    const res = await fetch(url, { signal: abortSignal })
+    if (!res.ok) throw new Error(`Mixkit CDN returned status ${res.status}`)
+    const arrayBuffer = await res.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    return `data:audio/mp3;base64,${buffer.toString('base64')}`
+  } catch (err) {
+    console.error('[generator] Failed to fetch theme music:', err)
+    return undefined
   }
 }
