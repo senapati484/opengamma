@@ -219,10 +219,10 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                     <button
                       key={f.id}
                       onClick={() => setSettings((s) => ({ ...s, format: f.id as any }))}
-                      className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all active:scale-[0.97] cursor-pointer ${
+                      className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border transition-all active:scale-[0.97] cursor-pointer ${
                         isSel
-                          ? 'bg-[#0047ff] text-white shadow-lg shadow-blue-500/15 font-bold'
-                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                          ? 'bg-[#e8ff57] border-[#e8ff57] text-black shadow-lg shadow-[#e8ff57]/10 font-bold'
+                          : 'text-neutral-400 border-transparent hover:text-white hover:bg-white/5'
                       }`}
                     >
                       <span className="text-base mb-0.5">{f.icon}</span>
@@ -269,7 +269,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                           onClick={() => setSettings((s) => ({ ...s, preset: p.id as any }))}
                           className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-all active:scale-[0.98] ${
                             isSel
-                              ? 'border-[#0047ff] bg-blue-500/5'
+                              ? 'border-[#e8ff57]/30 bg-[#e8ff57]/5'
                               : 'border-white/5 hover:border-white/10 bg-white/2'
                           }`}
                         >
@@ -309,7 +309,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                           onChange={(e) =>
                             setSettings((s) => ({ ...s, pageSize: e.target.value as any }))
                           }
-                          className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#0047ff]"
+                          className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20"
                         >
                           <option value="A4">A4 (Standard)</option>
                           <option value="Letter">US Letter</option>
@@ -322,7 +322,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                           onChange={(e) =>
                             setSettings((s) => ({ ...s, orientation: e.target.value as any }))
                           }
-                          className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#0047ff]"
+                          className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20"
                         >
                           <option value="landscape">Landscape</option>
                           <option value="portrait">Portrait</option>
@@ -350,7 +350,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                             onClick={() => setSettings((s) => ({ ...s, margins: m as any }))}
                             className={`py-1 rounded-md text-[10px] font-bold transition-all capitalize cursor-pointer ${
                               isSel
-                                ? 'bg-white/10 text-white'
+                                ? 'bg-[#e8ff57] text-black shadow-md shadow-[#e8ff57]/5'
                                 : 'text-neutral-400 hover:text-neutral-200'
                             }`}
                           >
@@ -382,7 +382,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                           onClick={() => setSettings((st) => ({ ...st, pngScale: s.val as any }))}
                           className={`py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                             isSel
-                              ? 'bg-[#0047ff] text-white shadow-md shadow-blue-500/10'
+                              ? 'bg-[#e8ff57] text-black shadow-md shadow-[#e8ff57]/10'
                               : 'text-neutral-400 hover:text-neutral-200'
                           }`}
                         >
@@ -410,7 +410,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                         onChange={(e) =>
                           setSettings((s) => ({ ...s, headingFont: e.target.value }))
                         }
-                        className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#0047ff]"
+                        className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20"
                       >
                         {fontOptions.map((f) => (
                           <option key={f.value} value={f.value}>
@@ -426,7 +426,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                       <select
                         value={settings.bodyFont}
                         onChange={(e) => setSettings((s) => ({ ...s, bodyFont: e.target.value }))}
-                        className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#0047ff]"
+                        className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20"
                       >
                         {fontOptions.map((f) => (
                           <option key={f.value} value={f.value}>
@@ -462,7 +462,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                         onChange={(e) =>
                           setSettings((s) => ({ ...s, includeSpeakerNotes: e.target.checked }))
                         }
-                        className="w-3.5 h-3.5 rounded border-white/10 bg-[#161616] text-[#0047ff] focus:ring-0 focus:ring-offset-0"
+                        className="w-3.5 h-3.5 rounded border-white/10 bg-[#161616] text-[#e8ff57] focus:ring-0 focus:ring-offset-0 accent-[#e8ff57]"
                       />
                     </label>
                   )}
@@ -482,7 +482,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                         onChange={(e) =>
                           setSettings((s) => ({ ...s, showPageNumbers: e.target.checked }))
                         }
-                        className="w-3.5 h-3.5 rounded border-white/10 bg-[#161616] text-[#0047ff] focus:ring-0 focus:ring-offset-0"
+                        className="w-3.5 h-3.5 rounded border-white/10 bg-[#161616] text-[#e8ff57] focus:ring-0 focus:ring-offset-0 accent-[#e8ff57]"
                       />
                     </label>
                   )}
@@ -528,7 +528,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
           <div className="mt-auto p-6 border-t border-white/5 bg-[#0e0e0e] sticky bottom-0 z-10">
             <button
               onClick={handleExport}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden group"
+              className="w-full py-3 rounded-xl bg-[#e8ff57] hover:bg-[#f3ff99] text-black text-xs font-black uppercase tracking-widest shadow-lg shadow-[#e8ff57]/20 active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden group animate-pulse-slow"
             >
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               Export Presentation
@@ -929,7 +929,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                       )}
 
                       {/* Slide badge index */}
-                      <span className="absolute top-4 left-4 z-10 px-2 py-0.5 rounded bg-[#0047ff] text-white font-bold text-[9px] select-none shadow-md">
+                      <span className="absolute top-4 left-4 z-10 px-2 py-0.5 rounded bg-[#e8ff57] text-black font-black text-[9px] select-none shadow-md">
                         Slide {index + 1}
                       </span>
                     </div>
@@ -937,7 +937,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                     {/* Supplemental Speaker Notes print page layout (if enabled) */}
                     {settings.includeSpeakerNotes && slide.notes && (
                       <div className="p-4 rounded-xl border border-white/5 bg-white/2 text-xs flex flex-col gap-1.5">
-                        <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-[#0047ff]">
+                        <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-[#e8ff57]">
                           <span>📝</span> Speaker Script notes (Page {index + 1} Supplement)
                         </div>
                         <div className="text-neutral-400 italic font-medium leading-relaxed font-sans pl-1">
@@ -962,7 +962,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
             {/* Spinning load icon */}
             <div className="relative w-16 h-16 mb-6">
               <div className="absolute inset-0 rounded-full border-4 border-white/5" />
-              <div className="absolute inset-0 rounded-full border-4 border-[#0047ff] border-t-transparent animate-spin" />
+              <div className="absolute inset-0 rounded-full border-4 border-[#e8ff57] border-t-transparent animate-spin" />
             </div>
 
             <h3 className="text-sm font-black uppercase tracking-widest text-white mb-2">
@@ -975,7 +975,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
             {/* Micro Progress bar */}
             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mb-2">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 rounded-full"
+                className="h-full bg-[#e8ff57] transition-all duration-300 rounded-full"
                 style={{ width: `${exportProgress}%` }}
               />
             </div>
@@ -990,7 +990,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
       {exportSuccess && (
         <div className="absolute inset-0 z-50 bg-[#0d0d0d]/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in no-drag">
           <div className="bg-[#121212] border border-white/5 rounded-2xl p-8 max-w-[480px] w-full flex flex-col items-center shadow-2xl relative text-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-2xl flex items-center justify-center mb-5 animate-scale-up">
+            <div className="w-12 h-12 rounded-full bg-[#e8ff57]/10 border border-[#e8ff57]/20 text-[#e8ff57] text-2xl flex items-center justify-center mb-5 animate-scale-up font-bold">
               ✓
             </div>
 
@@ -1023,7 +1023,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
               </button>
               <button
                 onClick={() => setExportSuccess(null)}
-                className="flex-1 py-2.5 rounded-xl bg-[#0047ff] hover:bg-blue-600 text-xs font-black uppercase tracking-widest text-white active:scale-[0.98] transition-all cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-[#e8ff57] hover:bg-[#f3ff99] text-xs font-black uppercase tracking-widest text-black active:scale-[0.98] transition-all cursor-pointer"
               >
                 Close Studio
               </button>
