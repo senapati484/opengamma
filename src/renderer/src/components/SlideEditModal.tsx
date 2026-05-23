@@ -179,7 +179,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
         {/* Header Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#161616]">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-yellow-400/10 text-yellow-400">
+            <div className="p-2 rounded-xl bg-[#e8ff57]/10 text-[#e8ff57]">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -245,7 +245,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                     onClick={() => setLayout(item.key as any)}
                     className={`flex flex-col items-center justify-center py-2.5 rounded-xl border text-[10px] font-bold transition-all cursor-pointer ${
                       layout === item.key
-                        ? 'border-yellow-400 bg-yellow-400/10 text-yellow-400 shadow-md shadow-yellow-400/5'
+                        ? 'border-[#e8ff57] bg-[#e8ff57]/10 text-[#e8ff57] shadow-md shadow-[#e8ff57]/5'
                         : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'
                     }`}
                   >
@@ -278,7 +278,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/20 transition-all font-sans"
+                  className="w-full px-3.5 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20 transition-all font-sans"
                   placeholder="Enter main header text..."
                 />
               </div>
@@ -292,7 +292,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                     type="text"
                     value={accentText}
                     onChange={(e) => setAccentText(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/20 transition-all font-sans"
+                    className="w-full px-3.5 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20 transition-all font-sans"
                     placeholder={
                       layout === 'title'
                         ? 'Enter presentation subtitle...'
@@ -320,7 +320,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                     value={bulletsText}
                     onChange={(e) => setBulletsText(e.target.value)}
                     rows={layout === 'data' ? 4 : 6}
-                    className="w-full px-3.5 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/20 transition-all font-sans resize-none custom-scrollbar"
+                    className="w-full px-3.5 py-2.5 bg-neutral-900/60 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20 transition-all font-sans resize-none custom-scrollbar"
                     placeholder={
                       layout === 'data'
                         ? 'Users | 120,400 | +12% YoY\nRevenue | $450K | Target met\nRetention | 94.2% | High Growth'
@@ -344,7 +344,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                       onClick={() => setTextAlign(align)}
                       className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-all ${
                         textAlign === align
-                          ? 'bg-yellow-400 text-black shadow'
+                          ? 'bg-[#e8ff57] text-black shadow'
                           : 'text-neutral-500 hover:text-white'
                       }`}
                     >
@@ -360,7 +360,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                   <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                     Title Size
                   </span>
-                  <span className="text-[10px] font-bold text-yellow-400">
+                  <span className="text-[10px] font-bold text-[#e8ff57]">
                     {titleSize.toFixed(1)}em
                   </span>
                 </div>
@@ -371,7 +371,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                   step="0.1"
                   value={titleSize}
                   onChange={(e) => setTitleSize(parseFloat(e.target.value))}
-                  className="w-full accent-yellow-400 h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
+                  className="w-full accent-[#e8ff57] h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
                 />
               </div>
 
@@ -382,7 +382,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                     <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                       Content Size
                     </span>
-                    <span className="text-[10px] font-bold text-yellow-400">
+                    <span className="text-[10px] font-bold text-[#e8ff57]">
                       {contentSize.toFixed(1)}em
                     </span>
                   </div>
@@ -393,7 +393,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                     step="0.1"
                     value={contentSize}
                     onChange={(e) => setContentSize(parseFloat(e.target.value))}
-                    className="w-full accent-yellow-400 h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
+                    className="w-full accent-[#e8ff57] h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
               )}
@@ -412,7 +412,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                   <select
                     value={headingFont}
                     onChange={(e) => setHeadingFont(e.target.value)}
-                    className="w-full px-3 py-2 bg-neutral-900 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-yellow-400 cursor-pointer"
+                    className="w-full px-3 py-2 bg-neutral-900 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-[#e8ff57]/30 cursor-pointer"
                   >
                     {HEADING_FONTS.map((font) => (
                       <option key={font.value} value={font.value}>
@@ -428,7 +428,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                   <select
                     value={bodyFont}
                     onChange={(e) => setBodyFont(e.target.value)}
-                    className="w-full px-3 py-2 bg-neutral-900 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-yellow-400 cursor-pointer"
+                    className="w-full px-3 py-2 bg-neutral-900 border border-white/10 rounded-xl text-neutral-100 text-xs focus:outline-none focus:border-[#e8ff57]/30 cursor-pointer"
                   >
                     {BODY_FONTS.map((font) => (
                       <option key={font.value} value={font.value}>
@@ -548,7 +548,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-3.5 py-2 bg-neutral-900 border border-white/10 rounded-xl text-neutral-300 text-xs focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/20 transition-all font-sans resize-none custom-scrollbar"
+                className="w-full px-3.5 py-2 bg-neutral-900 border border-white/10 rounded-xl text-neutral-300 text-xs focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20 transition-all font-sans resize-none custom-scrollbar"
                 placeholder="Include speaker notes, speaking prompts, or full script to assist the presenter during delivery..."
               />
             </div>
@@ -565,7 +565,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
           </button>
           <button
             onClick={handleSave}
-            className="px-6 py-2 rounded-xl text-[11px] font-bold text-black bg-gradient-to-r from-yellow-400 to-amber-500 hover:opacity-95 active:scale-95 transition-all select-none cursor-pointer shadow-md shadow-yellow-500/10"
+            className="px-6 py-2 rounded-xl text-[11px] font-bold text-black bg-gradient-to-r from-[#e8ff57] to-[#dfff3d] hover:opacity-95 active:scale-95 transition-all select-none cursor-pointer shadow-md shadow-[#e8ff57]/10"
           >
             Save Changes
           </button>

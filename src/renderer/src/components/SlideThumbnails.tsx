@@ -73,7 +73,7 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
           Slides
         </label>
         <span className="text-[10px] text-neutral-400 font-medium">
-          <span className="font-semibold text-[#0047ff]">{activeSlideIndex + 1}</span> of{' '}
+          <span className="font-semibold text-[#e8ff57]">{activeSlideIndex + 1}</span> of{' '}
           {slides.length}
         </span>
       </div>
@@ -161,7 +161,7 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
                 isRegenerating
                   ? 'border-amber-300 cursor-wait shadow-sm shadow-amber-100'
                   : isActive
-                    ? 'border-[#0047ff] ring-2 ring-[#0047ff]/15 cursor-pointer shadow-sm shadow-blue-100'
+                    ? 'border-[#e8ff57] ring-2 ring-[#e8ff57]/15 cursor-pointer shadow-sm shadow-[#e8ff57]/10'
                     : 'border-neutral-200 hover:border-neutral-300 hover:shadow-sm cursor-pointer bg-white'
               }`}
             >
@@ -183,7 +183,7 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
               <span
                 className={`absolute bottom-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md text-[9px] font-bold pointer-events-none ${
                   isActive
-                    ? 'bg-[#0047ff] text-white'
+                    ? 'bg-[#e8ff57] text-black'
                     : 'bg-white/90 text-neutral-500 border border-neutral-200'
                 }`}
               >

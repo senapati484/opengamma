@@ -44,7 +44,7 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white border-t border-neutral-200 p-4 gap-3">
+    <div className="flex flex-col h-full bg-[#141414] border-t border-white/5 p-4 gap-3">
       {/* Main textarea container */}
       <div className="flex-1 flex flex-col min-h-0 relative">
         <textarea
@@ -54,7 +54,7 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
           onKeyDown={handleKeyDown}
           disabled={isGenerating || readOnly}
           placeholder="What would you like to present? Type a topic or paste an outline..."
-          className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-neutral-50 text-base font-medium text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent resize-none disabled:opacity-50 transition-all min-h-[70px]"
+          className="w-full px-4 py-3 rounded-xl border border-white/5 bg-[#0d0d0d] text-base font-medium text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#e8ff57]/20 focus:border-[#e8ff57]/30 resize-none disabled:opacity-50 transition-all min-h-[70px]"
         />
       </div>
 
@@ -66,7 +66,7 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
             <span className="text-xs font-bold text-neutral-500 uppercase tracking-wide">
               Slides
             </span>
-            <div className="flex items-center gap-3 bg-neutral-100 px-3 py-1.5 rounded-lg border border-neutral-200">
+            <div className="flex items-center gap-3 bg-[#0d0d0d] px-3 py-1.5 rounded-lg border border-white/5">
               <input
                 type="range"
                 min="3"
@@ -74,14 +74,14 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
                 value={slideCount}
                 onChange={(e) => setSlideCount(parseInt(e.target.value, 10))}
                 disabled={readOnly}
-                className="w-24 h-1.5 rounded-full accent-blue-600 cursor-pointer"
+                className="w-24 h-1.5 rounded-full accent-[#e8ff57] cursor-pointer"
               />
-              <span className="text-sm font-black text-blue-600 w-5 text-center">{slideCount}</span>
+              <span className="text-sm font-black text-[#e8ff57] w-5 text-center">{slideCount}</span>
             </div>
           </div>
 
           {/* Keyboard hint */}
-          <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-neutral-400 font-bold bg-neutral-50 px-2 py-1 rounded border border-neutral-100">
+          <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-neutral-400 font-bold bg-[#0d0d0d] px-2 py-1 rounded border border-white/5">
             <kbd className="text-xs">⌘</kbd>
             <span>+</span>
             <kbd className="text-xs">⏎</kbd>
@@ -94,7 +94,7 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
           {isGenerating ? (
             <button
               onClick={onCancel}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all active:scale-95 border border-red-200 text-sm font-bold shadow-sm"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all active:scale-95 border border-red-500/20 text-sm font-bold shadow-sm"
             >
               <svg
                 className="w-4 h-4"
@@ -111,7 +111,7 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
             <button
               onClick={onGenerate}
               disabled={!value.trim() || readOnly}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200 disabled:opacity-40 disabled:bg-neutral-300 disabled:shadow-none text-sm font-black uppercase tracking-wider"
+              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-[#e8ff57] to-[#dfff3d] text-black hover:opacity-95 transition-all active:scale-95 shadow-md shadow-[#e8ff57]/10 disabled:opacity-40 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:shadow-none text-sm font-black uppercase tracking-wider cursor-pointer"
             >
               Generate
               <svg

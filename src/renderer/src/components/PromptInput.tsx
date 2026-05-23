@@ -123,7 +123,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                 }
               }}
               disabled={isGenerating || readOnly}
-              className="w-14 bg-neutral-50 text-neutral-700 border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#0047ff]/50 text-center transition-colors disabled:opacity-50"
+              className="w-14 bg-neutral-50 text-neutral-700 border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#e8ff57]/30 text-center transition-colors disabled:opacity-50"
             />
           </div>
         </div>
@@ -141,7 +141,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
           <button
             type="submit"
             disabled={!prompt.trim() || readOnly}
-            className="flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#0047ff] hover:bg-blue-700 shadow-sm shadow-blue-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 select-none"
+            className="flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-black bg-[#e8ff57] hover:bg-[#dfff3d] shadow-sm shadow-[#e8ff57]/10 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 select-none"
           >
             <svg
               className="w-3.5 h-3.5"
