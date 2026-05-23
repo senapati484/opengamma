@@ -190,7 +190,11 @@ export async function generateWithCLI(
       child.stderr.on('data', (data: Buffer) => {
         const line = data.toString('utf-8').trim()
         if (line) {
-          console.error(`[cliRunner] ${cliId} stderr:`, line)
+          if (line.includes('Ripgrep is not available')) {
+            console.log(`[cliRunner] ${cliId} note: Ripgrep not found; falling back to GrepTool (non-blocking).`)
+          } else {
+            console.error(`[cliRunner] ${cliId} stderr:`, line)
+          }
         }
       })
 
@@ -320,7 +324,11 @@ export async function runResearchWithCLI(
       child.stderr.on('data', (data: Buffer) => {
         const line = data.toString('utf-8').trim()
         if (line) {
-          console.error(`[cliRunner-research] ${cliId} stderr:`, line)
+          if (line.includes('Ripgrep is not available')) {
+            console.log(`[cliRunner-research] ${cliId} note: Ripgrep not found; falling back to GrepTool (non-blocking).`)
+          } else {
+            console.error(`[cliRunner-research] ${cliId} stderr:`, line)
+          }
         }
       })
 
