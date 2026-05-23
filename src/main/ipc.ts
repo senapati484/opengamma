@@ -183,6 +183,36 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
     height = 960
   }
 
+  // Scan and gather custom fonts
+  const fontsToLoad = new Set<string>()
+  const standardFonts = [
+    'sans-serif', 'serif', 'monospace', 'system-ui', 'arial', 'helvetica', 
+    'times new roman', 'courier new', 'georgia', 'trebuchet ms', 'verdana', 
+    'geneva', 'tahoma', 'courier'
+  ]
+
+  const mainFontMatch = cssTokens.match(/--r-main-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i)
+  const headingFontMatch = cssTokens.match(/--r-heading-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i)
+  if (mainFontMatch && mainFontMatch[1]) fontsToLoad.add(mainFontMatch[1].trim())
+  if (headingFontMatch && headingFontMatch[1]) fontsToLoad.add(headingFontMatch[1].trim())
+
+  presentation.slides.forEach((slide) => {
+    if (slide.style?.headingFont) fontsToLoad.add(slide.style.headingFont.trim())
+    if (slide.style?.bodyFont) fontsToLoad.add(slide.style.bodyFont.trim())
+  })
+
+  const uniqueFontsToLoad = Array.from(fontsToLoad).filter(
+    (f) => !standardFonts.includes(f.toLowerCase())
+  )
+
+  let dynamicFontLink = ''
+  if (uniqueFontsToLoad.length > 0) {
+    const families = uniqueFontsToLoad
+      .map((f) => `family=${f.replace(/\s+/g, '+')}:wght@400;500;700;800`)
+      .join('&')
+    dynamicFontLink = `<link href="https://fonts.googleapis.com/css2?${families}&display=swap" rel="stylesheet" />`
+  }
+
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -194,6 +224,7 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
     <!-- Reveal.js Base Theme -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/${revealThemeName}.css" id="reveal-theme" />
+    ${dynamicFontLink}
 
     <style>
       ${theme.fontImport || ''}
@@ -238,6 +269,86 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
     <!-- Reveal.js Core Library -->
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
     <script>
+      const loadedFonts = new Set(${JSON.stringify(standardFonts)});
+
+      function ensureFontsLoaded() {
+        const sections = document.querySelectorAll('.reveal .slides section');
+        const fontsToLoad = new Set();
+
+        sections.forEach(section => {
+          const style = section.getAttribute('style') || '';
+          const headingMatch = style.match(/--og-slide-font-heading:\\s*['"]?([^,'";\\s]+(?:\\s+[^,'";\\s]+)*)['"]?/i);
+          const bodyMatch = style.match(/--og-slide-font-body:\\s*['"]?([^,'";\\s]+(?:\\s+[^,'";\\s]+)*)['"]?/i);
+
+          if (headingMatch && headingMatch[1]) {
+            const name = headingMatch[1].trim();
+            if (!loadedFonts.has(name.toLowerCase())) {
+              fontsToLoad.add(name);
+            }
+          }
+          if (bodyMatch && bodyMatch[1]) {
+            const name = bodyMatch[1].trim();
+            if (!loadedFonts.has(name.toLowerCase())) {
+              fontsToLoad.add(name);
+            }
+          }
+        });
+
+        if (fontsToLoad.size > 0) {
+          const families = Array.from(fontsToLoad).map(name => {
+            loadedFonts.add(name.toLowerCase());
+            return 'family=' + name.replace(/\\s+/g, '+') + ':wght@400;500;700;800';
+          });
+          const url = 'https://fonts.googleapis.com/css2?' + families.join('&') + '&display=swap';
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = url;
+          document.head.appendChild(link);
+        }
+      }
+
+      function adjustSlideFontSize(section) {
+        if (!section) return;
+        
+        section.style.fontSize = '';
+
+        const config = Reveal.getConfig();
+        const maxHeight = config.height * 0.85;
+        const maxWidth = config.width * 0.90;
+
+        const prevDisplay = section.style.display;
+        const prevVisibility = section.style.visibility;
+        const prevPosition = section.style.position;
+
+        section.style.display = 'block';
+        section.style.visibility = 'hidden';
+        section.style.position = 'absolute';
+
+        let fontSize = 1.0;
+        const minFontSize = 0.45;
+        const step = 0.03;
+
+        while (
+          (section.scrollHeight > maxHeight || section.scrollWidth > maxWidth) && 
+          fontSize > minFontSize
+        ) {
+          fontSize -= step;
+          section.style.fontSize = fontSize + 'em';
+        }
+
+        section.style.display = prevDisplay;
+        section.style.visibility = prevVisibility;
+        section.style.position = prevPosition;
+      }
+
+      function adjustAllSlideFontSizes() {
+        const sections = document.querySelectorAll('.reveal .slides section');
+        sections.forEach(section => {
+          adjustSlideFontSize(section);
+        });
+        Reveal.layout();
+      }
+
       Reveal.initialize({
         hash: true,
         controls: true,
@@ -248,6 +359,11 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
         width: ${width},
         height: ${height},
         margin: 0
+      });
+
+      Reveal.on('ready', () => {
+        ensureFontsLoaded();
+        adjustAllSlideFontSizes();
       });
     </script>
   </body>
@@ -281,6 +397,39 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
 
   const revealThemeName = theme.revealTheme || 'white'
   const cssTokens = theme.cssTokens || ''
+
+  // Scan and gather custom fonts
+  const fontsToLoad = new Set<string>()
+  const standardFonts = [
+    'sans-serif', 'serif', 'monospace', 'system-ui', 'arial', 'helvetica', 
+    'times new roman', 'courier new', 'georgia', 'trebuchet ms', 'verdana', 
+    'geneva', 'tahoma', 'courier'
+  ]
+
+  const mainFontMatch = cssTokens.match(/--r-main-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i)
+  const headingFontMatch = cssTokens.match(/--r-heading-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i)
+  if (mainFontMatch && mainFontMatch[1]) fontsToLoad.add(mainFontMatch[1].trim())
+  if (headingFontMatch && headingFontMatch[1]) fontsToLoad.add(headingFontMatch[1].trim())
+
+  if (options.headingFont && options.headingFont !== 'original') fontsToLoad.add(options.headingFont.trim())
+  if (options.bodyFont && options.bodyFont !== 'original') fontsToLoad.add(options.bodyFont.trim())
+
+  presentation.slides.forEach((slide) => {
+    if (slide.style?.headingFont) fontsToLoad.add(slide.style.headingFont.trim())
+    if (slide.style?.bodyFont) fontsToLoad.add(slide.style.bodyFont.trim())
+  })
+
+  const uniqueFontsToLoad = Array.from(fontsToLoad).filter(
+    (f) => !standardFonts.includes(f.toLowerCase())
+  )
+
+  let dynamicFontLink = ''
+  if (uniqueFontsToLoad.length > 0) {
+    const families = uniqueFontsToLoad
+      .map((f) => `family=${f.replace(/\s+/g, '+')}:wght@400;500;700;800`)
+      .join('&')
+    dynamicFontLink = `<link href="https://fonts.googleapis.com/css2?${families}&display=swap" rel="stylesheet" />`
+  }
 
   // Typography Overrides (Multiple Premium Fonts Loading)
   let typographyStyles = `
@@ -402,6 +551,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
     <!-- Reveal.js Base Theme -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/${revealThemeName}.css" id="reveal-theme" />
+    ${dynamicFontLink}
 
     <style>
       ${theme.fontImport || ''}
@@ -602,6 +752,86 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
     <!-- Reveal.js Core Library -->
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
     <script>
+      const loadedFonts = new Set(${JSON.stringify(standardFonts)});
+
+      function ensureFontsLoaded() {
+        const sections = document.querySelectorAll('.reveal .slides section');
+        const fontsToLoad = new Set();
+
+        sections.forEach(section => {
+          const style = section.getAttribute('style') || '';
+          const headingMatch = style.match(/--og-slide-font-heading:\\s*['"]?([^,'";\\s]+(?:\\s+[^,'";\\s]+)*)['"]?/i);
+          const bodyMatch = style.match(/--og-slide-font-body:\\s*['"]?([^,'";\\s]+(?:\\s+[^,'";\\s]+)*)['"]?/i);
+
+          if (headingMatch && headingMatch[1]) {
+            const name = headingMatch[1].trim();
+            if (!loadedFonts.has(name.toLowerCase())) {
+              fontsToLoad.add(name);
+            }
+          }
+          if (bodyMatch && bodyMatch[1]) {
+            const name = bodyMatch[1].trim();
+            if (!loadedFonts.has(name.toLowerCase())) {
+              fontsToLoad.add(name);
+            }
+          }
+        });
+
+        if (fontsToLoad.size > 0) {
+          const families = Array.from(fontsToLoad).map(name => {
+            loadedFonts.add(name.toLowerCase());
+            return 'family=' + name.replace(/\\s+/g, '+') + ':wght@400;500;700;800';
+          });
+          const url = 'https://fonts.googleapis.com/css2?' + families.join('&') + '&display=swap';
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = url;
+          document.head.appendChild(link);
+        }
+      }
+
+      function adjustSlideFontSize(section) {
+        if (!section) return;
+        
+        section.style.fontSize = '';
+
+        const config = Reveal.getConfig();
+        const maxHeight = config.height * 0.85;
+        const maxWidth = config.width * 0.90;
+
+        const prevDisplay = section.style.display;
+        const prevVisibility = section.style.visibility;
+        const prevPosition = section.style.position;
+
+        section.style.display = 'block';
+        section.style.visibility = 'hidden';
+        section.style.position = 'absolute';
+
+        let fontSize = 1.0;
+        const minFontSize = 0.45;
+        const step = 0.03;
+
+        while (
+          (section.scrollHeight > maxHeight || section.scrollWidth > maxWidth) && 
+          fontSize > minFontSize
+        ) {
+          fontSize -= step;
+          section.style.fontSize = fontSize + 'em';
+        }
+
+        section.style.display = prevDisplay;
+        section.style.visibility = prevVisibility;
+        section.style.position = prevPosition;
+      }
+
+      function adjustAllSlideFontSizes() {
+        const sections = document.querySelectorAll('.reveal .slides section');
+        sections.forEach(section => {
+          adjustSlideFontSize(section);
+        });
+        Reveal.layout();
+      }
+
       Reveal.initialize({
         hash: false,
         controls: false,
@@ -613,6 +843,11 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         width: ${width},
         height: ${height},
         margin: 0
+      });
+
+      Reveal.on('ready', () => {
+        ensureFontsLoaded();
+        adjustAllSlideFontSizes();
       });
     </script>
   </body>

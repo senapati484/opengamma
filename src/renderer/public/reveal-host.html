@@ -93,7 +93,92 @@
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 
     <script>
-      // 1. Initialize Reveal.js with specified configurations
+      // 1. Font and sizing systems
+      const loadedFonts = new Set([
+        'sans-serif', 'serif', 'monospace', 'system-ui', 'arial', 'helvetica', 
+        'times new roman', 'courier new', 'georgia', 'trebuchet ms', 'verdana', 
+        'geneva', 'tahoma', 'courier'
+      ]);
+
+      function ensureFontsLoaded() {
+        const sections = document.querySelectorAll('.reveal .slides section');
+        const fontsToLoad = new Set();
+
+        sections.forEach(section => {
+          const style = section.getAttribute('style') || '';
+          const headingMatch = style.match(/--og-slide-font-heading:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i);
+          const bodyMatch = style.match(/--og-slide-font-body:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i);
+
+          if (headingMatch && headingMatch[1]) {
+            const name = headingMatch[1].trim();
+            if (!loadedFonts.has(name.toLowerCase())) {
+              fontsToLoad.add(name);
+            }
+          }
+          if (bodyMatch && bodyMatch[1]) {
+            const name = bodyMatch[1].trim();
+            if (!loadedFonts.has(name.toLowerCase())) {
+              fontsToLoad.add(name);
+            }
+          }
+        });
+
+        if (fontsToLoad.size > 0) {
+          const families = Array.from(fontsToLoad).map(name => {
+            loadedFonts.add(name.toLowerCase());
+            return `family=${name.replace(/\s+/g, '+')}:wght@400;500;700;800`;
+          });
+          const url = `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`;
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = url;
+          document.head.appendChild(link);
+        }
+      }
+
+      function adjustSlideFontSize(section) {
+        if (!section) return;
+        
+        section.style.fontSize = '';
+
+        const config = Reveal.getConfig();
+        const maxHeight = config.height * 0.85;
+        const maxWidth = config.width * 0.90;
+
+        const prevDisplay = section.style.display;
+        const prevVisibility = section.style.visibility;
+        const prevPosition = section.style.position;
+
+        section.style.display = 'block';
+        section.style.visibility = 'hidden';
+        section.style.position = 'absolute';
+
+        let fontSize = 1.0;
+        const minFontSize = 0.45;
+        const step = 0.03;
+
+        while (
+          (section.scrollHeight > maxHeight || section.scrollWidth > maxWidth) && 
+          fontSize > minFontSize
+        ) {
+          fontSize -= step;
+          section.style.fontSize = fontSize + 'em';
+        }
+
+        section.style.display = prevDisplay;
+        section.style.visibility = prevVisibility;
+        section.style.position = prevPosition;
+      }
+
+      function adjustAllSlideFontSizes() {
+        const sections = document.querySelectorAll('.reveal .slides section');
+        sections.forEach(section => {
+          adjustSlideFontSize(section);
+        });
+        Reveal.layout();
+      }
+
+      // Initialize Reveal.js with specified configurations
       Reveal.initialize({
         hash: false,
         controls: true,
@@ -104,149 +189,192 @@
         width: 1280,
         height: 720,
         margin: 0.1
-      })
+      });
+
+      Reveal.on('ready', () => {
+        ensureFontsLoaded();
+        adjustAllSlideFontSizes();
+      });
 
       Reveal.on('slidechanged', (event) => {
-        window.parent.postMessage({ type: 'SLIDE_CHANGED', index: event.indexh }, '*')
-      })
+        window.parent.postMessage({ type: 'SLIDE_CHANGED', index: event.indexh }, '*');
+      });
 
       // 2. Expose window.addSlide(html: string) to append new slides and navigate
       window.addSlide = function (html) {
-        const slidesContainer = document.querySelector('.reveal .slides')
-        if (!slidesContainer) return
+        const slidesContainer = document.querySelector('.reveal .slides');
+        if (!slidesContainer) return;
 
-        const trimmedHtml = html.trim()
-        let sectionElement
+        const trimmedHtml = html.trim();
+        let sectionElement;
 
-        // If the HTML starts with `<section`, parse it into a real DOM node
         if (trimmedHtml.startsWith('<section')) {
-          const tempDiv = document.createElement('div')
-          tempDiv.innerHTML = trimmedHtml
-          sectionElement = tempDiv.firstElementChild
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = trimmedHtml;
+          sectionElement = tempDiv.firstElementChild;
         }
 
-        // If not a full `<section>` block, wrap the raw HTML inside a new section element
         if (!sectionElement) {
-          sectionElement = document.createElement('section')
-          sectionElement.innerHTML = html
+          sectionElement = document.createElement('section');
+          sectionElement.innerHTML = html;
         }
 
-        slidesContainer.appendChild(sectionElement)
+        slidesContainer.appendChild(sectionElement);
+        Reveal.sync();
+        Reveal.slide(Reveal.getTotalSlides() - 1);
 
-        // Sync Reveal DOM state and auto-navigate to the newly appended slide
-        Reveal.sync()
-        Reveal.slide(Reveal.getTotalSlides() - 1)
-      }
+        setTimeout(() => {
+          ensureFontsLoaded();
+          adjustAllSlideFontSizes();
+        }, 50);
+      };
 
       // 3. Expose window.clearSlides() to flush all slide contents
       window.clearSlides = function () {
-        const slidesContainer = document.querySelector('.reveal .slides')
+        const slidesContainer = document.querySelector('.reveal .slides');
         if (slidesContainer) {
-          slidesContainer.innerHTML = ''
+          slidesContainer.innerHTML = '';
         }
-        Reveal.sync()
-      }
+        Reveal.sync();
+      };
 
       // 4. Expose window.setTheme(cssTokens: string) to inject CSS variable overrides
       window.setTheme = function (cssTokens) {
-        let styleTag = document.getElementById('custom-theme-variables')
+        let styleTag = document.getElementById('custom-theme-variables');
 
-        // Replace or create a dedicated style block
         if (!styleTag) {
-          styleTag = document.createElement('style')
-          styleTag.id = 'custom-theme-variables'
-          document.head.appendChild(styleTag)
+          styleTag = document.createElement('style');
+          styleTag.id = 'custom-theme-variables';
+          document.head.appendChild(styleTag);
         }
 
-        styleTag.innerHTML = cssTokens
-      }
+        styleTag.innerHTML = cssTokens;
+
+        // Parse theme level fonts
+        const themeFonts = new Set();
+        const mainMatch = cssTokens.match(/--r-main-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i);
+        const headingMatch = cssTokens.match(/--r-heading-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i);
+
+        if (mainMatch && mainMatch[1]) {
+          const name = mainMatch[1].trim();
+          if (!loadedFonts.has(name.toLowerCase())) themeFonts.add(name);
+        }
+        if (headingMatch && headingMatch[1]) {
+          const name = headingMatch[1].trim();
+          if (!loadedFonts.has(name.toLowerCase())) themeFonts.add(name);
+        }
+
+        if (themeFonts.size > 0) {
+          const families = Array.from(themeFonts).map(name => {
+            loadedFonts.add(name.toLowerCase());
+            return `family=${name.replace(/\s+/g, '+')}:wght@400;500;700;800`;
+          });
+          const url = `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`;
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = url;
+          document.head.appendChild(link);
+        }
+
+        setTimeout(() => {
+          adjustAllSlideFontSizes();
+        }, 50);
+      };
 
       // 5. Setup postMessage event receiver for loose coupling and iframe compatibility
       window.addEventListener('message', function (event) {
-        const data = event.data
-        if (!data || typeof data !== 'object') return
+        const data = event.data;
+        if (!data || typeof data !== 'object') return;
 
         switch (data.type) {
           case 'SET_ASPECT_RATIO':
             if (typeof data.aspectRatio === 'string') {
               let w = 1280,
-                h = 720
+                h = 720;
               if (data.aspectRatio === '9:16') {
-                w = 720
-                h = 1280
+                w = 720;
+                h = 1280;
               } else if (data.aspectRatio === '1:1') {
-                w = 960
-                h = 960
+                w = 960;
+                h = 960;
               }
-              Reveal.configure({ width: w, height: h })
-              Reveal.layout()
+              Reveal.configure({ width: w, height: h });
+              Reveal.layout();
+              setTimeout(() => {
+                adjustAllSlideFontSizes();
+              }, 50);
             }
-            break
+            break;
 
           case 'ADD_SLIDE':
             if (typeof data.html === 'string') {
-              window.addSlide(data.html)
+              window.addSlide(data.html);
             }
-            break
+            break;
 
           case 'CLEAR_SLIDES':
-            window.clearSlides()
-            break
+            window.clearSlides();
+            break;
 
           case 'SET_THEME':
             if (typeof data.cssTokens === 'string') {
-              window.setTheme(data.cssTokens)
+              window.setTheme(data.cssTokens);
             }
-            break
+            break;
 
           case 'SET_REVEAL_THEME':
             if (typeof data.themeName === 'string') {
-              const themeLink = document.getElementById('reveal-theme')
+              const themeLink = document.getElementById('reveal-theme');
               if (themeLink) {
                 themeLink.setAttribute(
                   'href',
                   'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/' +
                     data.themeName +
                     '.css'
-                )
+                );
               }
             }
-            break
+            break;
 
           case 'NEXT_SLIDE':
-            Reveal.next()
-            break
+            Reveal.next();
+            break;
 
           case 'PREV_SLIDE':
-            Reveal.prev()
-            break
+            Reveal.prev();
+            break;
 
           case 'GO_TO_SLIDE':
             if (typeof data.index === 'number') {
-              Reveal.slide(data.index)
+              Reveal.slide(data.index);
             }
-            break
+            break;
 
           case 'REPLACE_SLIDE':
             if (typeof data.index === 'number' && typeof data.html === 'string') {
-              const slidesContainer = document.querySelector('.reveal .slides')
+              const slidesContainer = document.querySelector('.reveal .slides');
               if (slidesContainer) {
-                const sections = slidesContainer.querySelectorAll('section')
-                const target = sections[data.index]
+                const sections = slidesContainer.querySelectorAll('section');
+                const target = sections[data.index];
                 if (target) {
-                  const temp = document.createElement('div')
-                  temp.innerHTML = data.html
-                  const newSec = temp.firstElementChild || document.createElement('section')
-                  if (!temp.firstElementChild) newSec.innerHTML = data.html
-                  slidesContainer.replaceChild(newSec, target)
-                  Reveal.sync()
-                  Reveal.slide(data.index)
+                  const temp = document.createElement('div');
+                  temp.innerHTML = data.html;
+                  const newSec = temp.firstElementChild || document.createElement('section');
+                  if (!temp.firstElementChild) newSec.innerHTML = data.html;
+                  slidesContainer.replaceChild(newSec, target);
+                  Reveal.sync();
+                  Reveal.slide(data.index);
+
+                  setTimeout(() => {
+                    ensureFontsLoaded();
+                    adjustAllSlideFontSizes();
+                  }, 50);
                 }
               }
             }
-            break
+            break;
         }
-      })
+      });
     </script>
   </body>
 </html>
