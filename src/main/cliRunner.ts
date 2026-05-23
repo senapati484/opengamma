@@ -379,3 +379,100 @@ export async function runResearchWithCLI(
     await fs.promises.rm(workDir, { recursive: true, force: true }).catch(() => {})
   }
 }
+
+/**
+ * Runs a local AI CLI tool to query the soundtrack recommendation.
+ */
+export async function runMusicQueryWithCLI(
+  prompt: string,
+  cliPath: string,
+  cliId: string,
+  abortSignal?: AbortSignal,
+  settings?: AppSettings
+): Promise<string> {
+  const rawTmpDir = os.tmpdir()
+  const tmpDir = fs.existsSync(rawTmpDir) ? fs.realpathSync(rawTmpDir) : rawTmpDir
+  const tempFile = join(tmpDir, `og-context-music-${randomUUID()}.md`)
+  const workDir = join(tmpDir, `og-gen-music-${randomUUID()}`)
+
+  const systemPrompt = `You are an AI Music Selector. Your job is to select the perfect background music track for a presentation. Respond with ONLY the exact track key from the provided list, with no other text, commentary, formatting, or prose.`
+
+  try {
+    await fs.promises.writeFile(tempFile, systemPrompt, 'utf-8')
+    await fs.promises.mkdir(workDir, { recursive: true })
+
+    const { args, useStdin } = buildCliArgs(cliId, systemPrompt, prompt, tempFile)
+
+    console.log(`[cliRunner-music] Spawning CLI for music query: ${cliId} cwd: ${workDir}`)
+
+    const child = spawn(cliPath, args, {
+      shell: process.platform === 'win32',
+      cwd: workDir,
+      env: {
+        ...process.env,
+        NO_COLOR: '1',
+        FORCE_COLOR: '0',
+        GEMINI_CLI_TRUST_WORKSPACE: 'true',
+        GEMINI_API_KEY: settings?.geminiApiKey || '',
+        GOOGLE_API_KEY: settings?.geminiApiKey || '',
+        ANTHROPIC_API_KEY: settings?.claudeApiKey || '',
+        CLAUDE_API_KEY: settings?.claudeApiKey || ''
+      }
+    })
+
+    if (useStdin) {
+      const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${prompt}`
+      child.stdin.write(fullPrompt)
+      child.stdin.end()
+    }
+
+    return await new Promise<string>((resolve, reject) => {
+      let output = ''
+
+      child.stdout.on('data', (data: Buffer) => {
+        output += data.toString('utf-8')
+      })
+
+      child.stderr.on('data', (data: Buffer) => {
+        const line = data.toString('utf-8').trim()
+        if (line) {
+          if (
+            line.includes('Ripgrep is not available') ||
+            line.includes('ripgrep not found') ||
+            line.includes('falling back to GrepTool')
+          ) {
+            // Silently ignore
+          } else {
+            console.error(`[cliRunner-music] ${cliId} stderr:`, line)
+          }
+        }
+      })
+
+      child.on('close', (_code: number | null) => {
+        if (abortSignal?.aborted) {
+          resolve(output)
+          return
+        }
+        resolve(output)
+      })
+
+      child.on('error', (err: Error) => {
+        console.error(`[cliRunner-music] Spawn error:`, err.message)
+        reject(err)
+      })
+
+      abortSignal?.addEventListener('abort', () => {
+        try {
+          child.kill('SIGKILL')
+        } catch {
+          // Already dead
+        }
+        resolve(output)
+      })
+    })
+  } finally {
+    await fs.promises.unlink(tempFile).catch(() => {})
+    await fs.promises.rm(workDir, { recursive: true, force: true }).catch(() => {})
+  }
+}
+

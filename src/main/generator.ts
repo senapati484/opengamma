@@ -9,7 +9,7 @@ import type {
 } from '../renderer/src/types'
 import { buildSystemPrompt } from './contextLoader'
 import { parseSlideHtml, extractCompleteSlides } from './slideParser'
-import { generateWithCLI, runResearchWithCLI } from './cliRunner'
+import { generateWithCLI, runResearchWithCLI, runMusicQueryWithCLI } from './cliRunner'
 import { scanInstalledCLIs } from './cliScanner'
 
 /**
@@ -95,7 +95,7 @@ export async function generatePresentation(
             await Promise.all(imagePromises)
           }
           if (config.generateBgMusic) {
-            bgMusicBase64 = await fetchMusicBase64(config.theme.id, abortSignal)
+            bgMusicBase64 = await fetchMusicBase64(config.theme.id, config.prompt, settings, abortSignal)
           }
         } catch (e) {
           console.error('[generator] Error waiting for assets/music:', e)
@@ -718,25 +718,165 @@ async function generateAndInjectImage(
 // handler in ipc.ts after the presentation is fully saved. This gives users
 // immediate slide preview while audio generates in the background.
 
-function getMusicUrlForTheme(themeId: string): string {
+function getTrackKeyForTheme(themeId: string): string {
   switch (themeId) {
     case 'startup-gradient':
     case 'midnight-violet':
     case 'deep-ocean':
-      return 'https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3'
+      return 'tech-house'
     case 'academic-clean':
     case 'corporate-minimal':
     case 'warm-paper':
     case 'grid-paper':
     case 'red-accent':
+      return 'dreaming-big'
+    default:
+      return 'hazy-after-hours'
+  }
+}
+
+function getMusicUrlFromKey(key: string): string {
+  switch (key) {
+    case 'tech-house':
+      return 'https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3'
+    case 'dreaming-big':
       return 'https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3'
+    case 'hazy-after-hours':
+      return 'https://assets.mixkit.co/music/preview/mixkit-hazy-after-hours-132.mp3'
+    case 'sun-and-pam-trees':
+      return 'https://assets.mixkit.co/music/preview/mixkit-sun-and-pam-trees-579.mp3'
+    case 'valley-sunset':
+      return 'https://assets.mixkit.co/music/preview/mixkit-valley-sunset-127.mp3'
+    case 'deep-urban':
+      return 'https://assets.mixkit.co/music/preview/mixkit-deep-urban-95.mp3'
     default:
       return 'https://assets.mixkit.co/music/preview/mixkit-hazy-after-hours-132.mp3'
   }
 }
 
-async function fetchMusicBase64(themeId: string, abortSignal?: AbortSignal): Promise<string | undefined> {
-  const url = getMusicUrlForTheme(themeId)
+async function queryGeminiApiForMusic(
+  prompt: string,
+  apiKey: string,
+  abortSignal?: AbortSignal
+): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: prompt }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 20
+      }
+    }),
+    signal: abortSignal
+  })
+  if (!response.ok) {
+    throw new Error(`Gemini API error: ${response.status}`)
+  }
+  const resJson: any = await response.json()
+  return resJson?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+}
+
+async function queryAnthropicApiForMusic(
+  prompt: string,
+  apiKey: string
+): Promise<string> {
+  const anthropic = new Anthropic({ apiKey })
+  const response = await anthropic.messages.create({
+    model: 'claude-3-5-haiku-20241022',
+    max_tokens: 20,
+    system: 'You are an AI Music Selector. Respond with ONLY the exact track key from the provided list, with no other text.',
+    messages: [{ role: 'user', content: prompt }]
+  })
+  const textBlock = response.content[0]
+  return textBlock.type === 'text' ? textBlock.text : ''
+}
+
+async function selectAiMusicTrack(
+  userPrompt: string,
+  settings: AppSettings,
+  abortSignal?: AbortSignal
+): Promise<string | undefined> {
+  const tracksList = `
+Choose the best matching soundtrack for a presentation about: "${userPrompt}" from this catalog:
+1. tech-house (Tech, energetic, modern, futuristic, cyberpunk, house beats)
+2. dreaming-big (Cinematic, inspiring, corporate growth, serious, motivating, orchestral)
+3. hazy-after-hours (Lo-fi, chill, laidback, creative, dark, atmospheric, nocturnal)
+4. sun-and-pam-trees (Fun, tropical, optimistic, happy, social, lighthearted)
+5. valley-sunset (Ambient, slow, thoughtful, organic, design-focused, emotional)
+6. deep-urban (Hip-hop, street, beat-driven, modern, high-fidelity)
+
+Respond with ONLY the exact name of the selected track (choose from: tech-house, dreaming-big, hazy-after-hours, sun-and-pam-trees, valley-sunset, deep-urban). Do not output any other text or explanation. Just one word.
+  `.trim()
+
+  if (settings.executionMode === 'local-cli') {
+    const clis = await scanInstalledCLIs()
+    const selected = clis.find((c) => c.id === settings.selectedCliId)
+    if (selected && selected.installed && selected.executablePath) {
+      const choice = await runMusicQueryWithCLI(
+        tracksList,
+        selected.executablePath,
+        selected.id,
+        abortSignal,
+        settings
+      )
+      const cleanChoice = choice.trim().toLowerCase()
+      for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+        if (cleanChoice.includes(k)) return k
+      }
+    }
+  } else if (settings.executionMode === 'gemini-api' && settings.geminiApiKey) {
+    const choice = await queryGeminiApiForMusic(tracksList, settings.geminiApiKey, abortSignal)
+    const cleanChoice = choice.trim().toLowerCase()
+    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+      if (cleanChoice.includes(k)) return k
+    }
+  } else if (settings.executionMode === 'anthropic-api' && settings.claudeApiKey) {
+    const choice = await queryAnthropicApiForMusic(tracksList, settings.claudeApiKey)
+    const cleanChoice = choice.trim().toLowerCase()
+    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+      if (cleanChoice.includes(k)) return k
+    }
+  }
+  return undefined
+}
+
+async function fetchMusicBase64(
+  themeId: string,
+  prompt: string,
+  settings?: AppSettings,
+  abortSignal?: AbortSignal
+): Promise<string | undefined> {
+  let trackKey = 'hazy-after-hours'
+
+  if (settings && prompt) {
+    try {
+      console.log('[music-generator] Querying AI to choose perfect theme soundtrack...')
+      const choice = await selectAiMusicTrack(prompt, settings, abortSignal)
+      if (choice) {
+        trackKey = choice
+        console.log(`[music-generator] AI selected soundtrack: "${trackKey}"`)
+      } else {
+        trackKey = getTrackKeyForTheme(themeId)
+        console.log(`[music-generator] AI selection yielded no valid match, falling back to theme default: "${trackKey}"`)
+      }
+    } catch (err) {
+      console.warn('[music-generator] AI music selection failed, falling back to theme default:', err)
+      trackKey = getTrackKeyForTheme(themeId)
+    }
+  } else {
+    trackKey = getTrackKeyForTheme(themeId)
+  }
+
+  const url = getMusicUrlFromKey(trackKey)
+  console.log(`[music-generator] Fetching dynamic soundtrack from: ${url}`)
   try {
     const res = await fetch(url, { signal: abortSignal })
     if (!res.ok) throw new Error(`Mixkit CDN returned status ${res.status}`)
@@ -748,3 +888,4 @@ async function fetchMusicBase64(themeId: string, abortSignal?: AbortSignal): Pro
     return undefined
   }
 }
+
