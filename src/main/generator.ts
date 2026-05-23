@@ -442,7 +442,10 @@ async function generateAndInjectImage(
     const section = doc.querySelector('section')
 
     if (section) {
-      const imgTag = `<img src="${base64data}" style="max-height: 260px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 25px rgba(0,0,0,0.5); object-fit: contain;" />`
+      // Add 'has-image' class so styling rules can scale down text to prevent overflow
+      section.classList.add('has-image')
+
+      const imgTag = `<img src="${base64data}" style="max-height: 200px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 25px rgba(0,0,0,0.5); object-fit: contain;" />`
 
       const ul = doc.querySelector('ul')
       if (ul) {

@@ -64,6 +64,22 @@
       .reveal .slide-background {
         background: var(--og-slide-bg, #0d0d0d) !important;
       }
+
+      /* Scale down text inside slides containing generated images to prevent overflow */
+      .reveal section.has-image h1,
+      .reveal section.has-image h2 {
+        font-size: 1.6em !important;
+      }
+      .reveal section.has-image p,
+      .reveal section.has-image li {
+        font-size: 0.6em !important;
+        line-height: 1.25 !important;
+      }
+      .reveal section.has-image img {
+        max-height: 200px !important;
+        object-fit: contain;
+        margin-top: 10px !important;
+      }
     </style>
   </head>
   <body>

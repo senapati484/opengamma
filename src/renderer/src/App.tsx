@@ -44,6 +44,7 @@ function AppInner() {
   const [showSettings, setShowSettings] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [currentView, setCurrentView] = useState<'home' | 'editor' | 'export-studio'>('home')
+  const [isPresenting, setIsPresenting] = useState(false)
 
   const displayedSlides = activePresentation ? activePresentation.slides : streamedSlides
 
@@ -58,7 +59,9 @@ function AppInner() {
       setShowSettings(true)
     },
     onEscape: () => {
-      if (status.state === 'generating' || status.state === 'researching') {
+      if (isPresenting) {
+        setIsPresenting(false)
+      } else if (status.state === 'generating' || status.state === 'researching') {
         cancel()
       } else if (editingSlide) {
         setEditingSlide(null)
@@ -69,12 +72,12 @@ function AppInner() {
       }
     },
     onPrevSlide: () => {
-      if (currentView === 'editor' && activeSlideIndex > 0) {
+      if ((currentView === 'editor' || isPresenting) && activeSlideIndex > 0) {
         setActiveSlideIndex((prev) => prev - 1)
       }
     },
     onNextSlide: () => {
-      if (currentView === 'editor' && activeSlideIndex < displayedSlides.length - 1) {
+      if ((currentView === 'editor' || isPresenting) && activeSlideIndex < displayedSlides.length - 1) {
         setActiveSlideIndex((prev) => prev + 1)
       }
     }
@@ -348,6 +351,13 @@ function AppInner() {
                 <div className="flex items-center gap-2">
                   <button
                     disabled={!activePresentation}
+                    onClick={() => setIsPresenting(true)}
+                    className="px-4 py-1.5 rounded-lg bg-[#e8ff57] text-black hover:shadow-[0_0_15px_rgba(232,255,87,0.2)] active:scale-95 disabled:opacity-20 transition-all text-xs font-black uppercase tracking-widest animate-fade-in"
+                  >
+                    ▶ Present
+                  </button>
+                  <button
+                    disabled={!activePresentation}
                     onClick={() => activePresentation && handleExport(activePresentation)}
                     className="px-4 py-1.5 rounded-lg bg-white/5 border border-white/5 text-xs font-bold text-white hover:bg-white/10 active:scale-95 disabled:opacity-20 transition-all uppercase tracking-widest"
                   >
@@ -405,6 +415,37 @@ function AppInner() {
         onSave={handleSaveEditedSlide}
         onClose={() => setEditingSlide(null)}
       />
+
+      {/* Fullscreen Present Mode Overlay */}
+      {isPresenting && activePresentation && (
+        <div className="fixed inset-0 z-[100] bg-[#0d0d0d] flex flex-col justify-between p-6 select-none animate-fade-in">
+          {/* Header controls */}
+          <div className="h-10 w-full flex items-center justify-between px-4 z-50 text-neutral-400">
+            <span className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+              Presenting: {activePresentation.title}
+            </span>
+            <button
+              onClick={() => setIsPresenting(false)}
+              className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-all uppercase tracking-widest"
+            >
+              Exit Presentation (ESC)
+            </button>
+          </div>
+
+          {/* Large Slide Canvas */}
+          <div className="flex-1 min-h-0 flex items-center justify-center p-4">
+            <SlidePreview
+              slides={activePresentation.slides}
+              activeTheme={activeTheme || themes[0]}
+              status={status}
+              aspectRatio={activePresentation.aspectRatio || '16:9'}
+              activeSlideIndex={activeSlideIndex}
+              onActiveSlideChange={setActiveSlideIndex}
+              bgMusicUrl={activePresentation.bgMusicUrl}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

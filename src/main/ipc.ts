@@ -210,6 +210,22 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
         height: 100%;
       }
       ${cssTokens}
+      
+      /* Scale down text in slides with images */
+      .reveal section.has-image h1,
+      .reveal section.has-image h2 {
+        font-size: 1.6em !important;
+      }
+      .reveal section.has-image p,
+      .reveal section.has-image li {
+        font-size: 0.6em !important;
+        line-height: 1.25 !important;
+      }
+      .reveal section.has-image img {
+        max-height: 200px !important;
+        object-fit: contain;
+        margin-top: 10px !important;
+      }
     </style>
   </head>
   <body>
@@ -406,6 +422,22 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
       ${typographyStyles}
       ${presetStyles}
       ${marginStyles}
+
+      /* Scale down text in slides with images */
+      .reveal section.has-image h1,
+      .reveal section.has-image h2 {
+        font-size: 1.6em !important;
+      }
+      .reveal section.has-image p,
+      .reveal section.has-image li {
+        font-size: 0.6em !important;
+        line-height: 1.25 !important;
+      }
+      .reveal section.has-image img {
+        max-height: 200px !important;
+        object-fit: contain;
+        margin-top: 10px !important;
+      }
 
       /* PDF print scaling and column alignment rules */
       .reveal section img {
