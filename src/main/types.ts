@@ -45,6 +45,8 @@ export enum IpcChannels {
 
   /** Renderer → Main: test if a Claude API key is valid */
   TEST_API_KEY = 'settings:test-api-key',
+  /** Renderer → Main: test if a Gemini API key is valid */
+  TEST_GEMINI_API_KEY = 'settings:test-gemini-api-key',
   /** Renderer → Main: test if a detected CLI tool is accessible */
   TEST_CLI_TOOL = 'settings:test-cli-tool'
 }

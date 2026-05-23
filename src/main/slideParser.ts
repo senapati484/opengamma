@@ -42,7 +42,8 @@ export function parseSlideHtml(html: string, index: number): Slide {
     // The root element must be a <section>
     const section = doc.querySelector('section')
 
-    let slideType: 'title' | 'content' | 'split' | 'data' | 'cta' = 'content'
+    let slideType: 'title' | 'content' | 'split' | 'data' | 'cta' | 'image' | 'stat' | 'quote' =
+      'content'
     let id = ''
 
     if (section) {
@@ -53,7 +54,10 @@ export function parseSlideHtml(html: string, index: number): Slide {
         typeAttr === 'content' ||
         typeAttr === 'split' ||
         typeAttr === 'data' ||
-        typeAttr === 'cta'
+        typeAttr === 'cta' ||
+        typeAttr === 'image' ||
+        typeAttr === 'stat' ||
+        typeAttr === 'quote'
       ) {
         slideType = typeAttr
       }

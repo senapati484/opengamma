@@ -78,6 +78,8 @@ interface ElectronAPI {
 
   /** Test if a Claude API key is valid */
   testApiKey(apiKey: string): Promise<{ valid: boolean; message: string }>
+  /** Test if a Gemini API key is valid */
+  testGeminiApiKey(apiKey: string): Promise<{ valid: boolean; message: string }>
   // ── CLI Tool Validation ────────────────────────────────────────────────────
 
   /** Test if a CLI tool is accessible */
@@ -100,6 +102,20 @@ interface ElectronAPI {
   restartAndInstall(): void
 
   getAppInfo(): Promise<{ version: string; platform: string; arch: string }>
+
+  // ── Voiceover TTS ────────────────────────────────────────────────────────────
+  generateVoiceovers(
+    presentation: Presentation
+  ): Promise<{ success: boolean; audioMap?: Record<number, string>; presentation?: Presentation; error?: string }>
+  onVoiceoverProgress(
+    callback: (progress: {
+      state: 'generating' | 'done' | 'error'
+      current: number
+      total: number
+      error?: string
+    }) => void
+  ): () => void
+  onAudioMapReady(callback: (audioMap: Record<number, string>) => void): () => void
 }
 
 declare global {

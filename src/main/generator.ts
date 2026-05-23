@@ -116,24 +116,21 @@ export async function generatePresentation(
   const wrappedOnSlide = (slide: Slide) => {
     onSlide(slide)
 
+    // Only image generation runs per-slide during streaming.
+    // Voiceover is generated offline via the kokoro-js IPC handler
+    // (`generate-voiceovers`) after the full presentation is saved.
     const assetTask = slideQueue.then(async () => {
       if (abortSignal.aborted) return
 
-      if (config.generateImages && slide.index > 0) {
-        await generateAndInjectImage(slide, config, settings, onSlide, abortSignal).catch((err) => {
-          console.error('[generator] Image generation failed:', err)
-        })
-      }
-
-      if (config.generateVoiceover && slide.notes) {
-        try {
-          const voiceoverUrl = await fetchTtsAudioBase64(slide.notes, abortSignal)
-          if (voiceoverUrl && !abortSignal.aborted) {
-            slide.voiceoverUrl = voiceoverUrl
-            onSlide(slide)
-          }
-        } catch (err) {
-          console.error('[generator] Voiceover generation failed:', err)
+      if (config.generateImages) {
+        // Always run for explicit 'image' type slides (they have og-image-placeholder)
+        // Also run for non-title content slides to enrich them
+        const isImageSlide = slide.slideType === 'image'
+        const isNonTitleSlide = slide.slideType !== 'title' && slide.index > 0
+        if (isImageSlide || isNonTitleSlide) {
+          await generateAndInjectImage(slide, config, settings, onSlide, abortSignal).catch((err) => {
+            console.error('[generator] Image generation failed:', err)
+          })
         }
       }
     })
@@ -165,7 +162,8 @@ export async function generatePresentation(
         config,
         selected.executablePath,
         selected.id,
-        abortSignal
+        abortSignal,
+        settings
       )
     } catch (researchErr) {
       console.warn(
@@ -193,7 +191,8 @@ export async function generatePresentation(
       selected.id,
       wrappedOnSlide,
       wrappedOnStatus,
-      abortSignal
+      abortSignal,
+      settings
     )
     return
   }
@@ -203,6 +202,61 @@ export async function generatePresentation(
   let attempt = 1
   const maxAttempts = 2
   let researchOutline = ''
+
+  if (settings.executionMode === 'gemini-api') {
+    // Step 1: Research Pass for Gemini
+    wrappedOnStatus({
+      state: 'researching',
+      slidesGenerated: 0,
+      totalSlides: config.slideCount
+    })
+
+    try {
+      if (abortSignal.aborted) {
+        throw new Error('AbortError')
+      }
+
+      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${settings.geminiApiKey}`
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: `${researchSystemPrompt}\n\nPlease research and build a detailed ${config.slideCount}-slide presentation plan.` }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048
+          }
+        }),
+        signal: abortSignal
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`)
+      }
+
+      const resJson: any = await response.json()
+      const text = resJson?.candidates?.[0]?.content?.parts?.[0]?.text
+      if (text) {
+        researchOutline = text
+      }
+    } catch (researchErr: any) {
+      if (researchErr.message === 'AbortError' || abortSignal.aborted) {
+        wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+        return
+      }
+      console.warn(
+        '[generator] Gemini API Research pass failed, falling back to direct prompt:',
+        researchErr
+      )
+    }
+  }
 
   if (settings.executionMode === 'anthropic-api') {
     // Step 1: Research Pass
@@ -254,7 +308,6 @@ export async function generatePresentation(
         throw new Error('AbortError')
       }
 
-      const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
       const systemPrompt = await buildSystemPrompt(config)
 
       wrappedOnStatus({
@@ -267,48 +320,106 @@ export async function generatePresentation(
         ? `Here is a detailed research blueprint outline for the presentation:\n\n${researchOutline}\n\nUse this research outline to guide the slide generation. Ensure you generate exactly ${config.slideCount} slides with high-fidelity Reveal.js structures matching the blueprint.\n\nOriginal prompt: ${config.prompt}`
         : config.prompt
 
-      const stream = await anthropic.messages.stream({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 8192,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: finalUserPrompt }]
-      })
+      if (settings.executionMode === 'gemini-api') {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${settings.geminiApiKey}`
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: `${systemPrompt}\n\n---\n\nUser Request: ${finalUserPrompt}` }]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 8192
+            }
+          }),
+          signal: abortSignal
+        })
 
-      let buffer = ''
-      let count = 0
+        if (!response.ok) {
+          const errorText = await response.text()
+          throw new Error(`Gemini API error: ${response.status} - ${errorText}`)
+        }
 
-      for await (const chunk of stream) {
-        if (abortSignal.aborted) throw new Error('AbortError')
+        const resJson: any = await response.json()
+        const responseText = resJson?.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
-        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-          buffer += chunk.delta.text
-          const [completeSlides, remainder] = extractCompleteSlides(buffer)
-          buffer = remainder
+        let buffer = responseText
+        let count = 0
+        const [completeSlides, remainder] = extractCompleteSlides(buffer)
+        buffer = remainder
 
-          for (const html of completeSlides) {
-            if (abortSignal.aborted) throw new Error('AbortError')
-            wrappedOnSlide(parseSlideHtml(html, count++))
-            wrappedOnStatus({
-              state: 'generating',
-              slidesGenerated: count,
-              totalSlides: config.slideCount
-            })
+        for (const html of completeSlides) {
+          if (abortSignal.aborted) throw new Error('AbortError')
+          wrappedOnSlide(parseSlideHtml(html, count++))
+          wrappedOnStatus({
+            state: 'generating',
+            slidesGenerated: count,
+            totalSlides: config.slideCount
+          })
+        }
+
+        // Final check for leftover buffer
+        if (buffer.includes('<section')) {
+          wrappedOnSlide(parseSlideHtml(buffer, count++))
+        }
+
+        wrappedOnStatus({
+          state: 'done',
+          slidesGenerated: count,
+          totalSlides: config.slideCount
+        })
+
+        break
+      } else {
+        const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
+        const stream = await anthropic.messages.stream({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 8192,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: finalUserPrompt }]
+        })
+
+        let buffer = ''
+        let count = 0
+
+        for await (const chunk of stream) {
+          if (abortSignal.aborted) throw new Error('AbortError')
+
+          if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+            buffer += chunk.delta.text
+            const [completeSlides, remainder] = extractCompleteSlides(buffer)
+            buffer = remainder
+
+            for (const html of completeSlides) {
+              if (abortSignal.aborted) throw new Error('AbortError')
+              wrappedOnSlide(parseSlideHtml(html, count++))
+              wrappedOnStatus({
+                state: 'generating',
+                slidesGenerated: count,
+                totalSlides: config.slideCount
+              })
+            }
           }
         }
+
+        // Final check for leftover buffer
+        if (buffer.includes('<section')) {
+          wrappedOnSlide(parseSlideHtml(buffer, count++))
+        }
+
+        wrappedOnStatus({
+          state: 'done',
+          slidesGenerated: count,
+          totalSlides: config.slideCount
+        })
+
+        break
       }
-
-      // Final check for leftover buffer
-      if (buffer.includes('<section')) {
-        wrappedOnSlide(parseSlideHtml(buffer, count++))
-      }
-
-      wrappedOnStatus({
-        state: 'done',
-        slidesGenerated: count,
-        totalSlides: config.slideCount
-      })
-
-      break
     } catch (error: any) {
       if (abortSignal.aborted || error.message === 'AbortError') {
         wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
@@ -355,6 +466,7 @@ export async function regenerateSlide(
   if (!slideToRegen) throw new Error(`Slide at index ${slideIndex} not found.`)
 
   const userPrompt = `Rewrite only slide ${slideIndex + 1} (${slideToRegen.slideType}: ${slideToRegen.title}) for this presentation about: ${currentPresentation.prompt}. Output only one <section> tag.`
+  const systemPrompt = await buildSystemPrompt(pseudoConfig)
 
   if (settings.executionMode === 'local-cli') {
     const clis = await scanInstalledCLIs()
@@ -370,12 +482,51 @@ export async function regenerateSlide(
       selected.id,
       onResult,
       () => {},
-      abortController.signal
+      abortController.signal,
+      settings
     )
   }
 
+  if (settings.executionMode === 'gemini-api') {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${settings.geminiApiKey}`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: `${systemPrompt}\n\n---\n\nUser Request: ${userPrompt}` }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1024
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`)
+    }
+
+    const resJson: any = await response.json()
+    const responseText = resJson?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+
+    let sectionHtml = responseText
+    const match = /<section[^>]*>[\s\S]*?<\/section>/i.exec(responseText)
+    if (match) {
+      sectionHtml = match[0]
+    }
+
+    onResult(parseSlideHtml(sectionHtml, slideIndex))
+    return
+  }
+
   const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
-  const systemPrompt = await buildSystemPrompt(pseudoConfig)
 
   const response = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
@@ -407,167 +558,165 @@ async function generateAndInjectImage(
 ): Promise<void> {
   if (abortSignal?.aborted) return
 
-  const slideTitle = slide.title || ''
-  const firstBullet = slide.bullets && slide.bullets.length > 0 ? slide.bullets[0] : ''
-  const cleanBullet = firstBullet.replace(/<[^>]*>/g, '').substring(0, 80).trim()
+  const dom = new JSDOM(slide.html)
+  const doc = dom.window.document
+  const section = doc.querySelector('section')
+  if (!section) return
 
+  // ── 1. Determine the image generation prompt ──────────────────────────────
+  // Priority: data-prompt on <figure class="og-image-placeholder"> → slide title + bullets
+  const placeholder = section.querySelector('figure.og-image-placeholder')
   let generatedPrompt = ''
-  if (slideTitle && cleanBullet) {
-    generatedPrompt = `A professional visual representing: ${slideTitle} - ${cleanBullet}. Clean, modern corporate style illustration, minimalist vector art, premium design system aesthetics.`
-  } else if (slideTitle) {
-    generatedPrompt = `A professional graphic representation of: ${slideTitle}. Clean, minimalist corporate presentation design, vector illustration.`
-  } else if (cleanBullet) {
-    generatedPrompt = `A modern visual design depicting: ${cleanBullet}. Professional flat design style illustration.`
-  } else {
-    generatedPrompt = 'Abstract modern tech background, minimalist vector art, glowing neon accents, clean geometric shapes'
+
+  if (placeholder) {
+    // Use the explicit prompt the LLM wrote — it's always more accurate
+    const explicitPrompt = placeholder.getAttribute('data-prompt') || ''
+    if (explicitPrompt.trim()) {
+      generatedPrompt = explicitPrompt.trim()
+    }
   }
 
+  if (!generatedPrompt) {
+    // Fall back to deriving a prompt from the slide content
+    const slideTitle = slide.title || ''
+    const firstBullet = slide.bullets && slide.bullets.length > 0
+      ? slide.bullets[0].replace(/<[^>]*>/g, '').substring(0, 80).trim()
+      : ''
+    if (slideTitle && firstBullet) {
+      generatedPrompt = `Professional visual for: ${slideTitle} — ${firstBullet}. Clean, modern corporate illustration, premium presentation aesthetics, wide landscape, no text.`
+    } else if (slideTitle) {
+      generatedPrompt = `Minimalist professional graphic for: ${slideTitle}. Premium corporate style, wide landscape, no text overlays.`
+    } else {
+      generatedPrompt = 'Abstract modern technology background, geometric shapes, clean minimalist corporate style, wide landscape'
+    }
+  }
+
+  // ── 2. Fetch the image from Pollinations ──────────────────────────────────
   try {
     const sanitizedPrompt = encodeURIComponent(generatedPrompt)
-    const url = `https://image.pollinations.ai/prompt/${sanitizedPrompt}?width=1024&height=768&nologo=true`
+    // Request landscape images that fit slide proportions
+    const url = `https://image.pollinations.ai/prompt/${sanitizedPrompt}?width=1024&height=576&nologo=true&enhance=true`
 
-    const response = await fetch(url, { signal: abortSignal })
-    if (!response.ok) throw new Error('Failed to fetch image')
+    let timeoutId: any
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('Image generation timed out after 10 seconds')), 10000)
+    })
 
-    if (abortSignal?.aborted) return
+    const networkPromise = (async () => {
+      try {
+        const response = await fetch(url, { signal: abortSignal })
+        if (!response.ok) throw new Error(`Image API returned status ${response.status}`)
+        if (abortSignal?.aborted) return new ArrayBuffer(0)
+        return await response.arrayBuffer()
+      } finally {
+        clearTimeout(timeoutId)
+      }
+    })()
 
-    const arrayBuffer = await response.arrayBuffer()
+    const arrayBuffer = await Promise.race([networkPromise, timeoutPromise])
+    if (arrayBuffer.byteLength === 0) return
     const buffer = Buffer.from(arrayBuffer)
-    const base64data = `data:image/png;base64,${buffer.toString('base64')}`
+    const base64data = `data:image/jpeg;base64,${buffer.toString('base64')}`
 
     if (abortSignal?.aborted) return
 
-    const dom = new JSDOM(slide.html)
-    const doc = dom.window.document
-    const section = doc.querySelector('section')
+    // ── 3. Inject the image into the DOM ─────────────────────────────────────
+    const imgHtml = `<img src="${base64data}" alt="${slide.title || 'Slide visual'}" style="max-width: 100%; max-height: 360px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px rgba(0,0,0,0.45);" />`
 
-    if (section) {
-      // Add 'has-image' class so styling rules can scale down text to prevent overflow
+    if (placeholder) {
+      // Replace the placeholder <figure> with the real image
+      placeholder.innerHTML = imgHtml
+      placeholder.removeAttribute('data-prompt')
+      placeholder.classList.remove('og-image-placeholder')
+      placeholder.classList.add('og-image-figure')
+    } else {
+      // No placeholder: inject as a right-column split layout if slide is 'content' type
       section.classList.add('has-image')
 
-      const imgTag = `<img src="${base64data}" style="max-height: 200px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 25px rgba(0,0,0,0.5); object-fit: contain;" />`
+      // Find the first block of content (ul/p) to pair with the image
+      const contentBlock = section.querySelector('ul, ol, p')
+      const heading = section.querySelector('h2, h1')
 
-      const ul = doc.querySelector('ul')
-      if (ul) {
-        const li = doc.createElement('li')
-        li.setAttribute(
-          'style',
-          'list-style-type: none !important; margin: 15px 0; padding: 0; display: flex; justify-content: center; width: 100%;'
-        )
-        li.innerHTML = imgTag
-        ul.appendChild(li)
+      if (contentBlock && heading) {
+        // Wrap existing content in left col, image in right col
+        const leftDiv = doc.createElement('div')
+        leftDiv.setAttribute('class', 'og-img-left')
+        leftDiv.setAttribute('style', 'text-align: left;')
+
+        const rightDiv = doc.createElement('div')
+        rightDiv.setAttribute('class', 'og-img-right')
+        rightDiv.setAttribute('style', 'display: flex; justify-content: center; align-items: center;')
+        rightDiv.innerHTML = imgHtml
+
+        // Move all body content (not heading, not notes) into leftDiv
+        const bodyNodes = Array.from(section.childNodes).filter((n) => {
+          const el = n as Element
+          const tag = el.tagName?.toLowerCase()
+          return tag && !['h1', 'h2', 'aside'].includes(tag)
+        })
+        bodyNodes.forEach((n) => leftDiv.appendChild(n.cloneNode(true)))
+        bodyNodes.forEach((n) => n.parentNode?.removeChild(n))
+
+        const colsDiv = doc.createElement('div')
+        colsDiv.setAttribute('class', 'cols')
+        colsDiv.setAttribute('style', 'display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 32px; margin-top: 24px; align-items: center;')
+        colsDiv.appendChild(leftDiv)
+        colsDiv.appendChild(rightDiv)
+
+        const aside = section.querySelector('aside.notes')
+        if (aside) {
+          section.insertBefore(colsDiv, aside)
+        } else {
+          section.appendChild(colsDiv)
+        }
       } else {
-        const div = doc.createElement('div')
-        div.setAttribute('style', 'margin-top: 20px; display: flex; justify-content: center; width: 100%;')
-        div.innerHTML = imgTag
-        section.appendChild(div)
+        // Minimal fallback: just append centered image
+        const wrapDiv = doc.createElement('div')
+        wrapDiv.setAttribute('style', 'margin-top: 24px; display: flex; justify-content: center;')
+        wrapDiv.innerHTML = imgHtml
+        const aside = section.querySelector('aside.notes')
+        if (aside) {
+          section.insertBefore(wrapDiv, aside)
+        } else {
+          section.appendChild(wrapDiv)
+        }
       }
-
-      slide.html = section.outerHTML
-
-      const updatedBullets: string[] = []
-      doc.querySelectorAll('li').forEach((li) => {
-        updatedBullets.push(li.innerHTML.trim())
-      })
-      slide.bullets = updatedBullets
-
-      onSlide(slide)
     }
-  } catch (err) {
-    console.error(`[generator] Failed to generate image for slide ${slide.index}:`, err)
-  }
-}
 
-function splitTextIntoChunks(text: string): string[] {
-  const cleanText = text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
-  if (!cleanText) return []
+    // ── 4. Update slide record ─────────────────────────────────────────────
+    slide.html = section.outerHTML
 
-  const sentences = cleanText.split(/(?<=[.!?])\s+/)
-  const chunks: string[] = []
-  let currentChunk = ''
-
-  for (const sentence of sentences) {
-    if ((currentChunk + ' ' + sentence).trim().length <= 180) {
-      currentChunk = (currentChunk + ' ' + sentence).trim()
-    } else {
-      if (currentChunk) {
-        chunks.push(currentChunk)
-      }
-      if (sentence.length > 180) {
-        const clauses = sentence.split(/(?<=[,;])\s+/)
-        let subChunk = ''
-        for (const clause of clauses) {
-          if ((subChunk + ' ' + clause).trim().length <= 180) {
-            subChunk = (subChunk + ' ' + clause).trim()
-          } else {
-            if (subChunk) {
-              chunks.push(subChunk)
-            }
-            if (clause.length > 180) {
-              const words = clause.split(/\s+/)
-              let wordChunk = ''
-              for (const word of words) {
-                if ((wordChunk + ' ' + word).trim().length <= 180) {
-                  wordChunk = (wordChunk + ' ' + word).trim()
-                } else {
-                  if (wordChunk) {
-                    chunks.push(wordChunk)
-                  }
-                  wordChunk = word
-                }
-              }
-              if (wordChunk) {
-                subChunk = wordChunk
-              }
-            } else {
-              subChunk = clause
-            }
+    // Refresh bullets from updated DOM
+    const updatedBullets: string[] = []
+    section.querySelectorAll('p, li, h3, table, pre, div.card, div.stat-block, div.quote-block').forEach((el) => {
+      let isNested = false
+      let parent = el.parentElement
+      while (parent && parent !== section) {
+        const tag = parent.tagName?.toLowerCase()
+        const cls = parent.getAttribute('class') || ''
+        if (['p', 'li', 'h3', 'table', 'pre'].includes(tag) ||
+            (tag === 'div' && (cls.includes('card') || cls.includes('stat-block') || cls.includes('quote-block')))) {
+          if (!['ul', 'ol'].includes(tag)) {
+            isNested = true
+            break
           }
         }
-        if (subChunk) {
-          currentChunk = subChunk
-        } else {
-          currentChunk = ''
-        }
-      } else {
-        currentChunk = sentence
+        parent = parent.parentElement
       }
-    }
-  }
-  if (currentChunk) {
-    chunks.push(currentChunk)
-  }
-  return chunks
-}
+      if (!isNested) updatedBullets.push(el.outerHTML.trim())
+    })
+    slide.bullets = updatedBullets
 
-async function fetchTtsAudioBase64(text: string, abortSignal?: AbortSignal): Promise<string | undefined> {
-  const chunks = splitTextIntoChunks(text)
-  if (chunks.length === 0) return undefined
-
-  try {
-    const buffers: Buffer[] = []
-    for (const chunk of chunks) {
-      if (abortSignal?.aborted) return undefined
-      const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(chunk)}`
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-        },
-        signal: abortSignal
-      })
-      if (!res.ok) {
-        throw new Error(`Google TTS returned status ${res.status}`)
-      }
-      const arrayBuffer = await res.arrayBuffer()
-      buffers.push(Buffer.from(arrayBuffer))
-    }
-    const combinedBuffer = Buffer.concat(buffers)
-    return `data:audio/mp3;base64,${combinedBuffer.toString('base64')}`
+    onSlide(slide)
   } catch (err) {
-    console.error('[generator] TTS generation failed:', err)
-    return undefined
+    console.error(`[generator] Image generation failed for slide ${slide.index}:`, err)
   }
 }
+
+// NOTE: Voiceover generation has been removed from this streaming pipeline.
+// The kokoro-js offline TTS engine runs via the `generate-voiceovers` IPC
+// handler in ipc.ts after the presentation is fully saved. This gives users
+// immediate slide preview while audio generates in the background.
 
 function getMusicUrlForTheme(themeId: string): string {
   switch (themeId) {

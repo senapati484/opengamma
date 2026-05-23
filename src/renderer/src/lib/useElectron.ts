@@ -100,6 +100,7 @@ const browserMock: ElectronAPI = {
     console.warn('[useElectron] getSettings called outside Electron — returning defaults')
     return {
       claudeApiKey: '',
+      geminiApiKey: '',
       defaultTheme: 'midnight',
       defaultSlideCount: 8,
       defaultNarrative: 'explainer',
@@ -137,6 +138,11 @@ const browserMock: ElectronAPI = {
     return { valid: false, message: 'Running outside Electron' }
   },
 
+  testGeminiApiKey: async (apiKey: string): Promise<{ valid: boolean; message: string }> => {
+    console.warn('[useElectron] testGeminiApiKey called outside Electron for key:', apiKey)
+    return { valid: false, message: 'Running outside Electron' }
+  },
+
   testCliTool: async (
     cliPath: string,
     cliName: string
@@ -162,6 +168,21 @@ const browserMock: ElectronAPI = {
 
   restartAndInstall: (): void => {
     console.warn('[useElectron] restartAndInstall called outside Electron — no-op')
+  },
+
+  generateVoiceovers: async (presentation: Presentation) => {
+    console.warn('[useElectron] generateVoiceovers called outside Electron for presentation:', presentation)
+    return { success: false, error: 'Running outside Electron' }
+  },
+
+  onVoiceoverProgress: (callback: (progress: any) => void): (() => void) => {
+    console.warn('[useElectron] onVoiceoverProgress registered outside Electron with callback:', callback)
+    return noopCleanup()
+  },
+
+  onAudioMapReady: (callback: (audioMap: Record<number, string>) => void): (() => void) => {
+    console.warn('[useElectron] onAudioMapReady registered outside Electron with callback:', callback)
+    return noopCleanup()
   }
 }
 

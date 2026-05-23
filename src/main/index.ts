@@ -1,11 +1,25 @@
-import { app, shell, BrowserWindow, Menu } from 'electron'
+import { app, shell, BrowserWindow, Menu, protocol, net } from 'electron'
 import { join } from 'path'
+import { pathToFileURL } from 'url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerIpcHandlers } from './ipc'
 import { initDb } from './db'
 import { createApplicationMenu } from './menu'
 import { initUpdater } from './updater'
+
+// Register privileged scheme before app is ready
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'og-audio',
+    privileges: {
+      bypassCSP: true,
+      stream: true,
+      supportFetchAPI: true,
+      corsEnabled: true
+    }
+  }
+])
 
 // ─── Window Factory ───────────────────────────────────────────────────────────
 
@@ -62,6 +76,16 @@ function createWindow(): BrowserWindow {
 // ─── App Lifecycle ────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
+  // Register local audio protocol handler.
+  // URLs are in the form og-audio://localhost/absolute/path/to/file.wav
+  // Strip the og-audio://localhost prefix to get the raw OS absolute path.
+  protocol.handle('og-audio', (request) => {
+    const urlObj = new URL(request.url)
+    // urlObj.pathname is the URL-encoded absolute path portion, e.g. /tmp/opengamma-audio/slide.wav
+    const absPath = decodeURIComponent(urlObj.pathname)
+    return net.fetch(pathToFileURL(absPath).toString())
+  })
+
   // Set the Windows app-user-model-id (used by the taskbar & notifications)
   electronApp.setAppUserModelId('app.opengamma')
 

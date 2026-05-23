@@ -891,18 +891,29 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                     {/* Aspect Card wrapper */}
                     <div
                       className={`w-full relative rounded-xl border border-white/5 shadow-2xl overflow-hidden bg-[#121212] ${cardAspectRatio}`}
+                      style={{
+                        // --pdf-preview-scale maps the 1280-wide iframe into the container.
+                        // The container max-width from the parent scroll area is ~680px effective.
+                        // We use the same fraction the CSS aspect-ratio enforces: containerW/1280.
+                        // For landscape 16:9 (A4): containerW ≈ 680px → 680/1280 ≈ 0.53
+                        // CSS var is read by the iframe's transform: scale()
+                        ['--pdf-preview-scale' as string]: isLandscape ? '0.5312' : '0.375'
+                      }}
                     >
                       <iframe
                         srcDoc={srcDoc}
-                        className="w-[1280px] h-[720px] border-none select-none pointer-events-none"
+                        className="border-none select-none pointer-events-none absolute inset-0 w-full h-full"
                         style={{
-                          transform: 'scale(0.5625)', // Renders exact aspect match inside our container
-                          transformOrigin: 'top left',
+                          // Render the iframe at 1280×720 internally but scale it down
+                          // to fit the parent container without distortion.
+                          // We use an SVG viewBox trick: set width/height via style so the
+                          // browser scales the content, combined with aspect ratio on parent.
                           width: '1280px',
                           height: '720px',
-                          position: 'absolute',
-                          top: 0,
-                          left: 0
+                          transformOrigin: 'top left',
+                          // The container has class `cardAspectRatio` so its width determines
+                          // the visible area. We scale from 1280 → container width.
+                          transform: 'scale(var(--pdf-preview-scale, 0.5625))',
                         }}
                         title={`Preview Booklet Slide ${index + 1}`}
                       />

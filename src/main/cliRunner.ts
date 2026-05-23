@@ -5,7 +5,7 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { buildSystemPrompt } from './contextLoader'
 import { extractCompleteSlides, parseSlideHtml } from './slideParser'
-import type { Slide, StreamStatus, GenerationConfig } from '../renderer/src/types'
+import type { Slide, StreamStatus, GenerationConfig, AppSettings } from '../renderer/src/types'
 
 /**
  * Builds the CLI args array for a given CLI agent.
@@ -94,7 +94,8 @@ export async function generateWithCLI(
   cliId: string,
   onSlide: (slide: Slide) => void,
   onStatus: (status: StreamStatus) => void,
-  abortSignal: AbortSignal
+  abortSignal: AbortSignal,
+  settings?: AppSettings
 ): Promise<void> {
   const systemPrompt = await buildSystemPrompt(config)
 
@@ -130,7 +131,12 @@ export async function generateWithCLI(
         FORCE_COLOR: '0',
         // Tell Gemini CLI to trust this workspace automatically (needed in headless mode
         // when the cwd is not already in Gemini's trusted-folders list)
-        GEMINI_CLI_TRUST_WORKSPACE: 'true'
+        GEMINI_CLI_TRUST_WORKSPACE: 'true',
+        // Pass API keys to CLI environment
+        GEMINI_API_KEY: settings?.geminiApiKey || '',
+        GOOGLE_API_KEY: settings?.geminiApiKey || '',
+        ANTHROPIC_API_KEY: settings?.claudeApiKey || '',
+        CLAUDE_API_KEY: settings?.claudeApiKey || ''
       }
     })
 
@@ -190,8 +196,12 @@ export async function generateWithCLI(
       child.stderr.on('data', (data: Buffer) => {
         const line = data.toString('utf-8').trim()
         if (line) {
-          if (line.includes('Ripgrep is not available')) {
-            console.log(`[cliRunner] ${cliId} note: Ripgrep not found; falling back to GrepTool (non-blocking).`)
+          if (
+            line.includes('Ripgrep is not available') ||
+            line.includes('ripgrep not found') ||
+            line.includes('falling back to GrepTool')
+          ) {
+            // Silently ignore ripgrep fallback warning to keep logs clean and avoid user confusion
           } else {
             console.error(`[cliRunner] ${cliId} stderr:`, line)
           }
@@ -279,7 +289,8 @@ export async function runResearchWithCLI(
   config: GenerationConfig,
   cliPath: string,
   cliId: string,
-  abortSignal: AbortSignal
+  abortSignal: AbortSignal,
+  settings?: AppSettings
 ): Promise<string> {
   const rawTmpDir = os.tmpdir()
   const tmpDir = fs.existsSync(rawTmpDir) ? fs.realpathSync(rawTmpDir) : rawTmpDir
@@ -304,7 +315,12 @@ export async function runResearchWithCLI(
         ...process.env,
         NO_COLOR: '1',
         FORCE_COLOR: '0',
-        GEMINI_CLI_TRUST_WORKSPACE: 'true'
+        GEMINI_CLI_TRUST_WORKSPACE: 'true',
+        // Pass API keys to CLI environment
+        GEMINI_API_KEY: settings?.geminiApiKey || '',
+        GOOGLE_API_KEY: settings?.geminiApiKey || '',
+        ANTHROPIC_API_KEY: settings?.claudeApiKey || '',
+        CLAUDE_API_KEY: settings?.claudeApiKey || ''
       }
     })
 
@@ -324,8 +340,12 @@ export async function runResearchWithCLI(
       child.stderr.on('data', (data: Buffer) => {
         const line = data.toString('utf-8').trim()
         if (line) {
-          if (line.includes('Ripgrep is not available')) {
-            console.log(`[cliRunner-research] ${cliId} note: Ripgrep not found; falling back to GrepTool (non-blocking).`)
+          if (
+            line.includes('Ripgrep is not available') ||
+            line.includes('ripgrep not found') ||
+            line.includes('falling back to GrepTool')
+          ) {
+            // Silently ignore ripgrep fallback warning to keep logs clean and avoid user confusion
           } else {
             console.error(`[cliRunner-research] ${cliId} stderr:`, line)
           }

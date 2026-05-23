@@ -18,13 +18,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
   )
 
   // Execution & Model state
-  const [executionMode, setExecutionMode] = useState<'local-cli' | 'anthropic-api'>('local-cli')
+  const [executionMode, setExecutionMode] = useState<'local-cli' | 'anthropic-api' | 'gemini-api'>('local-cli')
+  const [selectedApiProvider, setSelectedApiProvider] = useState<'anthropic' | 'gemini'>('anthropic')
   const [selectedCliId, setSelectedCliId] = useState('')
   const [tempApiKey, setTempApiKey] = useState('')
+  const [tempGeminiApiKey, setTempGeminiApiKey] = useState('')
   const [detectedCLIs, setDetectedCLIs] = useState<DetectedCLI[]>([])
   const [isScanning, setIsScanning] = useState(false)
   const [testStatus, setTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
+  const [geminiTestStatus, setGeminiTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
   const [isTestingKey, setIsTestingKey] = useState(false)
+  const [isTestingGeminiKey, setIsTestingGeminiKey] = useState(false)
 
   // Design Systems state (Phase 2)
   // Handled by DesignSystemPicker
@@ -47,8 +51,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
       const loadData = async () => {
         const loaded = await window.electronAPI.getSettings()
         setExecutionMode(loaded.executionMode)
+        if (loaded.executionMode === 'gemini-api') {
+          setSelectedApiProvider('gemini')
+        } else {
+          setSelectedApiProvider('anthropic')
+        }
         setSelectedCliId(loaded.selectedCliId)
         setTempApiKey(loaded.claudeApiKey || '')
+        setTempGeminiApiKey(loaded.geminiApiKey || '')
         setDefaultSlideCount(loaded.defaultSlideCount)
         setDefaultNarrative(loaded.defaultNarrative)
         setIncludeSpeakerNotes(loaded.includeSpeakerNotes ?? true)
@@ -74,6 +84,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
       executionMode,
       selectedCliId,
       claudeApiKey: tempApiKey,
+      geminiApiKey: tempGeminiApiKey,
       defaultSlideCount,
       defaultNarrative,
       includeSpeakerNotes,
@@ -102,6 +113,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
       setTestStatus({ valid: false, error: err.message })
     } finally {
       setIsTestingKey(false)
+    }
+  }
+
+  const handleTestGeminiKey = async () => {
+    setIsTestingGeminiKey(true)
+    setGeminiTestStatus(null)
+    try {
+      const result = await window.electronAPI.testGeminiApiKey(tempGeminiApiKey)
+      setGeminiTestStatus(result)
+    } catch (err: any) {
+      setGeminiTestStatus({ valid: false, error: err.message })
+    } finally {
+      setIsTestingGeminiKey(false)
     }
   }
 
@@ -166,27 +190,29 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                 <div className="grid grid-cols-2 gap-4">
                   <div
                     onClick={() => setExecutionMode('local-cli')}
                     className={`p-5 rounded-xl border-2 transition-all cursor-pointer ${executionMode === 'local-cli' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/5' : 'border-white/5 bg-white/5 hover:border-white/10'}`}
                   >
-                    <div className="font-bold text-white mb-1">Local CLI</div>
-                    <div className="text-xs text-neutral-500">
+                    <div className="font-bold text-white mb-1 text-sm sm:text-base">Local CLI</div>
+                    <div className="text-[10px] sm:text-xs text-neutral-500">
                       {installedCount} installed agents
                     </div>
                   </div>
 
                   <div
-                    onClick={() => setExecutionMode('anthropic-api')}
-                    className={`p-5 rounded-xl border-2 transition-all cursor-pointer ${executionMode === 'anthropic-api' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/5' : 'border-white/5 bg-white/5 hover:border-white/10'}`}
+                    onClick={() => {
+                      setExecutionMode(selectedApiProvider === 'anthropic' ? 'anthropic-api' : 'gemini-api')
+                    }}
+                    className={`p-5 rounded-xl border-2 transition-all cursor-pointer ${executionMode !== 'local-cli' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/5' : 'border-white/5 bg-white/5 hover:border-white/10'}`}
                   >
-                    <div className="font-bold text-white mb-1">Anthropic API</div>
-                    <div className="text-xs text-neutral-500">Bring your own key</div>
+                    <div className="font-bold text-white mb-1 text-sm sm:text-base">External API</div>
+                    <div className="text-[10px] sm:text-xs text-neutral-500">Anthropic & Gemini keys</div>
                   </div>
                 </div>
 
-                {executionMode === 'local-cli' ? (
+                {executionMode === 'local-cli' && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">
@@ -223,47 +249,126 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                       ))}
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">
-                      Anthropic Settings
-                    </h3>
+                )}
+
+                {executionMode !== 'local-cli' && (
+                  <div className="space-y-6">
+                    {/* API Provider Selector */}
                     <div className="space-y-2">
-                      <label className="text-xs text-neutral-500">API Key</label>
+                      <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
+                        Select API Provider
+                      </label>
                       <div className="flex gap-2">
-                        <input
-                          type="password"
-                          value={tempApiKey}
-                          onChange={(e) => setTempApiKey(e.target.value)}
-                          placeholder="sk-ant-..."
-                          className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#e8ff57]/50"
-                        />
                         <button
-                          onClick={handleTestKey}
-                          disabled={isTestingKey || !tempApiKey}
-                          className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                          type="button"
+                          onClick={() => {
+                            setSelectedApiProvider('anthropic')
+                            setExecutionMode('anthropic-api')
+                          }}
+                          className={`flex-1 py-3 px-4 rounded-xl border font-bold text-sm transition-all cursor-pointer ${selectedApiProvider === 'anthropic' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/10 text-[#e8ff57]' : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
                         >
-                          {isTestingKey ? 'Testing...' : 'Test'}
+                          Anthropic API
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedApiProvider('gemini')
+                            setExecutionMode('gemini-api')
+                          }}
+                          className={`flex-1 py-3 px-4 rounded-xl border font-bold text-sm transition-all cursor-pointer ${selectedApiProvider === 'gemini' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/10 text-[#e8ff57]' : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+                        >
+                          Gemini API
                         </button>
                       </div>
-                      {testStatus && (
-                        <div
-                          className={`text-xs flex items-center gap-2 ${testStatus.valid ? 'text-green-500' : 'text-red-500'}`}
-                        >
-                          {testStatus.valid
-                            ? '✓ Connection successful'
-                            : `✕ ${testStatus.error || 'Invalid key'}`}
-                        </div>
-                      )}
-                      <a
-                        href="https://console.anthropic.com"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block text-[11px] text-[#e8ff57] hover:underline opacity-80"
-                      >
-                        Get your key at console.anthropic.com
-                      </a>
                     </div>
+
+                    {selectedApiProvider === 'anthropic' ? (
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">
+                          Anthropic Settings
+                        </h3>
+                        <div className="space-y-2">
+                          <label className="text-xs text-neutral-500">API Key</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="password"
+                              value={tempApiKey}
+                              onChange={(e) => setTempApiKey(e.target.value)}
+                              placeholder="sk-ant-..."
+                              className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#e8ff57]/50"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleTestKey}
+                              disabled={isTestingKey || !tempApiKey}
+                              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                            >
+                              {isTestingKey ? 'Testing...' : 'Test'}
+                            </button>
+                          </div>
+                          {testStatus && (
+                            <div
+                              className={`text-xs flex items-center gap-2 ${testStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                            >
+                              {testStatus.valid
+                                ? '✓ Connection successful'
+                                : `✕ ${testStatus.error || 'Invalid key'}`}
+                            </div>
+                          )}
+                          <a
+                            href="https://console.anthropic.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block text-[11px] text-[#e8ff57] hover:underline opacity-80"
+                          >
+                            Get your key at console.anthropic.com
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">
+                          Gemini Settings
+                        </h3>
+                        <div className="space-y-2">
+                          <label className="text-xs text-neutral-500">API Key</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="password"
+                              value={tempGeminiApiKey}
+                              onChange={(e) => setTempGeminiApiKey(e.target.value)}
+                              placeholder="AIzaSy..."
+                              className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#e8ff57]/50"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleTestGeminiKey}
+                              disabled={isTestingGeminiKey || !tempGeminiApiKey}
+                              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                            >
+                              {isTestingGeminiKey ? 'Testing...' : 'Test'}
+                            </button>
+                          </div>
+                          {geminiTestStatus && (
+                            <div
+                              className={`text-xs flex items-center gap-2 ${geminiTestStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                            >
+                              {geminiTestStatus.valid
+                                ? '✓ Connection successful'
+                                : `✕ ${geminiTestStatus.error || 'Invalid key'}`}
+                            </div>
+                          )}
+                          <a
+                            href="https://aistudio.google.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block text-[11px] text-[#e8ff57] hover:underline opacity-80"
+                          >
+                            Get your key at aistudio.google.com
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -16,6 +16,8 @@ export interface SlidePreviewProps {
   onActiveSlideChange?: (index: number) => void
   /** Base64 MP3 ambient loop background music URL */
   bgMusicUrl?: string
+  /** Audio URL mapping (e.g. { 0: 'og-audio://...' }) */
+  audioMap?: Record<number, string>
 }
 
 export const SlidePreview: React.FC<SlidePreviewProps> = ({
@@ -25,30 +27,33 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   aspectRatio = '16:9',
   activeSlideIndex,
   onActiveSlideChange,
-  bgMusicUrl
+  bgMusicUrl,
+  audioMap
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const injectedSlideIds = useRef<string[]>([])
 
   // ─── Audio Playback State & Refs ───────────────────────────────────────────
-  const [isPlaying, setIsPlaying] = useState(true)
+  // NOTE: Voiceover audio is handled ENTIRELY inside the reveal-host.html iframe.
+  // This component only manages:
+  //   - isPlaying: UI state for the play/pause button
+  //   - bgMusicAudioRef: the looping ambient background track (kept in React)
+  //   - autoAdvance / mute settings forwarded via postMessage
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [autoAdvance, setAutoAdvance] = useState(true)
   const [isVoiceoverMuted, setIsVoiceoverMuted] = useState(false)
   const [isBgMusicMuted, setIsBgMusicMuted] = useState(false)
   const [voiceoverVolume, _setVoiceoverVolume] = useState(1.0)
   const [bgMusicVolume, setBgMusicVolume] = useState(0.15)
 
-  const voiceoverAudioRef = useRef<HTMLAudioElement | null>(null)
   const bgMusicAudioRef = useRef<HTMLAudioElement | null>(null)
 
-  // Initialize audio elements
+  // Initialize bg music audio element
   useEffect(() => {
-    voiceoverAudioRef.current = new Audio()
     bgMusicAudioRef.current = new Audio()
     bgMusicAudioRef.current.loop = true
-
     return () => {
-      voiceoverAudioRef.current?.pause()
       bgMusicAudioRef.current?.pause()
     }
   }, [])
@@ -57,7 +62,6 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   useEffect(() => {
     const bgAudio = bgMusicAudioRef.current
     if (!bgAudio) return
-
     if (bgMusicUrl) {
       bgAudio.src = bgMusicUrl
       bgAudio.load()
@@ -69,25 +73,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
     }
   }, [bgMusicUrl])
 
-  // Sync voiceover when active slide changes or slide gets voiceover URL
-  useEffect(() => {
-    const voiceoverAudio = voiceoverAudioRef.current
-    if (!voiceoverAudio) return
-
-    const activeSlide = slides[activeSlideIndex ?? 0]
-    if (activeSlide?.voiceoverUrl) {
-      voiceoverAudio.pause()
-      voiceoverAudio.src = activeSlide.voiceoverUrl
-      voiceoverAudio.load()
-      if (isPlaying && !isVoiceoverMuted) {
-        voiceoverAudio.play().catch((err) => console.log('[SlidePreview] Voiceover autoplay blocked:', err))
-      }
-    } else {
-      voiceoverAudio.pause()
-    }
-  }, [activeSlideIndex, slides])
-
-  // React to mute/volume changes for background music
+  // React to mute/volume/play changes for background music
   useEffect(() => {
     const bgAudio = bgMusicAudioRef.current
     if (!bgAudio) return
@@ -99,21 +85,70 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
     }
   }, [isBgMusicMuted, bgMusicVolume, isPlaying, bgMusicUrl])
 
-  // React to mute/volume changes for voiceover
+  // Sync audioMap to Reveal iframe
   useEffect(() => {
-    const voiceoverAudio = voiceoverAudioRef.current
-    if (!voiceoverAudio) return
-    voiceoverAudio.volume = isVoiceoverMuted ? 0 : voiceoverVolume
-    if (isPlaying && !isVoiceoverMuted) {
-      if (voiceoverAudio.paused && voiceoverAudio.src) {
-        voiceoverAudio.play().catch(() => {})
-      }
-    } else {
-      voiceoverAudio.pause()
-    }
-  }, [isVoiceoverMuted, voiceoverVolume, isPlaying])
+    const iframe = iframeRef.current
+    if (!iframe) return
+    const contentWindow = iframe.contentWindow
+    if (!contentWindow || !isLoaded) return
 
-  const hasVoiceover = slides.some((s) => s.voiceoverUrl)
+    contentWindow.postMessage({ type: 'SET_AUDIO_MAP', audioMap }, '*')
+  }, [isLoaded, audioMap])
+
+  // Sync autoAdvance to Reveal iframe
+  useEffect(() => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+    const contentWindow = iframe.contentWindow
+    if (!contentWindow || !isLoaded) return
+
+    contentWindow.postMessage({ type: 'SET_AUTO_ADVANCE', autoAdvance }, '*')
+  }, [isLoaded, autoAdvance])
+
+  // Forward voiceover mute/volume changes into the iframe
+  useEffect(() => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+    const contentWindow = iframe.contentWindow
+    if (!contentWindow || !isLoaded) return
+    contentWindow.postMessage({ type: 'SET_VOICEOVER_SETTINGS', muted: isVoiceoverMuted, volume: voiceoverVolume }, '*')
+  }, [isLoaded, isVoiceoverMuted, voiceoverVolume])
+
+  // When audioMap updates while already playing, restart playback from current slide
+  useEffect(() => {
+    const iframe = iframeRef.current
+    if (!iframe || !isLoaded) return
+    const contentWindow = iframe.contentWindow
+    if (!contentWindow) return
+    // First push the new map to the iframe
+    contentWindow.postMessage({ type: 'SET_AUDIO_MAP', audioMap }, '*')
+    // If we're in play mode, restart from current slide
+    if (isPlaying && audioMap && Object.keys(audioMap).length > 0) {
+      contentWindow.postMessage({ type: 'PLAY_PRESENTATION' }, '*')
+    }
+  }, [audioMap, isLoaded])
+
+  const togglePlayPause = () => {
+    const nextPlaying = !isPlaying
+    setIsPlaying(nextPlaying)
+    const iframe = iframeRef.current
+    if (iframe && iframe.contentWindow && isLoaded) {
+      // Use explicit PLAY/PAUSE messages for clarity
+      iframe.contentWindow.postMessage(
+        { type: nextPlaying ? 'PLAY_PRESENTATION' : 'PAUSE_PRESENTATION' },
+        '*'
+      )
+    }
+  }
+
+  const handleSkip = () => {
+    const iframe = iframeRef.current
+    if (iframe && iframe.contentWindow && isLoaded) {
+      iframe.contentWindow.postMessage({ type: 'NEXT_SLIDE' }, '*')
+    }
+  }
+
+  const hasVoiceover = slides.some((s) => s.voiceoverUrl) || (audioMap && Object.keys(audioMap).length > 0)
   const hasAudio = !!bgMusicUrl || hasVoiceover
 
   // ─── Direct DOM Injection Helper ───────────────────────────────────────────
@@ -179,15 +214,20 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
     }
   }, [isLoaded, activeSlideIndex])
 
-  // ─── Listen for SLIDE_CHANGED events from iframe ───────────────────────────
+  // ─── Listen for SLIDE_CHANGED and AUDIO events from iframe ────────────────
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const data = event.data
       if (!data || typeof data !== 'object') return
+      
       if (data.type === 'SLIDE_CHANGED' && typeof data.index === 'number') {
         if (data.index !== activeSlideIndex && onActiveSlideChange) {
           onActiveSlideChange(data.index)
         }
+      } else if (data.type === 'AUDIO_PLAYING') {
+        setIsPlaying(true)
+      } else if (data.type === 'AUDIO_PAUSED' || data.type === 'AUDIO_ENDED') {
+        setIsPlaying(false)
       }
     }
 
@@ -320,7 +360,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black/70 border border-white/10 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-3.5 shadow-[0_15px_30px_rgba(0,0,0,0.6)] hover:border-white/20 hover:bg-black/80 transition-all select-none animate-fade-in">
           {/* Main Play/Pause Button */}
           <button
-            onClick={() => setIsPlaying(!isPlaying)}
+            onClick={togglePlayPause}
             className="w-8 h-8 rounded-full bg-[#e8ff57] hover:scale-105 active:scale-95 flex items-center justify-center text-black transition-all"
             title={isPlaying ? 'Pause Presentation Audio' : 'Play Presentation Audio'}
           >
@@ -335,8 +375,44 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
             )}
           </button>
 
+          {/* Skip Button */}
+          {hasVoiceover && (
+            <button
+              onClick={handleSkip}
+              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 flex items-center justify-center text-white transition-all"
+              title="Skip to Next Slide"
+            >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M4 5v14l11-7zm12 0v14h3V5z" />
+              </svg>
+            </button>
+          )}
+
           {/* Divider */}
           <div className="w-px h-5 bg-white/10" />
+
+          {/* Auto-Advance Toggle */}
+          {hasVoiceover && (
+            <>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setAutoAdvance(!autoAdvance)}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    autoAdvance
+                      ? 'text-[#e8ff57] hover:text-[#f3ff99]'
+                      : 'text-neutral-500 hover:text-neutral-300'
+                  }`}
+                  title={autoAdvance ? 'Disable Slide Auto-Advance' : 'Enable Slide Auto-Advance'}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7C4.547 9.547 4.5 10.768 4.5 12s.047 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.092-1.209.138-2.43.138-3.662z" />
+                  </svg>
+                </button>
+                <span className="text-[10px] font-bold text-neutral-400">Auto-Play</span>
+              </div>
+              <div className="w-px h-5 bg-white/10" />
+            </>
+          )}
 
           {/* Voiceover Toggle Button */}
           {hasVoiceover && (

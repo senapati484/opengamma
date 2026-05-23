@@ -10,7 +10,7 @@ export interface SlideStyle {
   textColor?: string
   accentColor?: string
   accentText?: string // Highlight/subtitle paragraph
-  layout?: 'title' | 'content' | 'split' | 'data' | 'cta'
+  layout?: 'title' | 'content' | 'split' | 'data' | 'cta' | 'image' | 'stat' | 'quote'
 }
 
 export interface Slide {
@@ -23,7 +23,7 @@ export interface Slide {
   /** Speaker notes extracted from <aside class="notes"> */
   notes: string
   /** Layout archetype used when generating this slide */
-  slideType: 'title' | 'content' | 'split' | 'data' | 'cta'
+  slideType: 'title' | 'content' | 'split' | 'data' | 'cta' | 'image' | 'stat' | 'quote'
   /** Zero-based position in the presentation */
   index: number
   /** List of bullet points extracted from the slide content */
@@ -139,8 +139,9 @@ export interface AppSettings {
   onboardingComplete?: boolean
 
   // Execution Mode (Fix 1)
-  executionMode: 'local-cli' | 'anthropic-api'
+  executionMode: 'local-cli' | 'anthropic-api' | 'gemini-api'
   selectedCliId: string
+  geminiApiKey?: string
 
   /** Local CLI temperature */
   cliTemperature?: number

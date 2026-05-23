@@ -45,9 +45,10 @@ export interface ElectronAPI {
   scanCLIs: () => Promise<DetectedCLI[]>
   rescanCLIs: () => Promise<DetectedCLI[]>
 
-  // ── API Key Validation ──────────────────────────────────────────────────────
   /** Test if a Claude API key is valid */
   testApiKey: (apiKey: string) => Promise<{ valid: boolean; message: string }>
+  /** Test if a Gemini API key is valid */
+  testGeminiApiKey: (apiKey: string) => Promise<{ valid: boolean; message: string }>
 
   // ── CLI Tool Validation ─────────────────────────────────────────────────────
   /** Test if a CLI tool is accessible */
@@ -69,6 +70,20 @@ export interface ElectronAPI {
 
   /** Get application metadata */
   getAppInfo: () => Promise<{ version: string; platform: string; arch: string }>
+
+  // ── Voiceover TTS ────────────────────────────────────────────────────────────
+  generateVoiceovers: (
+    presentation: Presentation
+  ) => Promise<{ success: boolean; audioMap?: Record<number, string>; error?: string }>
+  onVoiceoverProgress: (
+    callback: (progress: {
+      state: 'generating' | 'done' | 'error'
+      current: number
+      total: number
+      error?: string
+    }) => void
+  ) => () => void
+  onAudioMapReady: (callback: (audioMap: Record<number, string>) => void) => () => void
 }
 
 const electronAPI: ElectronAPI = {
@@ -125,6 +140,7 @@ const electronAPI: ElectronAPI = {
 
   // ── API Key Validation ──────────────────────────────────────────────────────
   testApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_API_KEY, apiKey),
+  testGeminiApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_GEMINI_API_KEY, apiKey),
 
   // ── CLI Tool Validation ─────────────────────────────────────────────────────
   testCliTool: (cliPath: string, cliName: string) =>
@@ -152,7 +168,37 @@ const electronAPI: ElectronAPI = {
     ipcRenderer.send('updater:restart')
   },
 
-  getAppInfo: () => ipcRenderer.invoke('app:get-info')
+  getAppInfo: () => ipcRenderer.invoke('app:get-info'),
+
+  // ── Voiceover TTS ────────────────────────────────────────────────────────────
+  generateVoiceovers: (presentation) => ipcRenderer.invoke('generate-voiceovers', presentation),
+
+  onVoiceoverProgress: (callback) => {
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      progress: {
+        state: 'generating' | 'done' | 'error'
+        current: number
+        total: number
+        error?: string
+      }
+    ): void => callback(progress)
+    ipcRenderer.on('voiceover-progress', handler)
+    return () => {
+      ipcRenderer.removeListener('voiceover-progress', handler)
+    }
+  },
+
+  onAudioMapReady: (callback) => {
+    const handler = (
+      _event: Electron.IpcRendererEvent,
+      audioMap: Record<number, string>
+    ): void => callback(audioMap)
+    ipcRenderer.on('audio-map-ready', handler)
+    return () => {
+      ipcRenderer.removeListener('audio-map-ready', handler)
+    }
+  }
 }
 
 if (process.contextIsolated) {

@@ -871,10 +871,11 @@ export function registerIpcHandlers(): void {
     const store = await getStore()
     const currentSettings: AppSettings = {
       claudeApiKey: store.get('claudeApiKey', '') as string,
+      geminiApiKey: store.get('geminiApiKey', '') as string,
       defaultTheme: store.get('defaultTheme', 'midnight') as string,
       defaultSlideCount: store.get('defaultSlideCount', 8) as number,
       defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api',
+      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api',
       selectedCliId: store.get('selectedCliId', '') as string,
       defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
       includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
@@ -894,6 +895,16 @@ export function registerIpcHandlers(): void {
         slidesGenerated: 0,
         totalSlides: config.slideCount ?? 0,
         errorMessage: 'No Claude API key configured. Add your key in Settings before generating.'
+      })
+      return
+    }
+
+    if (currentSettings.executionMode === 'gemini-api' && (!currentSettings.geminiApiKey || !currentSettings.geminiApiKey.trim())) {
+      pushStatus(window, {
+        state: 'error',
+        slidesGenerated: 0,
+        totalSlides: config.slideCount ?? 0,
+        errorMessage: 'No Gemini API key configured. Add your key in Settings before generating.'
       })
       return
     }
@@ -949,10 +960,11 @@ export function registerIpcHandlers(): void {
       const store = await getStore()
       const currentSettings: AppSettings = {
         claudeApiKey: store.get('claudeApiKey', '') as string,
+        geminiApiKey: store.get('geminiApiKey', '') as string,
         defaultTheme: store.get('defaultTheme', 'midnight') as string,
         defaultSlideCount: store.get('defaultSlideCount', 8) as number,
         defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-        executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api',
+        executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api',
         selectedCliId: store.get('selectedCliId', '') as string,
         defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
         includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
@@ -972,6 +984,15 @@ export function registerIpcHandlers(): void {
       ) {
         throw new Error(
           'No Claude API key configured. Add your key in Settings before regenerating.'
+        )
+      }
+
+      if (
+        currentSettings.executionMode === 'gemini-api' &&
+        (!currentSettings.geminiApiKey || !currentSettings.geminiApiKey.trim())
+      ) {
+        throw new Error(
+          'No Gemini API key configured. Add your key in Settings before regenerating.'
         )
       }
 
@@ -1369,10 +1390,11 @@ export function registerIpcHandlers(): void {
     const store = await getStore()
     return {
       claudeApiKey: store.get('claudeApiKey', '') as string,
+      geminiApiKey: store.get('geminiApiKey', '') as string,
       defaultTheme: store.get('defaultTheme', 'midnight') as string,
       defaultSlideCount: store.get('defaultSlideCount', 8) as number,
       defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api',
+      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api',
       selectedCliId: store.get('selectedCliId', '') as string,
       defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
       includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
@@ -1391,6 +1413,7 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.SAVE_SETTINGS, async (_event, settings: AppSettings) => {
     const store = await getStore()
     store.set('claudeApiKey', settings.claudeApiKey)
+    store.set('geminiApiKey', settings.geminiApiKey ?? '')
     store.set('defaultTheme', settings.defaultTheme)
     store.set('defaultSlideCount', settings.defaultSlideCount)
     store.set('defaultNarrative', settings.defaultNarrative)
@@ -1484,6 +1507,28 @@ export function registerIpcHandlers(): void {
     return { valid: true, message: 'API key format is valid' }
   })
 
+  // ── TEST_GEMINI_API_KEY ─────────────────────────────────────────────────────
+  // Simple validation that the Gemini API key has the expected format.
+  // A real implementation would call the Google Gemini API to verify it.
+  ipcMain.handle(IpcChannels.TEST_GEMINI_API_KEY, async (_event, apiKey: string) => {
+    if (!apiKey || typeof apiKey !== 'string') {
+      return { valid: false, message: 'API key is empty' }
+    }
+
+    const trimmed = apiKey.trim()
+
+    // Basic format validation: Gemini API keys usually start with 'AIzaSy' and are at least 30 chars
+    if (!trimmed.startsWith('AIzaSy')) {
+      return { valid: false, message: 'API key must start with AIzaSy' }
+    }
+
+    if (trimmed.length < 35) {
+      return { valid: false, message: 'API key appears too short' }
+    }
+
+    return { valid: true, message: 'API key format is valid' }
+  })
+
   // ── TEST_CLI_TOOL ───────────────────────────────────────────────────────────
   // Test if a detected CLI tool is accessible and returns version info
   ipcMain.handle(IpcChannels.TEST_CLI_TOOL, async (_event, cliPath: string, cliName: string) => {
@@ -1520,6 +1565,93 @@ export function registerIpcHandlers(): void {
       const message =
         err instanceof Error ? err.message : 'CLI tool is not accessible or not executable'
       return { success: false, message, version: undefined }
+    }
+  })
+
+  // ── GENERATE_VOICEOVERS ─────────────────────────────────────────────────────
+  ipcMain.handle('generate-voiceovers', async (_event, presentation: Presentation) => {
+    const window = getMainWindow()
+    if (!window) return { success: false, error: 'Window not found' }
+
+    try {
+      // 1. Send initial progress status
+      window.webContents.send('voiceover-progress', {
+        state: 'generating',
+        current: 0,
+        total: presentation.slides.length
+      })
+
+      // 2. Initialize KokoroTTS
+      const { KokoroTTS } = await import('kokoro-js')
+      const tts = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
+        dtype: 'q8',
+        device: 'cpu'
+      })
+
+      // 3. Create persistent voiceovers directory inside userData folder
+      const path = require('path')
+      const fs = require('fs')
+      const outputDir = path.join(app.getPath('userData'), 'voiceovers', presentation.id)
+      await fs.promises.mkdir(outputDir, { recursive: true })
+
+      const audioMap: Record<number, string> = {}
+
+      // 4. Generate audio per slide
+      for (let i = 0; i < presentation.slides.length; i++) {
+        const slide = presentation.slides[i]
+        
+        // Notify progress for this slide
+        window.webContents.send('voiceover-progress', {
+          state: 'generating',
+          current: i + 1,
+          total: presentation.slides.length
+        })
+
+        // Clean notes if any (e.g. strip HTML tags)
+        const cleanNotes = (slide.notes || '').replace(/<[^>]*>/g, '').trim()
+
+        if (cleanNotes) {
+          const audio = await tts.generate(cleanNotes, {
+            voice: 'af_heart'
+          })
+
+          // Save to WAV file
+          const wavPath = path.join(outputDir, `og-slide-${slide.id}.wav`)
+          await audio.save(wavPath)
+
+          // Map local file url — use og-audio://localhost<abs-path> so the
+          // protocol handler in index.ts can strip the origin and serve the file.
+          const url = `og-audio://localhost${wavPath}`
+          audioMap[slide.index] = url
+          slide.voiceoverUrl = url
+        } else {
+          slide.voiceoverUrl = undefined
+        }
+      }
+
+      // Save presentation with updated voiceoverUrls persistently to database
+      db.savePresentation(presentation)
+
+      // 5. Done
+      window.webContents.send('voiceover-progress', {
+        state: 'done',
+        current: presentation.slides.length,
+        total: presentation.slides.length
+      })
+
+      window.webContents.send('audio-map-ready', audioMap)
+
+      return { success: true, audioMap, presentation }
+
+    } catch (err: any) {
+      console.error('[ipc] generate-voiceovers error:', err)
+      window.webContents.send('voiceover-progress', {
+        state: 'error',
+        current: 0,
+        total: presentation.slides.length,
+        error: err.message || String(err)
+      })
+      return { success: false, error: err.message || String(err) }
     }
   })
 }
