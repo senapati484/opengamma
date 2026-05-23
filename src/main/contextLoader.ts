@@ -74,7 +74,7 @@ export async function buildSystemPrompt(config: GenerationConfig): Promise<strin
   }
 
   const slideCountStr = (config.slideCount ?? 8).toString()
-  const narrativeStr = 'explainer'
+  const narrativeStr = config.narrative || 'explainer'
 
   const finalPrompt = template
     .replace(/\{\{SLIDE_COUNT\}\}/g, slideCountStr)

@@ -297,7 +297,7 @@ export async function runResearchWithCLI(
   const tempFile = join(tmpDir, `og-context-research-${randomUUID()}.md`)
   const workDir = join(tmpDir, `og-gen-research-${randomUUID()}`)
 
-  const systemPrompt = `You are a researcher preparing a presentation blueprint. Your task is to perform deep research and create a detailed structured outline for a ${config.slideCount}-slide presentation about: "${config.prompt}". Do NOT output any HTML code or Reveal.js tags. Provide structured concepts, target layouts, and key points in pure Markdown.`
+  const systemPrompt = `You are a researcher preparing a presentation blueprint. Your task is to perform deep research and create a detailed structured outline for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Do NOT output any HTML code or Reveal.js tags. Provide structured concepts, target layouts, and key points in pure Markdown.`
 
   try {
     await fs.promises.writeFile(tempFile, systemPrompt, 'utf-8')
@@ -475,4 +475,3 @@ export async function runMusicQueryWithCLI(
     await fs.promises.rm(workDir, { recursive: true, force: true }).catch(() => {})
   }
 }
-

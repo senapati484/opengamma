@@ -104,9 +104,18 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
   const handleGenerate = () => {
     if (!prompt.trim()) return
     const theme = themes.find((t) => t.id === themeId) || themes[0]
+    const rawNarrative = settings?.defaultNarrative || 'explainer'
+    const narrative =
+      rawNarrative === 'pitch' ||
+      rawNarrative === 'explainer' ||
+      rawNarrative === 'report' ||
+      rawNarrative === 'academic'
+        ? rawNarrative
+        : 'explainer'
     onGenerate({
       prompt: title ? `Title: ${title}\n\n${prompt}` : prompt,
       theme,
+      narrative,
       slideCount,
       aspectRatio,
       generateImages: autoGenerateImages,

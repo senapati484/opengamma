@@ -216,7 +216,7 @@ export async function generatePresentation(
         throw new Error('AbortError')
       }
 
-      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${settings.geminiApiKey}`
       const response = await fetch(url, {
         method: 'POST',
@@ -271,7 +271,7 @@ export async function generatePresentation(
         throw new Error('AbortError')
       }
       const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
-      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
       const researchResponse = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2048,
@@ -888,4 +888,3 @@ async function fetchMusicBase64(
     return undefined
   }
 }
-

@@ -70,6 +70,7 @@ async function getStore(): Promise<{
       encryptionKey: getDerivedEncryptionKey(),
       defaults: {
         claudeApiKey: '',
+        geminiApiKey: '',
         defaultTheme: 'midnight',
         defaultSlideCount: 8,
         defaultNarrative: 'explainer',
@@ -102,6 +103,7 @@ async function getStore(): Promise<{
       encryptionKey: getDerivedEncryptionKey(),
       defaults: {
         claudeApiKey: '',
+        geminiApiKey: '',
         defaultTheme: 'midnight',
         defaultSlideCount: 8,
         defaultNarrative: 'explainer',

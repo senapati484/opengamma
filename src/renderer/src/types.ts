@@ -89,6 +89,8 @@ export interface GenerationConfig {
   prompt: string
   /** Selected design theme */
   theme: Theme
+  /** Narrative structure style to enforce in the generation template */
+  narrative?: 'pitch' | 'explainer' | 'report' | 'academic'
   /** Requested number of slides — must be between 4 and 20 */
   slideCount: number
   /** Aspect ratio configuration */
