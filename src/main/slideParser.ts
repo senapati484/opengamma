@@ -81,7 +81,34 @@ export function parseSlideHtml(html: string, index: number): Slide {
       notesEl.remove()
     }
 
-    // 5. Get the updated HTML representation excluding the stripped notes aside
+    // 5. Extract content elements in order (p, li, h3, table, pre, div.card, div.stat-block, div.quote-block)
+    const bullets: string[] = []
+    if (section) {
+      section.querySelectorAll('p, li, h3, table, pre, div.card, div.stat-block, div.quote-block').forEach((el) => {
+        let isNested = false
+        let parent = el.parentElement
+        while (parent && parent !== section) {
+          const parentTag = parent.tagName.toLowerCase()
+          const parentClass = parent.getAttribute('class') || ''
+          
+          if (
+            ['p', 'li', 'h3', 'table', 'pre', 'ul', 'ol'].includes(parentTag) ||
+            (parentTag === 'div' && (parentClass.includes('card') || parentClass.includes('stat-block') || parentClass.includes('quote-block')))
+          ) {
+            if (parentTag !== 'ul' && parentTag !== 'ol') {
+              isNested = true
+              break
+            }
+          }
+          parent = parent.parentElement
+        }
+        if (!isNested) {
+          bullets.push(el.outerHTML.trim())
+        }
+      })
+    }
+
+    // 6. Get the updated HTML representation excluding the stripped notes aside
     let finalHtml = html
     if (section) {
       finalHtml = section.outerHTML
@@ -95,7 +122,8 @@ export function parseSlideHtml(html: string, index: number): Slide {
       title,
       notes,
       slideType,
-      index
+      index,
+      bullets
     }
   } catch (error: any) {
     console.error('HTML parse error in parseSlideHtml, returning fallback structure:', error)
@@ -105,7 +133,8 @@ export function parseSlideHtml(html: string, index: number): Slide {
       title: `Slide ${index + 1}`,
       notes: '',
       slideType: 'content',
-      index
+      index,
+      bullets: []
     }
   }
 }

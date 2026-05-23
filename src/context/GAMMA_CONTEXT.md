@@ -42,9 +42,8 @@ application. Follow them exactly.
    ```
 5. Use **only** these HTML elements inside sections:
    `h1`, `h2`, `h3`, `p`, `ul`, `li`, `strong`, `em`, `code`, `table`,
-   `thead`, `tbody`, `tr`, `th`, `td`, `aside`
-6. Do **not** use `div`, `span`, `img`, `svg`, `canvas`, `script`, `style`,
-   or any other element.
+   `thead`, `tbody`, `tr`, `th`, `td`, `aside`, `div`, `span`, `img`
+6. You may use `div` and `span` elements strictly when utilizing the premium layout styles (`cols`, `col`, `card`, `stat-block`, `stat-number`, `stat-label`, `quote-block`, `quote-text`, `quote-author`, `badge`). Do not use any inline styles.
 7. Apply CSS class names from the design system tokens. The token declarations
    in `{{THEME_TOKENS}}` will be injected into the slide iframe at runtime —
    reference their variables via `class` attributes, not inline `style`.
@@ -115,13 +114,16 @@ to **all** narrative types unless an override is listed.
 
 ## CONTENT RULES
 
-### Density
+### Density & Text Diversity
 
-- **Maximum 6 bullet points** per `<ul>` on any slide
-- **Maximum 8 words** per `<li>` (supporting context may follow a dash `—`)
-- **Maximum 1 `<h1>`** per presentation — on the title slide only
-- All other slides use `<h2>` as their primary heading
-- Sub-headings use `<h3>`
+- **Do NOT rely solely on bullet points.** Mix other text structures to make slides more dynamic.
+- **Narrative Paragraphs (`<p>`)**: Use 1-2 sentence paragraphs for high-level summaries, vision statements, or editorial flow.
+- **Subheadings (`<h3>`)**: Use to categorize text sections or introduce inline sub-points.
+- **Lists (`<ul>` / `<ol>`)**: Limit to a **maximum of 5 bullet points** per list when mixed with paragraphs, or **maximum 6 bullet points** if the slide contains only a list.
+- **Maximum 8 words** per `<li>` (supporting context may follow a dash `—`).
+- **Maximum 1 `<h1>`** per presentation — on the title slide only.
+- All other slides use `<h2>` as their primary heading.
+- Use `<h3>` for subheadings or section labels.
 
 ### Persuasion
 
@@ -139,6 +141,15 @@ to **all** narrative types unless an override is listed.
   handling, transition cues, or a stat that supports the visual claim
 - Write notes in second person: "Tell the audience…", "Pause here…",
   "Ask the room…"
+
+### Creative Layout Styles
+
+To create beautiful, highly engaging presentations (especially for PDF export), utilize these pre-styled component layouts inside slides:
+- **Card Elements (`<div class="card">...</div>`)**: Wraps content (a subheading/title `<h3>` and a paragraph `<p>`) in a sleek, glassmorphic container with thin border and shadow.
+- **Statistic Blocks (`<div class="stat-block">...</div>`)**: Used to display a key metric. Nest a `<span class="stat-number">98%</span>` and `<span class="stat-label">Label</span>` inside it.
+- **Pill Badges (`<span class="badge">Tag</span>`)**: A tiny pill-shaped highlight tag to mark sections or features.
+- **Editorial Quote Blocks (`<div class="quote-block">...</div>`)**: Testimonial or key highlight quote. Nest a `<p class="quote-text">"Quote text"</p>` and `<span class="quote-author">— Speaker Name</span>`.
+- **Note**: Consecutive `card` or `stat-block` elements will automatically compile into side-by-side grid columns!
 
 ### Data Slides (`data-slide-type="data"`)
 
@@ -201,6 +212,43 @@ to **all** narrative types unless an override is listed.
     Ask the room if anyone has experienced a failed delivery this month —
     almost every hand will go up. Connect personal experience to the systemic
     scale. Transition: "This isn't a carrier problem. It's a data problem."
+  </aside>
+</section>
+<section data-slide-type="content" data-slug="automated-routing-intelligence">
+  <h2>Intelligent Routing Engines</h2>
+  <p>Our dynamic optimization system computes thousands of routes in real time to slash delivery failure and cut unnecessary fuel costs.</p>
+  <h3>Key Performance Drivers</h3>
+  <ul>
+    <li><strong>Genetic Algorithms</strong> — optimized pathing in seconds</li>
+    <li><strong>Real-time Weather</strong> — dynamic hazard avoidance</li>
+  </ul>
+  <aside class="notes">
+    Explain that routing is no longer static. Emphasize that speed to calculate new paths is the primary driver of savings.
+  </aside>
+</section>
+<section data-slide-type="content" data-slug="performance-metrics">
+  <h2>Unprecedented Efficiency</h2>
+  <span class="badge">Results</span>
+  <div class="card">
+    <span class="stat-number">98.4%</span>
+    <span class="stat-label">On-Time Accuracy Rate</span>
+  </div>
+  <div class="card">
+    <span class="stat-number">3.2×</span>
+    <span class="stat-label">Delivery Throughput</span>
+  </div>
+  <aside class="notes">
+    Highlight the on-time accuracy rate of 98.4% and the 3.2x speedup. These metrics were proven in our pilot programs.
+  </aside>
+</section>
+<section data-slide-type="content" data-slug="what-customers-say">
+  <h2>Partner Testimonials</h2>
+  <div class="quote-block">
+    <p class="quote-text">"Open Gamma has transformed how our logistics fleet operates daily, cutting overhead by double digits."</p>
+    <span class="quote-author">— Director of Operations, Fleet Logistics Inc</span>
+  </div>
+  <aside class="notes">
+    Share this quote to build trust. Stress that the savings are directly realized by fleet operators.
   </aside>
 </section>
 ```

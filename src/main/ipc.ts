@@ -266,23 +266,47 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
   const revealThemeName = theme.revealTheme || 'white'
   const cssTokens = theme.cssTokens || ''
 
-  // Typography Overrides
-  let typographyStyles = ''
-  let extraFontsImport = ''
+  // Typography Overrides (Multiple Premium Fonts Loading)
+  let typographyStyles = `
+    .reveal pre, .reveal code {
+      font-family: 'JetBrains Mono', monospace !important;
+    }
+    .reveal strong, .reveal .number, .reveal .stat {
+      font-family: 'Space Grotesk', 'Outfit', sans-serif !important;
+      font-weight: 800 !important;
+    }
+  `
+  let extraFontsImport = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');\n`
 
   if (options.headingFont && options.headingFont !== 'original') {
-    extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${options.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
+    if (options.headingFont !== 'Inter' && options.headingFont !== 'Outfit' && options.headingFont !== 'JetBrains Mono' && options.headingFont !== 'Space Grotesk' && options.headingFont !== 'Playfair Display') {
+      extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${options.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
+    }
     typographyStyles += `
       .reveal h1, .reveal h2, .reveal h3, .reveal .accent {
         font-family: '${options.headingFont}', sans-serif !important;
       }
     `
+  } else {
+    typographyStyles += `
+      .reveal h1, .reveal h2, .reveal h3, .reveal .accent {
+        font-family: var(--og-slide-font-heading, 'Outfit'), sans-serif !important;
+      }
+    `
   }
   if (options.bodyFont && options.bodyFont !== 'original') {
-    extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${options.bodyFont.replace(/\s+/g, '+')}:wght@400;600&display=swap');\n`
+    if (options.bodyFont !== 'Inter' && options.bodyFont !== 'Outfit' && options.bodyFont !== 'JetBrains Mono' && options.bodyFont !== 'Space Grotesk' && options.bodyFont !== 'Playfair Display') {
+      extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${options.bodyFont.replace(/\s+/g, '+')}:wght@400;600&display=swap');\n`
+    }
     typographyStyles += `
       .reveal p, .reveal li, .reveal td, .reveal th, .reveal div, .reveal span {
         font-family: '${options.bodyFont}', sans-serif !important;
+      }
+    `
+  } else {
+    typographyStyles += `
+      .reveal p, .reveal li, .reveal td, .reveal th, .reveal div, .reveal span {
+        font-family: var(--og-slide-font-body, 'Inter'), sans-serif !important;
       }
     `
   }
@@ -382,6 +406,158 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
       ${typographyStyles}
       ${presetStyles}
       ${marginStyles}
+
+      /* PDF print scaling and column alignment rules */
+      .reveal section img {
+        max-height: 50vh;
+        max-width: 100%;
+        object-fit: contain;
+      }
+      .reveal .cols {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+        gap: 30px !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        margin-top: 25px !important;
+        text-align: left;
+      }
+      .reveal .col {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+      }
+      
+      /* Premium Card UI */
+      .reveal .card {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+        padding: 24px !important;
+        box-sizing: border-box !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+        text-align: left !important;
+      }
+      .reveal .card h3 {
+        margin-top: 0 !important;
+        margin-bottom: 12px !important;
+        font-size: 1.25em !important;
+      }
+      .reveal .card p {
+        margin: 0 !important;
+        font-size: 0.9em !important;
+        line-height: 1.5 !important;
+      }
+
+      /* Statistics Display */
+      .reveal .stat-block {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 20px !important;
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+      }
+      .reveal .stat-number {
+        font-size: 3.4em !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+        color: var(--og-slide-accent, #e8ff57) !important;
+        margin-bottom: 8px !important;
+        text-shadow: 0 0 15px rgba(232, 255, 87, 0.15) !important;
+      }
+      .reveal .stat-label {
+        font-size: 0.8em !important;
+        font-weight: 700 !important;
+        color: var(--og-slide-text, #ede9e1) !important;
+        opacity: 0.8 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+      }
+
+      /* Testimonials & Pull Quotes */
+      .reveal .quote-block {
+        border-left: 4px solid var(--og-slide-accent, #e8ff57) !important;
+        padding-left: 24px !important;
+        text-align: left !important;
+        margin: 30px auto !important;
+        max-width: 85% !important;
+        font-style: italic !important;
+        box-sizing: border-box !important;
+      }
+      .reveal .quote-text {
+        font-size: 1.3em !important;
+        line-height: 1.4 !important;
+        font-weight: 500 !important;
+        margin-bottom: 12px !important;
+        color: var(--og-slide-text, #ede9e1) !important;
+      }
+      .reveal .quote-author {
+        font-size: 0.85em !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        color: var(--og-slide-muted, #9ca3af) !important;
+        font-style: normal !important;
+        letter-spacing: 0.08em !important;
+      }
+
+      /* Pill Badges */
+      .reveal .badge {
+        display: inline-block !important;
+        background: rgba(232, 255, 87, 0.1) !important;
+        border: 1px solid rgba(232, 255, 87, 0.2) !important;
+        color: var(--og-slide-accent, #e8ff57) !important;
+        padding: 5px 14px !important;
+        border-radius: 9999px !important;
+        font-size: 0.7em !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.12em !important;
+        margin-bottom: 20px !important;
+      }
+
+      @media print {
+        .reveal section img {
+          max-height: 45vh !important;
+          max-width: 100% !important;
+          object-fit: contain !important;
+          margin: 10px auto !important;
+          display: block !important;
+          box-shadow: none !important;
+        }
+        .reveal .cols {
+          display: grid !important;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+          gap: 20px !important;
+          align-items: stretch !important;
+          width: 100% !important;
+        }
+        .reveal .card {
+          padding: 16px !important;
+        }
+        .reveal .stat-block {
+          padding: 14px !important;
+        }
+        .reveal pre, .reveal code {
+          max-height: 35vh !important;
+          overflow: hidden !important;
+        }
+        .reveal ul, .reveal ol {
+          margin-top: 12px !important;
+          margin-bottom: 12px !important;
+        }
+        .reveal h1 {
+          margin-top: 15px !important;
+          margin-bottom: 15px !important;
+        }
+        .reveal h2 {
+          margin-top: 12px !important;
+          margin-bottom: 12px !important;
+        }
+      }
     </style>
   </head>
   <body>

@@ -678,11 +678,25 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                 else if (settings.margins === 'large') marginPadding = '100px'
 
                 // Apply global typography overrides
-                let typographyStyles = ''
+                let typographyStyles = `
+                  pre, code {
+                    font-family: 'JetBrains Mono', monospace !important;
+                  }
+                  strong, .number, .stat {
+                    font-family: 'Space Grotesk', 'Outfit', sans-serif !important;
+                    font-weight: 800 !important;
+                  }
+                `
                 if (settings.headingFont !== 'original') {
                   typographyStyles += `
                     h1, h2, h3, .accent {
                       font-family: '${settings.headingFont}', sans-serif !important;
+                    }
+                  `
+                } else {
+                  typographyStyles += `
+                    h1, h2, h3, .accent {
+                      font-family: var(--og-slide-font-heading, 'Outfit'), sans-serif !important;
                     }
                   `
                 }
@@ -692,14 +706,20 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                       font-family: '${settings.bodyFont}', sans-serif !important;
                     }
                   `
+                } else {
+                  typographyStyles += `
+                    p, li, td, th {
+                      font-family: var(--og-slide-font-body, 'Inter'), sans-serif !important;
+                    }
+                  `
                 }
 
                 // Gather extra Google fonts imports if overrides are active
-                let extraFontsImport = ''
-                if (settings.headingFont !== 'original') {
+                let extraFontsImport = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');\n`
+                if (settings.headingFont !== 'original' && settings.headingFont !== 'Inter' && settings.headingFont !== 'Outfit' && settings.headingFont !== 'JetBrains Mono' && settings.headingFont !== 'Space Grotesk' && settings.headingFont !== 'Playfair Display') {
                   extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
                 }
-                if (settings.bodyFont !== 'original') {
+                if (settings.bodyFont !== 'original' && settings.bodyFont !== 'Inter' && settings.bodyFont !== 'Outfit' && settings.bodyFont !== 'JetBrains Mono' && settings.bodyFont !== 'Space Grotesk' && settings.bodyFont !== 'Playfair Display') {
                   extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.bodyFont.replace(/\s+/g, '+')}:wght@400;600&display=swap');\n`
                 }
 
@@ -725,10 +745,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                           width: 1280px;
                           height: 720px;
                           display: flex;
-                          flex-direction: column;
-                          justify-content: center;
-                          align-items: center;
-                          padding: ${marginPadding};
+                      padding: ${marginPadding};
                           box-sizing: border-box;
                           text-align: center;
                         }
@@ -745,11 +762,111 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                         .accent, strong {
                           color: ${previewAccent} !important;
                         }
+                        
+                        /* Creative layout elements style overrides */
+                        .cols {
+                          display: grid !important;
+                          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+                          gap: 30px !important;
+                          align-items: stretch !important;
+                          width: 100% !important;
+                          margin-top: 25px !important;
+                          text-align: left;
+                        }
+                        .col {
+                          display: flex !important;
+                          flex-direction: column !important;
+                          justify-content: flex-start !important;
+                        }
+                        .card {
+                          background: rgba(255, 255, 255, 0.03) !important;
+                          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                          border-radius: 12px !important;
+                          padding: 24px !important;
+                          box-sizing: border-box !important;
+                          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+                          text-align: left !important;
+                          width: 100%;
+                        }
+                        .card h3 {
+                          margin-top: 0 !important;
+                          margin-bottom: 12px !important;
+                          font-size: 1.25em !important;
+                        }
+                        .card p {
+                          margin: 0 !important;
+                          font-size: 0.9em !important;
+                          line-height: 1.5 !important;
+                        }
+                        .stat-block {
+                          display: flex !important;
+                          flex-direction: column !important;
+                          align-items: center !important;
+                          text-align: center !important;
+                          padding: 20px !important;
+                          background: rgba(255, 255, 255, 0.02) !important;
+                          border: 1px solid rgba(255, 255, 255, 0.06) !important;
+                          border-radius: 12px !important;
+                          box-sizing: border-box !important;
+                          width: 100%;
+                        }
+                        .stat-number {
+                          font-size: 3.4em !important;
+                          font-weight: 900 !important;
+                          line-height: 1 !important;
+                          color: ${previewAccent} !important;
+                          margin-bottom: 8px !important;
+                          text-shadow: 0 0 15px rgba(232, 255, 87, 0.15) !important;
+                        }
+                        .stat-label {
+                          font-size: 0.8em !important;
+                          font-weight: 700 !important;
+                          color: ${previewText} !important;
+                          opacity: 0.8 !important;
+                          text-transform: uppercase !important;
+                          letter-spacing: 0.1em !important;
+                        }
+                        .quote-block {
+                          border-left: 4px solid ${previewAccent} !important;
+                          padding-left: 24px !important;
+                          text-align: left !important;
+                          margin: 30px auto !important;
+                          max-width: 85% !important;
+                          font-style: italic !important;
+                          box-sizing: border-box !important;
+                        }
+                        .quote-text {
+                          font-size: 1.3em !important;
+                          line-height: 1.4 !important;
+                          font-weight: 500 !important;
+                          margin-bottom: 12px !important;
+                          color: ${previewText} !important;
+                        }
+                        .quote-author {
+                          font-size: 0.85em !important;
+                          font-weight: 700 !important;
+                          text-transform: uppercase !important;
+                          color: var(--og-slide-muted, #9ca3af) !important;
+                          font-style: normal !important;
+                          letter-spacing: 0.08em !important;
+                        }
+                        .badge {
+                          display: inline-block !important;
+                          background: rgba(232, 255, 87, 0.1) !important;
+                          border: 1px solid rgba(232, 255, 87, 0.2) !important;
+                          color: ${previewAccent} !important;
+                          padding: 5px 14px !important;
+                          border-radius: 9999px !important;
+                          font-size: 0.7em !important;
+                          font-weight: 800 !important;
+                          text-transform: uppercase !important;
+                          letter-spacing: 0.12em !important;
+                          margin-bottom: 20px !important;
+                        }
+                        
                         section {
                           width: 100%;
                           height: 100%;
-                          display: flex;
-                          flex-direction: column;
                           justify-content: center;
                           align-items: center;
                         }

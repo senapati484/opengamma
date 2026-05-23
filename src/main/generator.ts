@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { JSDOM } from 'jsdom'
 import type {
   GenerationConfig,
   Slide,
@@ -83,6 +84,19 @@ export async function generatePresentation(
     abortSignal = arg5 as AbortSignal
   }
 
+  const imagePromises: Promise<any>[] = []
+
+  const wrappedOnSlide = (slide: Slide) => {
+    onSlide(slide)
+
+    if (config.generateImages && slide.index > 0) {
+      const p = generateAndInjectImage(slide, config, settings, onSlide, abortSignal).catch((err) => {
+        console.error('[generator] Background image generation failed:', err)
+      })
+      imagePromises.push(p)
+    }
+  }
+
   // ── ROUTE TO EXECUTION MODE ──────────────────────────────────────────────
 
   if (settings.executionMode === 'local-cli') {
@@ -128,14 +142,19 @@ export async function generatePresentation(
         : config.prompt
     }
 
-    return generateWithCLI(
+    await generateWithCLI(
       configWithOutline,
       selected.executablePath,
       selected.id,
-      onSlide,
+      wrappedOnSlide,
       onStatus,
       abortSignal
     )
+
+    if (imagePromises.length > 0) {
+      await Promise.all(imagePromises)
+    }
+    return
   }
 
   // ── ANTHROPIC API MODE ────────────────────────────────────────────────────
@@ -227,7 +246,7 @@ export async function generatePresentation(
 
           for (const html of completeSlides) {
             if (abortSignal.aborted) throw new Error('AbortError')
-            onSlide(parseSlideHtml(html, count++))
+            wrappedOnSlide(parseSlideHtml(html, count++))
             onStatus({
               state: 'generating',
               slidesGenerated: count,
@@ -239,7 +258,11 @@ export async function generatePresentation(
 
       // Final check for leftover buffer
       if (buffer.includes('<section')) {
-        onSlide(parseSlideHtml(buffer, count++))
+        wrappedOnSlide(parseSlideHtml(buffer, count++))
+      }
+
+      if (imagePromises.length > 0) {
+        await Promise.all(imagePromises)
       }
 
       onStatus({
@@ -336,4 +359,81 @@ export async function regenerateSlide(
   }
 
   onResult(parseSlideHtml(sectionHtml, slideIndex))
+}
+
+async function generateAndInjectImage(
+  slide: Slide,
+  _config: GenerationConfig,
+  _settings: AppSettings,
+  onSlide: (slide: Slide) => void,
+  abortSignal?: AbortSignal
+): Promise<void> {
+  if (abortSignal?.aborted) return
+
+  const slideTitle = slide.title || ''
+  const firstBullet = slide.bullets && slide.bullets.length > 0 ? slide.bullets[0] : ''
+  const cleanBullet = firstBullet.replace(/<[^>]*>/g, '').substring(0, 80).trim()
+
+  let generatedPrompt = ''
+  if (slideTitle && cleanBullet) {
+    generatedPrompt = `A professional visual representing: ${slideTitle} - ${cleanBullet}. Clean, modern corporate style illustration, minimalist vector art, premium design system aesthetics.`
+  } else if (slideTitle) {
+    generatedPrompt = `A professional graphic representation of: ${slideTitle}. Clean, minimalist corporate presentation design, vector illustration.`
+  } else if (cleanBullet) {
+    generatedPrompt = `A modern visual design depicting: ${cleanBullet}. Professional flat design style illustration.`
+  } else {
+    generatedPrompt = 'Abstract modern tech background, minimalist vector art, glowing neon accents, clean geometric shapes'
+  }
+
+  try {
+    const sanitizedPrompt = encodeURIComponent(generatedPrompt)
+    const url = `https://image.pollinations.ai/prompt/${sanitizedPrompt}?width=1024&height=768&nologo=true`
+
+    const response = await fetch(url, { signal: abortSignal })
+    if (!response.ok) throw new Error('Failed to fetch image')
+
+    if (abortSignal?.aborted) return
+
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const base64data = `data:image/png;base64,${buffer.toString('base64')}`
+
+    if (abortSignal?.aborted) return
+
+    const dom = new JSDOM(slide.html)
+    const doc = dom.window.document
+    const section = doc.querySelector('section')
+
+    if (section) {
+      const imgTag = `<img src="${base64data}" style="max-height: 260px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 25px rgba(0,0,0,0.5); object-fit: contain;" />`
+
+      const ul = doc.querySelector('ul')
+      if (ul) {
+        const li = doc.createElement('li')
+        li.setAttribute(
+          'style',
+          'list-style-type: none !important; margin: 15px 0; padding: 0; display: flex; justify-content: center; width: 100%;'
+        )
+        li.innerHTML = imgTag
+        ul.appendChild(li)
+      } else {
+        const div = doc.createElement('div')
+        div.setAttribute('style', 'margin-top: 20px; display: flex; justify-content: center; width: 100%;')
+        div.innerHTML = imgTag
+        section.appendChild(div)
+      }
+
+      slide.html = section.outerHTML
+
+      const updatedBullets: string[] = []
+      doc.querySelectorAll('li').forEach((li) => {
+        updatedBullets.push(li.innerHTML.trim())
+      })
+      slide.bullets = updatedBullets
+
+      onSlide(slide)
+    }
+  } catch (err) {
+    console.error(`[generator] Failed to generate image for slide ${slide.index}:`, err)
+  }
 }

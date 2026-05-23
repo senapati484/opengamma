@@ -104,10 +104,17 @@ export function useStream(): {
         totalSlides: config.slideCount
       })
 
-      // 3. Register electronAPI.onSlideGenerated listener -> append new slide
+      // 3. Register electronAPI.onSlideGenerated listener -> append or replace slide
       const unsubscribeSlide = electronAPI.onSlideGenerated((newSlide: Slide) => {
-        // Slides array must be immutable - always spread [...prev, newSlide]
-        setSlides((prev) => [...prev, newSlide])
+        setSlides((prev) => {
+          const index = prev.findIndex((s) => s.id === newSlide.id || s.index === newSlide.index)
+          if (index !== -1) {
+            const copy = [...prev]
+            copy[index] = newSlide
+            return copy
+          }
+          return [...prev, newSlide]
+        })
       })
 
       // 4. Register electronAPI.onStreamStatus listener -> update status state

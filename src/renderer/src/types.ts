@@ -89,6 +89,8 @@ export interface GenerationConfig {
   slideCount: number
   /** Aspect ratio configuration */
   aspectRatio?: '9:16' | '16:9' | '1:1'
+  /** Whether to automatically generate images for the slides */
+  generateImages?: boolean
 }
 
 // ─── StreamStatus ─────────────────────────────────────────────────────────────

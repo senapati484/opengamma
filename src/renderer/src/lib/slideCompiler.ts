@@ -10,7 +10,67 @@ function compileBulletItem(b: string): string {
   if (trimmed.startsWith('<img') || trimmed.includes('<img')) {
     return `<li style="list-style-type: none !important; margin: 15px 0; padding: 0; display: flex; justify-content: center; width: 100%;">${b}</li>`
   }
+  if (trimmed.startsWith('<li')) {
+    return b
+  }
+  if (trimmed.startsWith('<') && (trimmed.endsWith('>') || trimmed.includes('</'))) {
+    return b
+  }
   return `<li>${b}</li>`
+}
+
+function compileItemsToHtml(bullets: string[], contentStyle: string = ''): string {
+  const compiledParts: string[] = []
+  let currentList: string[] = []
+  let currentCols: string[] = []
+
+  const flushList = () => {
+    if (currentList.length > 0) {
+      compiledParts.push(`<ul${contentStyle}>\n      ${currentList.join('\n      ')}\n    </ul>`)
+      currentList = []
+    }
+  }
+
+  const flushCols = () => {
+    if (currentCols.length > 0) {
+      compiledParts.push(`<div class="cols">\n      ${currentCols.join('\n      ')}\n    </div>`)
+      currentCols = []
+    }
+  }
+
+  bullets.forEach((b) => {
+    const trimmed = b.trim()
+    if (!trimmed) return
+
+    if (trimmed.startsWith('<img') || trimmed.includes('<img')) {
+      flushList()
+      flushCols()
+      compiledParts.push(`<div style="margin: 20px 0; display: flex; justify-content: center; width: 100%;">${b}</div>`)
+    } else if (trimmed.startsWith('<div class="card"') || trimmed.startsWith('<div class="stat-block"') || trimmed.startsWith('<div class="quote-block"')) {
+      flushList()
+      if (trimmed.startsWith('<div class="quote-block"')) {
+        flushCols()
+        compiledParts.push(trimmed)
+      } else {
+        currentCols.push(trimmed)
+      }
+    } else if (trimmed.startsWith('<li') || !trimmed.startsWith('<')) {
+      flushCols()
+      let liContent = trimmed
+      if (!trimmed.startsWith('<li')) {
+        liContent = `<li>${trimmed}</li>`
+      }
+      currentList.push(liContent)
+    } else {
+      flushList()
+      flushCols()
+      compiledParts.push(trimmed)
+    }
+  })
+
+  flushList()
+  flushCols()
+  return compiledParts.join('\n  ')
 }
 
 /**
@@ -200,9 +260,33 @@ export function compileSlideHtml(
     case 'content':
     default: {
       const heading = `<h2${titleStyle}>${title || 'Core insights'}</h2>`
-      const listItems = bullets.map(compileBulletItem).join('\n    ')
-      const ul = listItems ? `<ul${contentStyle}>\n    ${listItems}\n  </ul>` : ''
-      contentHtml = `\n  ${heading}\n  ${ul}`
+      const imgBulletIndex = bullets.findIndex((b) => b.includes('<img'))
+      if (imgBulletIndex !== -1) {
+        const imgBullet = bullets[imgBulletIndex]
+        const otherBullets = bullets.filter((_, idx) => idx !== imgBulletIndex)
+        const groupedHtml = compileItemsToHtml(otherBullets, contentStyle)
+        
+        let imgHtml = imgBullet
+        if (!imgHtml.includes('style=')) {
+          imgHtml = imgHtml.replace('<img', '<img style="max-height: 380px; border-radius: 10px; object-fit: contain;"')
+        } else {
+          imgHtml = imgHtml.replace(/max-height:\s*\d+px/gi, 'max-height: 380px')
+        }
+
+        contentHtml = `
+  ${heading}
+  <div class="cols" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 35px; margin-top: 25px; align-items: center; ${style.contentSize ? `font-size: ${style.contentSize}em;` : ''}">
+    <div style="text-align: left;">
+      ${groupedHtml}
+    </div>
+    <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
+      ${imgHtml}
+    </div>
+  </div>`
+      } else {
+        const groupedHtml = compileItemsToHtml(bullets, contentStyle)
+        contentHtml = `\n  ${heading}\n  ${groupedHtml}`
+      }
       break
     }
   }

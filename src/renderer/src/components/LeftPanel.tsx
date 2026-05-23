@@ -16,11 +16,6 @@ interface LeftPanelProps {
   onUpdateTheme: (theme: Theme) => void
 }
 
-interface ImageAsset {
-  id: string
-  name: string
-  dataUrl: string
-}
 
 export const LeftPanel: React.FC<LeftPanelProps> = ({
   onGenerate,
@@ -30,8 +25,8 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
   onOpenSettings,
   onOpenHelp,
   onImport,
-  activeSlide,
-  onUpdateActiveSlideBullets,
+  activeSlide: _activeSlide,
+  onUpdateActiveSlideBullets: _onUpdateActiveSlideBullets,
   activeTheme,
   onUpdateTheme
 }) => {
@@ -47,43 +42,18 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
   const themeDropdownRef = useRef<HTMLDivElement>(null)
 
   // AI Image Studio state
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false)
-  const [imageError, setImageError] = useState<string | null>(null)
-  const [assets, setAssets] = useState<ImageAsset[]>(() => {
+  const [autoGenerateImages, setAutoGenerateImages] = useState<boolean>(() => {
     try {
-      const saved = localStorage.getItem('og-image-assets')
-      return saved ? JSON.parse(saved) : []
+      const saved = localStorage.getItem('og-auto-generate-images')
+      return saved === 'true'
     } catch (e) {
-      return []
+      return false
     }
   })
 
-  // Context menu position for assets
-  const [activeAssetMenu, setActiveAssetMenu] = useState<{
-    id: string
-    x: number
-    y: number
-  } | null>(null)
-  // Inline feedback for actions (like copies or insert)
-  const [feedbackMsg, setFeedbackMsg] = useState<{ id: string; text: string } | null>(null)
-
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // Persist assets list to localStorage
   useEffect(() => {
-    localStorage.setItem('og-image-assets', JSON.stringify(assets))
-  }, [assets])
-
-  // Close context menu on outside click
-  useEffect(() => {
-    const handleGlobalClick = () => {
-      setActiveAssetMenu(null)
-    }
-    window.addEventListener('click', handleGlobalClick)
-    return () => {
-      window.removeEventListener('click', handleGlobalClick)
-    }
-  }, [])
+    localStorage.setItem('og-auto-generate-images', String(autoGenerateImages))
+  }, [autoGenerateImages])
 
   // Close theme dropdown on outside click
   useEffect(() => {
@@ -112,7 +82,8 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
       prompt: title ? `Title: ${title}\n\n${prompt}` : prompt,
       theme,
       slideCount,
-      aspectRatio
+      aspectRatio,
+      generateImages: autoGenerateImages
     })
   }
 
@@ -124,161 +95,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
       theme.description.toLowerCase().includes(themeSearchQuery.toLowerCase())
   )
 
-  // --- AI Image Studio Handlers ---
 
-  const handleGenerateAIImage = async () => {
-    setIsGeneratingImage(true)
-    setImageError(null)
-
-    // Build prompt automatically based on current context
-    let generatedPrompt = ''
-    let assetName = 'AI Image'
-
-    if (activeSlide) {
-      const slideTitle = activeSlide.title || ''
-      const slideBullets = activeSlide.bullets || []
-      const bulletText = slideBullets.length > 0 ? slideBullets[0] : ''
-      const cleanBullet = bulletText
-        .replace(/<[^>]*>/g, '')
-        .substring(0, 80)
-        .trim()
-
-      if (slideTitle && cleanBullet) {
-        generatedPrompt = `A professional visual representing: ${slideTitle} - ${cleanBullet}. Clean, modern corporate style illustration, minimalist vector art, premium design system aesthetics.`
-      } else if (slideTitle) {
-        generatedPrompt = `A professional graphic representation of: ${slideTitle}. Clean, minimalist corporate presentation design, vector illustration.`
-      } else if (cleanBullet) {
-        generatedPrompt = `A modern visual design depicting: ${cleanBullet}. Professional flat design style illustration.`
-      }
-      assetName = slideTitle.substring(0, 15) || 'Slide Visual'
-    }
-
-    if (!generatedPrompt && title.trim()) {
-      generatedPrompt = `A corporate presentation slide visual for: ${title.trim()}. High-quality minimalist design system graphic, vector illustration.`
-      assetName = title.trim().substring(0, 15)
-    }
-
-    if (!generatedPrompt && prompt.trim()) {
-      const cleanText = prompt.trim().substring(0, 80).replace(/\n/g, ' ')
-      generatedPrompt = `A slide visual representing: ${cleanText}. Modern flat vector graphic style.`
-      assetName = cleanText.substring(0, 15)
-    }
-
-    // Ultimate fallback if nothing is entered
-    if (!generatedPrompt) {
-      generatedPrompt =
-        'Abstract modern tech background, minimalist vector art, glowing neon accents, clean geometric shapes'
-      assetName = 'Abstract Tech'
-    }
-
-    try {
-      const sanitizedPrompt = encodeURIComponent(generatedPrompt)
-      const response = await fetch(
-        `https://image.pollinations.ai/prompt/${sanitizedPrompt}?width=1024&height=768&nologo=true`
-      )
-
-      if (!response.ok) {
-        throw new Error('Could not contact image service')
-      }
-
-      const blob = await response.blob()
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        const base64data = reader.result as string
-        const newAsset: ImageAsset = {
-          id: crypto.randomUUID(),
-          name: assetName,
-          dataUrl: base64data
-        }
-        setAssets((prev) => [newAsset, ...prev])
-      }
-      reader.readAsDataURL(blob)
-    } catch (err) {
-      console.error(err)
-      setImageError('Failed to generate image. Please try again.')
-    } finally {
-      setIsGeneratingImage(false)
-    }
-  }
-
-  const handleTriggerUpload = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleLocalUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const base64data = reader.result as string
-      const newAsset: ImageAsset = {
-        id: crypto.randomUUID(),
-        name: file.name.substring(0, 15) || 'Upload',
-        dataUrl: base64data
-      }
-      setAssets((prev) => [newAsset, ...prev])
-      // Reset input
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const handleDeleteAsset = (id: string) => {
-    setAssets((prev) => prev.filter((a) => a.id !== id))
-    if (activeAssetMenu?.id === id) {
-      setActiveAssetMenu(null)
-    }
-  }
-
-  const handleThumbnailClick = (assetId: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setActiveAssetMenu({
-      id: assetId,
-      x: e.clientX,
-      y: e.clientY
-    })
-  }
-
-  const handleInsertToSlide = (assetId: string) => {
-    if (!activeSlide || !onUpdateActiveSlideBullets) return
-    const asset = assets.find((a) => a.id === assetId)
-    if (!asset) return
-
-    const imgTag = `<img src="${asset.dataUrl}" style="max-height: 260px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 25px rgba(0,0,0,0.5); object-fit: contain;" />`
-    const currentBullets = activeSlide.bullets || []
-
-    onUpdateActiveSlideBullets([...currentBullets, imgTag])
-    setActiveAssetMenu(null)
-
-    // Visual notification
-    setFeedbackMsg({ id: assetId, text: 'Inserted!' })
-    setTimeout(() => setFeedbackMsg(null), 2000)
-  }
-
-  const handleCopyHTML = (assetId: string) => {
-    const asset = assets.find((a) => a.id === assetId)
-    if (!asset) return
-
-    const imgTag = `<img src="${asset.dataUrl}" style="max-height: 260px; border-radius: 10px;" />`
-    navigator.clipboard.writeText(imgTag)
-    setActiveAssetMenu(null)
-
-    setFeedbackMsg({ id: assetId, text: 'HTML Copied!' })
-    setTimeout(() => setFeedbackMsg(null), 2000)
-  }
-
-  const handleCopyMarkdown = (assetId: string) => {
-    const asset = assets.find((a) => a.id === assetId)
-    if (!asset) return
-
-    const mdTag = `![Image](${asset.dataUrl})`
-    navigator.clipboard.writeText(mdTag)
-    setActiveAssetMenu(null)
-
-    setFeedbackMsg({ id: assetId, text: 'MD Copied!' })
-    setTimeout(() => setFeedbackMsg(null), 2000)
-  }
 
   return (
     <div className="w-[260px] h-full bg-[#141414] border-r border-white/5 flex flex-col overflow-hidden no-drag relative">
@@ -540,142 +357,32 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
           </div>
 
           <div className="space-y-3">
-            {/* Buttons row */}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleGenerateAIImage}
-                disabled={isGeneratingImage}
-                className="flex-1 py-2 bg-[#e8ff57] text-black font-black text-[10px] rounded-lg uppercase tracking-wider hover:shadow-[0_0_12px_rgba(232,255,87,0.15)] active:scale-95 disabled:opacity-30 transition-all flex items-center justify-center gap-1.5"
-              >
-                {isGeneratingImage ? (
-                  <>
-                    <svg
-                      className="animate-spin h-3.5 w-3.5 text-black"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    <span>Generating...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>✨ Generate Image</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleTriggerUpload}
-                className="flex-1 py-2 bg-white/5 border border-white/5 text-neutral-300 hover:text-white hover:bg-white/10 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 active:scale-95"
-              >
-                <span>📤 Upload Image</span>
-              </button>
-
-              {/* Invisible file input */}
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleLocalUpload}
-                className="hidden"
-              />
-            </div>
-
-            {imageError && (
-              <p className="text-[10px] font-semibold text-red-500 bg-red-500/5 px-2.5 py-1.5 rounded-lg border border-red-500/10">
-                {imageError}
-              </p>
-            )}
-
-            {/* Asset Collection Swatch Gallery */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">
-                  Loaded Assets
+            {/* Auto Generate Toggle */}
+            <div className="flex items-center justify-between bg-[#1a1a1a] p-3 rounded-xl border border-white/5">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider">
+                  AI Images
                 </span>
-                <span className="text-[8px] font-black text-neutral-600 bg-white/5 px-1.5 py-0.5 rounded-md">
-                  {assets.length} items
+                <span className="text-[8px] text-neutral-500 font-semibold leading-tight">
+                  Auto-generate & embed
                 </span>
               </div>
-
-              {assets.length === 0 ? (
-                <div className="text-center py-4 px-3 rounded-lg border border-dashed border-white/5 bg-white/[0.01]">
-                  <p className="text-[9px] font-medium text-neutral-500 leading-normal">
-                    No visual assets loaded. Generate an image above or upload local pictures to
-                    start.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 gap-2 max-h-36 overflow-y-auto pr-0.5 custom-scrollbar align-start content-start">
-                  {assets.map((asset) => {
-                    const isSelectedFeedback = feedbackMsg?.id === asset.id
-
-                    return (
-                      <div
-                        key={asset.id}
-                        onClick={(e) => handleThumbnailClick(asset.id, e)}
-                        className="relative group aspect-square rounded-lg border border-white/5 bg-neutral-900 cursor-pointer overflow-hidden transform hover:scale-[1.03] hover:border-[#e8ff57]/20 active:scale-[0.98] transition-all duration-200 select-none shadow-md"
-                      >
-                        <img
-                          src={asset.dataUrl}
-                          alt={asset.name}
-                          className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-75"
-                        />
-
-                        {/* Top-Right hover delete badge */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDeleteAsset(asset.id)
-                          }}
-                          className="absolute top-0.5 right-0.5 z-10 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 shadow"
-                          title="Delete image asset"
-                        >
-                          <svg
-                            className="w-2 h-2"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="3"
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-
-                        {/* Temporary copied/inserted overlay message */}
-                        {isSelectedFeedback && (
-                          <div className="absolute inset-0 bg-[#e8ff57]/90 z-20 flex items-center justify-center p-0.5 text-center">
-                            <span className="text-[8px] font-black text-black leading-tight">
-                              {feedbackMsg?.text}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setAutoGenerateImages((prev) => !prev)}
+                className={`w-9 h-5 rounded-full p-0.5 transition-all duration-300 outline-none ${
+                  autoGenerateImages ? 'bg-[#e8ff57]' : 'bg-[#2a2a2a]'
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full bg-black transition-all duration-300 transform ${
+                    autoGenerateImages ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
+
+
           </div>
         </div>
 
@@ -749,42 +456,6 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
           Open Gamma v1.0
         </div>
       </div>
-
-      {/* Floating micro glassmorphic Context Menu */}
-      {activeAssetMenu && (
-        <div
-          className="fixed z-50 bg-[#161616]/95 backdrop-blur-lg border border-white/10 rounded-xl p-1.5 flex flex-col gap-1 w-36 shadow-[0_15px_30px_rgba(0,0,0,0.6)] animate-fade-in"
-          style={{ top: activeAssetMenu.y, left: activeAssetMenu.x }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={() => handleInsertToSlide(activeAssetMenu.id)}
-            disabled={!activeSlide || !onUpdateActiveSlideBullets}
-            className="w-full text-left px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg text-white hover:bg-[#e8ff57] hover:text-black disabled:opacity-20 disabled:pointer-events-none transition-all flex items-center justify-between"
-            title={
-              !activeSlide
-                ? 'Open editor view to insert'
-                : 'Add directly into current slide bullets'
-            }
-          >
-            <span>📥 Insert Slide</span>
-          </button>
-
-          <button
-            onClick={() => handleCopyHTML(activeAssetMenu.id)}
-            className="w-full text-left px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg text-neutral-300 hover:bg-white/10 hover:text-white transition-all"
-          >
-            📄 Copy HTML
-          </button>
-
-          <button
-            onClick={() => handleCopyMarkdown(activeAssetMenu.id)}
-            className="w-full text-left px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg text-neutral-300 hover:bg-white/10 hover:text-white transition-all"
-          >
-            📝 Copy MD
-          </button>
-        </div>
-      )}
     </div>
   )
 }
