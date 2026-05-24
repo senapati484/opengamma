@@ -1,18 +1,4 @@
-<img width="1710" height="1112" alt="Screenshot 2026-05-24 at 2 03 58 PM" src="https://github.com/user-attachments/assets/cd1ed6e1-6dad-42a2-a426-3e901f243e4d" />
-<img width="1710" height="1112" alt="Screenshot 2026-05-24 at 2 04 05 PM" src="https://github.com/user-attachments/assets/9abbe7ff-c729-4980-b52e-2cb050122753" />
-
-
-
-
 # Open Gamma — the open-source Gamma.app alternative
-
-> **Open Gamma is the premium, open-source, local-first alternative to [Gamma.app](https://gamma.app/).** Built on a modern Electron, React, and TypeScript desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security and BYOK model flexibility.
-
-> [!IMPORTANT]
->
-> ### 🚀 Local AI Slide Generation & Complete Privacy
->
-> All draft presentations, generated assets, slide history, and system settings are securely stored locally inside a lightweight, fast, local SQLite database. No cloud lock-in, no recurring subscription fees.
 
 <p align="center">
   <a href="https://github.com/senapati484/opengamma/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=ffd700&logo=github&logoColor=white&v=2" /></a>
@@ -26,6 +12,21 @@
   <a href="#core-features"><img alt="Features" src="https://img.shields.io/badge/features-interactive%20editor%20%2B%20exporter-orange?style=flat-square" /></a>
   <a href="#keyboard-shortcuts"><img alt="Shortcuts" src="https://img.shields.io/badge/shortcuts-global%20hotkeys-teal?style=flat-square" /></a>
 </p>
+
+---
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/9abbe7ff-c729-4980-b52e-2cb050122753" width="49%" alt="Open Gamma Dashboard" />
+  <img src="https://github.com/user-attachments/assets/cd1ed6e1-6dad-42a2-a426-3e901f243e4d" width="49%" alt="Open Gamma Slide Editor" />
+</p>
+
+> **Open Gamma is the premium, open-source, local-first alternative to [Gamma.app](https://gamma.app/).** Built on a modern Electron, React, and TypeScript desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security and BYOK model flexibility.
+
+> [!IMPORTANT]
+>
+> ### 🚀 Local AI Slide Generation & Complete Privacy
+>
+> All draft presentations, generated assets, slide history, and system settings are securely stored locally inside a lightweight, fast, local SQLite database. No cloud lock-in, no recurring subscription fees.
 
 ---
 
@@ -143,17 +144,20 @@ opengamma/
 ├── resources/                 # Application icons and native platform wrappers
 ├── src/
 │   ├── main/                  # Electron Main Process (IPC Handlers, SQLite, IO)
+│   │   ├── cliRunner.ts       # Runs command line generative AI scripts
 │   │   ├── cliScanner.ts      # Scans system path for local generative CLIs
-│   │   ├── database.ts        # SQLite storage controller & schema migrations
+│   │   ├── db.ts              # SQLite database schema setup & connections
 │   │   ├── exporter.ts        # Exporter controller (PDF/HTML/PPTX compiling)
 │   │   ├── generator.ts       # AI draft outline orchestrator
-│   │   └── ipc.ts             # IPC listeners bridging main and renderer
+│   │   ├── htmlToPptx.ts      # Slide layout to native PPTX compiler
+│   │   ├── ipc.ts             # IPC listeners bridging main and renderer
+│   │   └── slideParser.ts     # Parses markdown content to presentation objects
 │   ├── preload/               # Electron Preload Scripts (Secure Context Bridge)
 │   └── renderer/              # React Renderer Process (UI, Presentation Preview)
 │       └── src/
 │           ├── components/    # Reusable UI controls, modals, and canvas layers
 │           ├── context/       # AppContext & State Provider
-│           ├── lib/           # Slide compiler, Reveal.js hooks, useStream
+│           ├── lib/           # Slide compiler, themes, custom hooks, layoutStyles
 │           └── styles/        # Global layout styling and Tailwind inputs
 ├── electron-builder.yml       # Desktop packing & application distribution config
 ├── electron.vite.config.ts    # Custom configuration for vite electron compiler
