@@ -1114,7 +1114,7 @@ async function generateAndInjectImage(
     if (abortSignal?.aborted) return
 
     // ── 3. Inject the image into the DOM ─────────────────────────────────────
-    const imgHtml = `<img src="${base64data}" alt="${slide.title || 'Slide visual'}" style="max-width: 100%; max-height: 360px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px rgba(0,0,0,0.45);" />`
+    const imgHtml = `<img src="${base64data}" alt="${slide.title || 'Slide visual'}" />`
 
     if (placeholder) {
       // Replace the placeholder <figure> with the real image

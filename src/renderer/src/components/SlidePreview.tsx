@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import type { Slide, Theme, StreamStatus } from '../types'
+import { GLOBAL_LAYOUT_CSS } from '../lib/layoutStyles'
+
 
 export interface SlidePreviewProps {
   /** The current array of presentation slides */
@@ -237,15 +239,16 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
     const contentWindow = iframe.contentWindow
     if (!contentWindow || !isLoaded) return
 
-    // 1. Inject Theme Design CSS Tokens
+    // 1. Inject Theme Design CSS Tokens with Global Layout Overrides (Cache Inoculation)
+    const cssWithLayout = `${activeTheme.cssTokens}\n${GLOBAL_LAYOUT_CSS}`
     try {
       if ((contentWindow as any).setTheme) {
-        ;(contentWindow as any).setTheme(activeTheme.cssTokens)
+        ;(contentWindow as any).setTheme(cssWithLayout)
       } else {
-        contentWindow.postMessage({ type: 'SET_THEME', cssTokens: activeTheme.cssTokens }, '*')
+        contentWindow.postMessage({ type: 'SET_THEME', cssTokens: cssWithLayout }, '*')
       }
     } catch {
-      contentWindow.postMessage({ type: 'SET_THEME', cssTokens: activeTheme.cssTokens }, '*')
+      contentWindow.postMessage({ type: 'SET_THEME', cssTokens: cssWithLayout }, '*')
     }
 
     // 2. Inject Built-in Reveal.js Base Theme if defined

@@ -18,7 +18,7 @@ Font import:    {{FONT_IMPORT}}
    - data-slide-type="title|content|split|data|cta|image|stat|quote"
    - data-slug="kebab-case-slide-title"
 3. Speaker notes MUST be the last child of every section: <aside class="notes">2-3 sentences</aside>
-4. Permitted HTML: h1, h2, h3, p, ul, ol, li, strong, em, code, table, thead, tbody, tr, th, td, aside, div, span, figure, figcaption. No inline styles.
+4. Permitted HTML: h1, h2, h3, p, ul, ol, li, strong, em, code, table, thead, tbody, tr, th, td, aside, div, span, figure, figcaption. No inline styles except 'style="height: X%;"' on '.og-chart-bar' elements.
 5. Use classes from {{THEME_TOKENS}} for styling. Div and span elements are allowed ONLY with design system classes.
 6. Generate exactly {{SLIDE_COUNT}} slides.
 </gates>
@@ -36,9 +36,12 @@ Font import:    {{FONT_IMPORT}}
 DESIGN SYSTEM COMPONENTS:
 
 - Card: <div class="card"><h3>Title</h3><p>Text</p></div>
+- Numbered Card: <div class="card numbered" data-number="1"><h3>Title</h3><p>Text</p></div> (for sequential steps, countermeasures, or timeline milestones)
 - Stat Block: <div class="stat-block"><span class="stat-number">Value</span><span class="stat-label">Label</span></div> (consecutive blocks auto-grid side-by-side)
 - Badge: <span class="badge">Label</span>
 - Quote: <div class="quote-block"><p class="quote-text">"Quote"</p><span class="quote-author">— Author</span></div>
+- Bottom Component Tray: <div class="og-bottom-tray"><span class="badge">Title</span><div class="cols"><div class="col"><strong>Label</strong> — Description</div>...</div></div> (horizontal detail container spanning the bottom of slides)
+- Inline Column Chart: <div class="og-inline-chart"><div class="og-chart-bar" style="height: 40%;" data-label="2025"></div><div class="og-chart-bar" style="height: 60%;" data-label="2026"></div><div class="og-chart-bar" style="height: 100%;" data-label="2030"></div></div> (for simple inline visual column charts next to text columns)
   </ref>
 
 <rhythm label="NARRATIVE PATTERNS ({{NARRATIVE_TYPE}})">

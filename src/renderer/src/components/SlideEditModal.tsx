@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import type { Slide, SlideStyle, Theme } from '../types'
 import { compileSlideHtml } from '../lib/slideCompiler'
+import { GLOBAL_LAYOUT_CSS } from '../lib/layoutStyles'
+
 
 export interface SlideEditModalProps {
   slide: Slide | null
@@ -160,9 +162,10 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
     const contentWindow = iframe.contentWindow
     if (!contentWindow) return
 
-    // Inject Theme Tokens first
+    // Inject Theme Tokens first with Global Layout Overrides (Cache Inoculation)
+    const cssWithLayout = `${activeTheme.cssTokens}\n${GLOBAL_LAYOUT_CSS}`
     try {
-      contentWindow.postMessage({ type: 'SET_THEME', cssTokens: activeTheme.cssTokens }, '*')
+      contentWindow.postMessage({ type: 'SET_THEME', cssTokens: cssWithLayout }, '*')
       if (activeTheme.revealTheme) {
         contentWindow.postMessage(
           { type: 'SET_REVEAL_THEME', themeName: activeTheme.revealTheme },

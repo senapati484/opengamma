@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import type { Slide, Theme } from '../types'
+import { GLOBAL_LAYOUT_CSS } from '../lib/layoutStyles'
+
 
 export interface SlideThumbnailsProps {
   /** Ordered list of slides in the presentation */
@@ -95,6 +97,12 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
                 <style>
                   ${fontImport}
                   ${activeTheme.cssTokens}
+                  ${GLOBAL_LAYOUT_CSS}
+                  .slide-wrapper:has(.og-full-bleed-split) {
+                    padding: 0 !important;
+                    align-items: stretch !important;
+                    justify-content: stretch !important;
+                  }
                   html, body {
                     width: 1280px;
                     height: 720px;
@@ -136,6 +144,69 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
                     flex-direction: column;
                     justify-content: center;
                     align-items: center;
+                    box-sizing: border-box;
+                  }
+                  /* Full-bleed split: override default centering */
+                  section.og-full-bleed-split {
+                    padding: 0 !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: stretch !important;
+                    align-items: stretch !important;
+                    text-align: left !important;
+                  }
+                  section.og-full-bleed-split .og-split-layout {
+                    flex: 1 1 0% !important;
+                    min-height: 0 !important;
+                    height: 100% !important;
+                    display: grid !important;
+                    align-items: stretch !important;
+                    gap: 0 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    width: 100% !important;
+                  }
+                  section.og-full-bleed-split .og-split-layout.og-img-on-left {
+                    grid-template-columns: 0.95fr 1.05fr !important;
+                  }
+                  section.og-full-bleed-split .og-split-layout.og-img-on-right {
+                    grid-template-columns: 1.05fr 0.95fr !important;
+                  }
+                  .og-image-column {
+                    position: relative !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    min-height: 0 !important;
+                    overflow: hidden !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: stretch !important;
+                  }
+                  .og-image-column figure {
+                    flex: 1 1 0% !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    min-height: 0 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    border-radius: 0 !important;
+                    border: none !important;
+                    overflow: hidden !important;
+                    display: flex !important;
+                    align-items: stretch !important;
+                  }
+                  .og-image-column img {
+                    width: 100% !important;
+                    height: 100% !important;
+                    max-width: 100% !important;
+                    max-height: 100% !important;
+                    object-fit: cover !important;
+                    border-radius: 0 !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    display: block !important;
                   }
                 </style>
               </head>
