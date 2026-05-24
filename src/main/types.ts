@@ -47,6 +47,12 @@ export enum IpcChannels {
   TEST_API_KEY = 'settings:test-api-key',
   /** Renderer → Main: test if a Gemini API key is valid */
   TEST_GEMINI_API_KEY = 'settings:test-gemini-api-key',
+  /** Renderer → Main: test if an OpenAI API key is valid */
+  TEST_OPENAI_API_KEY = 'settings:test-openai-api-key',
+  /** Renderer → Main: test if a DeepSeek API key is valid */
+  TEST_DEEPSEEK_API_KEY = 'settings:test-deepseek-api-key',
+  /** Renderer → Main: test if a Groq API key is valid */
+  TEST_GROQ_API_KEY = 'settings:test-groq-api-key',
   /** Renderer → Main: test if a detected CLI tool is accessible */
   TEST_CLI_TOOL = 'settings:test-cli-tool'
 }

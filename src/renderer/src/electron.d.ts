@@ -80,6 +80,12 @@ interface ElectronAPI {
   testApiKey(apiKey: string): Promise<{ valid: boolean; message: string }>
   /** Test if a Gemini API key is valid */
   testGeminiApiKey(apiKey: string): Promise<{ valid: boolean; message: string }>
+  /** Test if an OpenAI API key is valid */
+  testOpenaiApiKey(apiKey: string): Promise<{ valid: boolean; message: string }>
+  /** Test if a DeepSeek API key is valid */
+  testDeepseekApiKey(apiKey: string): Promise<{ valid: boolean; message: string }>
+  /** Test if a Groq API key is valid */
+  testGroqApiKey(apiKey: string): Promise<{ valid: boolean; message: string }>
   // ── CLI Tool Validation ────────────────────────────────────────────────────
 
   /** Test if a CLI tool is accessible */

@@ -143,6 +143,21 @@ const browserMock: ElectronAPI = {
     return { valid: false, message: 'Running outside Electron' }
   },
 
+  testOpenaiApiKey: async (apiKey: string): Promise<{ valid: boolean; message: string }> => {
+    console.warn('[useElectron] testOpenaiApiKey called outside Electron for key:', apiKey)
+    return { valid: false, message: 'Running outside Electron' }
+  },
+
+  testDeepseekApiKey: async (apiKey: string): Promise<{ valid: boolean; message: string }> => {
+    console.warn('[useElectron] testDeepseekApiKey called outside Electron for key:', apiKey)
+    return { valid: false, message: 'Running outside Electron' }
+  },
+
+  testGroqApiKey: async (apiKey: string): Promise<{ valid: boolean; message: string }> => {
+    console.warn('[useElectron] testGroqApiKey called outside Electron for key:', apiKey)
+    return { valid: false, message: 'Running outside Electron' }
+  },
+
   testCliTool: async (
     cliPath: string,
     cliName: string

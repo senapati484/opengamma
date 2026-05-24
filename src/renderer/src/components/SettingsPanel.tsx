@@ -18,17 +18,26 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
   )
 
   // Execution & Model state
-  const [executionMode, setExecutionMode] = useState<'local-cli' | 'anthropic-api' | 'gemini-api'>('local-cli')
-  const [selectedApiProvider, setSelectedApiProvider] = useState<'anthropic' | 'gemini'>('anthropic')
+  const [executionMode, setExecutionMode] = useState<'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api'>('local-cli')
+  const [selectedApiProvider, setSelectedApiProvider] = useState<'anthropic' | 'gemini' | 'openai' | 'deepseek' | 'groq'>('anthropic')
   const [selectedCliId, setSelectedCliId] = useState('')
   const [tempApiKey, setTempApiKey] = useState('')
   const [tempGeminiApiKey, setTempGeminiApiKey] = useState('')
+  const [tempOpenaiApiKey, setTempOpenaiApiKey] = useState('')
+  const [tempDeepseekApiKey, setTempDeepseekApiKey] = useState('')
+  const [tempGroqApiKey, setTempGroqApiKey] = useState('')
   const [detectedCLIs, setDetectedCLIs] = useState<DetectedCLI[]>([])
   const [isScanning, setIsScanning] = useState(false)
   const [testStatus, setTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
   const [geminiTestStatus, setGeminiTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
+  const [openaiTestStatus, setOpenaiTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
+  const [deepseekTestStatus, setDeepseekTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
+  const [groqTestStatus, setGroqTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
   const [isTestingKey, setIsTestingKey] = useState(false)
   const [isTestingGeminiKey, setIsTestingGeminiKey] = useState(false)
+  const [isTestingOpenaiKey, setIsTestingOpenaiKey] = useState(false)
+  const [isTestingDeepseekKey, setIsTestingDeepseekKey] = useState(false)
+  const [isTestingGroqKey, setIsTestingGroqKey] = useState(false)
 
   // Design Systems state (Phase 2)
   // Handled by DesignSystemPicker
@@ -53,12 +62,21 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
         setExecutionMode(loaded.executionMode)
         if (loaded.executionMode === 'gemini-api') {
           setSelectedApiProvider('gemini')
+        } else if (loaded.executionMode === 'openai-api') {
+          setSelectedApiProvider('openai')
+        } else if (loaded.executionMode === 'deepseek-api') {
+          setSelectedApiProvider('deepseek')
+        } else if (loaded.executionMode === 'groq-api') {
+          setSelectedApiProvider('groq')
         } else {
           setSelectedApiProvider('anthropic')
         }
         setSelectedCliId(loaded.selectedCliId)
         setTempApiKey(loaded.claudeApiKey || '')
         setTempGeminiApiKey(loaded.geminiApiKey || '')
+        setTempOpenaiApiKey(loaded.openaiApiKey || '')
+        setTempDeepseekApiKey(loaded.deepseekApiKey || '')
+        setTempGroqApiKey(loaded.groqApiKey || '')
         setDefaultSlideCount(loaded.defaultSlideCount)
         setDefaultNarrative(loaded.defaultNarrative)
         setIncludeSpeakerNotes(loaded.includeSpeakerNotes ?? true)
@@ -85,6 +103,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
       selectedCliId,
       claudeApiKey: tempApiKey,
       geminiApiKey: tempGeminiApiKey,
+      openaiApiKey: tempOpenaiApiKey,
+      deepseekApiKey: tempDeepseekApiKey,
+      groqApiKey: tempGroqApiKey,
       defaultSlideCount,
       defaultNarrative,
       includeSpeakerNotes,
@@ -126,6 +147,45 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
       setGeminiTestStatus({ valid: false, error: err.message })
     } finally {
       setIsTestingGeminiKey(false)
+    }
+  }
+
+  const handleTestOpenaiKey = async () => {
+    setIsTestingOpenaiKey(true)
+    setOpenaiTestStatus(null)
+    try {
+      const result = await window.electronAPI.testOpenaiApiKey(tempOpenaiApiKey)
+      setOpenaiTestStatus(result)
+    } catch (err: any) {
+      setOpenaiTestStatus({ valid: false, error: err.message })
+    } finally {
+      setIsTestingOpenaiKey(false)
+    }
+  }
+
+  const handleTestDeepseekKey = async () => {
+    setIsTestingDeepseekKey(true)
+    setDeepseekTestStatus(null)
+    try {
+      const result = await window.electronAPI.testDeepseekApiKey(tempDeepseekApiKey)
+      setDeepseekTestStatus(result)
+    } catch (err: any) {
+      setDeepseekTestStatus({ valid: false, error: err.message })
+    } finally {
+      setIsTestingDeepseekKey(false)
+    }
+  }
+
+  const handleTestGroqKey = async () => {
+    setIsTestingGroqKey(true)
+    setGroqTestStatus(null)
+    try {
+      const result = await window.electronAPI.testGroqApiKey(tempGroqApiKey)
+      setGroqTestStatus(result)
+    } catch (err: any) {
+      setGroqTestStatus({ valid: false, error: err.message })
+    } finally {
+      setIsTestingGroqKey(false)
     }
   }
 
@@ -203,12 +263,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
 
                   <div
                     onClick={() => {
-                      setExecutionMode(selectedApiProvider === 'anthropic' ? 'anthropic-api' : 'gemini-api')
+                      if (selectedApiProvider === 'gemini') setExecutionMode('gemini-api')
+                      else if (selectedApiProvider === 'openai') setExecutionMode('openai-api')
+                      else if (selectedApiProvider === 'deepseek') setExecutionMode('deepseek-api')
+                      else if (selectedApiProvider === 'groq') setExecutionMode('groq-api')
+                      else setExecutionMode('anthropic-api')
                     }}
                     className={`p-5 rounded-xl border-2 transition-all cursor-pointer ${executionMode !== 'local-cli' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/5' : 'border-white/5 bg-white/5 hover:border-white/10'}`}
                   >
                     <div className="font-bold text-white mb-1 text-sm sm:text-base">External API</div>
-                    <div className="text-[10px] sm:text-xs text-neutral-500">Anthropic & Gemini keys</div>
+                    <div className="text-[10px] sm:text-xs text-neutral-500">Claude, Gemini, OpenAI, DeepSeek, Groq</div>
                   </div>
                 </div>
 
@@ -258,14 +322,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                       <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
                         Select API Provider
                       </label>
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         <button
                           type="button"
                           onClick={() => {
                             setSelectedApiProvider('anthropic')
                             setExecutionMode('anthropic-api')
                           }}
-                          className={`flex-1 py-3 px-4 rounded-xl border font-bold text-sm transition-all cursor-pointer ${selectedApiProvider === 'anthropic' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/10 text-[#e8ff57]' : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+                          className={`py-2 px-3 rounded-xl border font-bold text-xs transition-all cursor-pointer ${selectedApiProvider === 'anthropic' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/10 text-[#e8ff57]' : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
                         >
                           Anthropic API
                         </button>
@@ -275,14 +339,44 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                             setSelectedApiProvider('gemini')
                             setExecutionMode('gemini-api')
                           }}
-                          className={`flex-1 py-3 px-4 rounded-xl border font-bold text-sm transition-all cursor-pointer ${selectedApiProvider === 'gemini' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/10 text-[#e8ff57]' : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+                          className={`py-2 px-3 rounded-xl border font-bold text-xs transition-all cursor-pointer ${selectedApiProvider === 'gemini' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/10 text-[#e8ff57]' : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
                         >
                           Gemini API
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedApiProvider('openai')
+                            setExecutionMode('openai-api')
+                          }}
+                          className={`py-2 px-3 rounded-xl border font-bold text-xs transition-all cursor-pointer ${selectedApiProvider === 'openai' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/10 text-[#e8ff57]' : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+                        >
+                          OpenAI API
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedApiProvider('deepseek')
+                            setExecutionMode('deepseek-api')
+                          }}
+                          className={`py-2 px-3 rounded-xl border font-bold text-xs transition-all cursor-pointer ${selectedApiProvider === 'deepseek' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/10 text-[#e8ff57]' : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+                        >
+                          DeepSeek API
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedApiProvider('groq')
+                            setExecutionMode('groq-api')
+                          }}
+                          className={`py-2 px-3 rounded-xl border font-bold text-xs transition-all cursor-pointer ${selectedApiProvider === 'groq' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/10 text-[#e8ff57]' : 'border-white/5 bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+                        >
+                          Groq API
                         </button>
                       </div>
                     </div>
 
-                    {selectedApiProvider === 'anthropic' ? (
+                    {selectedApiProvider === 'anthropic' && (
                       <div className="space-y-4 pt-4 border-t border-white/5">
                         <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">
                           Anthropic Settings
@@ -325,7 +419,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                           </a>
                         </div>
                       </div>
-                    ) : (
+                    )}
+
+                    {selectedApiProvider === 'gemini' && (
                       <div className="space-y-4 pt-4 border-t border-white/5">
                         <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">
                           Gemini Settings
@@ -365,6 +461,141 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                             className="block text-[11px] text-[#e8ff57] hover:underline opacity-80"
                           >
                             Get your key at aistudio.google.com
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedApiProvider === 'openai' && (
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">
+                          OpenAI Settings
+                        </h3>
+                        <div className="space-y-2">
+                          <label className="text-xs text-neutral-500">API Key</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="password"
+                              value={tempOpenaiApiKey}
+                              onChange={(e) => setTempOpenaiApiKey(e.target.value)}
+                              placeholder="sk-..."
+                              className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#e8ff57]/50"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleTestOpenaiKey}
+                              disabled={isTestingOpenaiKey || !tempOpenaiApiKey}
+                              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                            >
+                              {isTestingOpenaiKey ? 'Testing...' : 'Test'}
+                            </button>
+                          </div>
+                          {openaiTestStatus && (
+                            <div
+                              className={`text-xs flex items-center gap-2 ${openaiTestStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                            >
+                              {openaiTestStatus.valid
+                                ? '✓ Connection successful'
+                                : `✕ ${openaiTestStatus.error || 'Invalid key'}`}
+                            </div>
+                          )}
+                          <a
+                            href="https://platform.openai.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block text-[11px] text-[#e8ff57] hover:underline opacity-80"
+                          >
+                            Get your key at platform.openai.com
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedApiProvider === 'deepseek' && (
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">
+                          DeepSeek Settings
+                        </h3>
+                        <div className="space-y-2">
+                          <label className="text-xs text-neutral-500">API Key</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="password"
+                              value={tempDeepseekApiKey}
+                              onChange={(e) => setTempDeepseekApiKey(e.target.value)}
+                              placeholder="sk-..."
+                              className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#e8ff57]/50"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleTestDeepseekKey}
+                              disabled={isTestingDeepseekKey || !tempDeepseekApiKey}
+                              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                            >
+                              {isTestingDeepseekKey ? 'Testing...' : 'Test'}
+                            </button>
+                          </div>
+                          {deepseekTestStatus && (
+                            <div
+                              className={`text-xs flex items-center gap-2 ${deepseekTestStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                            >
+                              {deepseekTestStatus.valid
+                                ? '✓ Connection successful'
+                                : `✕ ${deepseekTestStatus.error || 'Invalid key'}`}
+                            </div>
+                          )}
+                          <a
+                            href="https://platform.deepseek.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block text-[11px] text-[#e8ff57] hover:underline opacity-80"
+                          >
+                            Get your key at platform.deepseek.com
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedApiProvider === 'groq' && (
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider">
+                          Groq Settings
+                        </h3>
+                        <div className="space-y-2">
+                          <label className="text-xs text-neutral-500">API Key</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="password"
+                              value={tempGroqApiKey}
+                              onChange={(e) => setTempGroqApiKey(e.target.value)}
+                              placeholder="gsk_..."
+                              className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#e8ff57]/50"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleTestGroqKey}
+                              disabled={isTestingGroqKey || !tempGroqApiKey}
+                              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                            >
+                              {isTestingGroqKey ? 'Testing...' : 'Test'}
+                            </button>
+                          </div>
+                          {groqTestStatus && (
+                            <div
+                              className={`text-xs flex items-center gap-2 ${groqTestStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                            >
+                              {groqTestStatus.valid
+                                ? '✓ Connection successful'
+                                : `✕ ${groqTestStatus.error || 'Invalid key'}`}
+                            </div>
+                          )}
+                          <a
+                            href="https://console.groq.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block text-[11px] text-[#e8ff57] hover:underline opacity-80"
+                          >
+                            Get your key at console.groq.com
                           </a>
                         </div>
                       </div>

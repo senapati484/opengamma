@@ -874,10 +874,13 @@ export function registerIpcHandlers(): void {
     const currentSettings: AppSettings = {
       claudeApiKey: store.get('claudeApiKey', '') as string,
       geminiApiKey: store.get('geminiApiKey', '') as string,
+      openaiApiKey: store.get('openaiApiKey', '') as string,
+      deepseekApiKey: store.get('deepseekApiKey', '') as string,
+      groqApiKey: store.get('groqApiKey', '') as string,
       defaultTheme: store.get('defaultTheme', 'midnight') as string,
       defaultSlideCount: store.get('defaultSlideCount', 8) as number,
       defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api',
+      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api',
       selectedCliId: store.get('selectedCliId', '') as string,
       defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
       includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
@@ -907,6 +910,36 @@ export function registerIpcHandlers(): void {
         slidesGenerated: 0,
         totalSlides: config.slideCount ?? 0,
         errorMessage: 'No Gemini API key configured. Add your key in Settings before generating.'
+      })
+      return
+    }
+
+    if (currentSettings.executionMode === 'openai-api' && (!currentSettings.openaiApiKey || !currentSettings.openaiApiKey.trim())) {
+      pushStatus(window, {
+        state: 'error',
+        slidesGenerated: 0,
+        totalSlides: config.slideCount ?? 0,
+        errorMessage: 'No OpenAI API key configured. Add your key in Settings before generating.'
+      })
+      return
+    }
+
+    if (currentSettings.executionMode === 'deepseek-api' && (!currentSettings.deepseekApiKey || !currentSettings.deepseekApiKey.trim())) {
+      pushStatus(window, {
+        state: 'error',
+        slidesGenerated: 0,
+        totalSlides: config.slideCount ?? 0,
+        errorMessage: 'No DeepSeek API key configured. Add your key in Settings before generating.'
+      })
+      return
+    }
+
+    if (currentSettings.executionMode === 'groq-api' && (!currentSettings.groqApiKey || !currentSettings.groqApiKey.trim())) {
+      pushStatus(window, {
+        state: 'error',
+        slidesGenerated: 0,
+        totalSlides: config.slideCount ?? 0,
+        errorMessage: 'No Groq API key configured. Add your key in Settings before generating.'
       })
       return
     }
@@ -963,10 +996,13 @@ export function registerIpcHandlers(): void {
       const currentSettings: AppSettings = {
         claudeApiKey: store.get('claudeApiKey', '') as string,
         geminiApiKey: store.get('geminiApiKey', '') as string,
+        openaiApiKey: store.get('openaiApiKey', '') as string,
+        deepseekApiKey: store.get('deepseekApiKey', '') as string,
+        groqApiKey: store.get('groqApiKey', '') as string,
         defaultTheme: store.get('defaultTheme', 'midnight') as string,
         defaultSlideCount: store.get('defaultSlideCount', 8) as number,
         defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-        executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api',
+        executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api',
         selectedCliId: store.get('selectedCliId', '') as string,
         defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
         includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
@@ -995,6 +1031,33 @@ export function registerIpcHandlers(): void {
       ) {
         throw new Error(
           'No Gemini API key configured. Add your key in Settings before regenerating.'
+        )
+      }
+
+      if (
+        currentSettings.executionMode === 'openai-api' &&
+        (!currentSettings.openaiApiKey || !currentSettings.openaiApiKey.trim())
+      ) {
+        throw new Error(
+          'No OpenAI API key configured. Add your key in Settings before regenerating.'
+        )
+      }
+
+      if (
+        currentSettings.executionMode === 'deepseek-api' &&
+        (!currentSettings.deepseekApiKey || !currentSettings.deepseekApiKey.trim())
+      ) {
+        throw new Error(
+          'No DeepSeek API key configured. Add your key in Settings before regenerating.'
+        )
+      }
+
+      if (
+        currentSettings.executionMode === 'groq-api' &&
+        (!currentSettings.groqApiKey || !currentSettings.groqApiKey.trim())
+      ) {
+        throw new Error(
+          'No Groq API key configured. Add your key in Settings before regenerating.'
         )
       }
 
@@ -1393,10 +1456,13 @@ export function registerIpcHandlers(): void {
     return {
       claudeApiKey: store.get('claudeApiKey', '') as string,
       geminiApiKey: store.get('geminiApiKey', '') as string,
+      openaiApiKey: store.get('openaiApiKey', '') as string,
+      deepseekApiKey: store.get('deepseekApiKey', '') as string,
+      groqApiKey: store.get('groqApiKey', '') as string,
       defaultTheme: store.get('defaultTheme', 'midnight') as string,
       defaultSlideCount: store.get('defaultSlideCount', 8) as number,
       defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api',
+      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api',
       selectedCliId: store.get('selectedCliId', '') as string,
       defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
       includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
@@ -1416,6 +1482,9 @@ export function registerIpcHandlers(): void {
     const store = await getStore()
     store.set('claudeApiKey', settings.claudeApiKey)
     store.set('geminiApiKey', settings.geminiApiKey ?? '')
+    store.set('openaiApiKey', settings.openaiApiKey ?? '')
+    store.set('deepseekApiKey', settings.deepseekApiKey ?? '')
+    store.set('groqApiKey', settings.groqApiKey ?? '')
     store.set('defaultTheme', settings.defaultTheme)
     store.set('defaultSlideCount', settings.defaultSlideCount)
     store.set('defaultNarrative', settings.defaultNarrative)
@@ -1528,6 +1597,51 @@ export function registerIpcHandlers(): void {
       return { valid: false, message: 'API key appears too short' }
     }
 
+    return { valid: true, message: 'API key format is valid' }
+  })
+
+  // ── TEST_OPENAI_API_KEY ─────────────────────────────────────────────────────
+  ipcMain.handle(IpcChannels.TEST_OPENAI_API_KEY, async (_event, apiKey: string) => {
+    if (!apiKey || typeof apiKey !== 'string') {
+      return { valid: false, message: 'API key is empty' }
+    }
+    const trimmed = apiKey.trim()
+    if (!trimmed.startsWith('sk-proj-') && !trimmed.startsWith('sk-')) {
+      return { valid: false, message: 'API key must start with sk-' }
+    }
+    if (trimmed.length < 20) {
+      return { valid: false, message: 'API key appears too short' }
+    }
+    return { valid: true, message: 'API key format is valid' }
+  })
+
+  // ── TEST_DEEPSEEK_API_KEY ───────────────────────────────────────────────────
+  ipcMain.handle(IpcChannels.TEST_DEEPSEEK_API_KEY, async (_event, apiKey: string) => {
+    if (!apiKey || typeof apiKey !== 'string') {
+      return { valid: false, message: 'API key is empty' }
+    }
+    const trimmed = apiKey.trim()
+    if (!trimmed.startsWith('sk-')) {
+      return { valid: false, message: 'API key must start with sk-' }
+    }
+    if (trimmed.length < 20) {
+      return { valid: false, message: 'API key appears too short' }
+    }
+    return { valid: true, message: 'API key format is valid' }
+  })
+
+  // ── TEST_GROQ_API_KEY ───────────────────────────────────────────────────────
+  ipcMain.handle(IpcChannels.TEST_GROQ_API_KEY, async (_event, apiKey: string) => {
+    if (!apiKey || typeof apiKey !== 'string') {
+      return { valid: false, message: 'API key is empty' }
+    }
+    const trimmed = apiKey.trim()
+    if (!trimmed.startsWith('gsk_')) {
+      return { valid: false, message: 'API key must start with gsk_' }
+    }
+    if (trimmed.length < 20) {
+      return { valid: false, message: 'API key appears too short' }
+    }
     return { valid: true, message: 'API key format is valid' }
   })
 

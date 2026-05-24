@@ -49,6 +49,12 @@ export interface ElectronAPI {
   testApiKey: (apiKey: string) => Promise<{ valid: boolean; message: string }>
   /** Test if a Gemini API key is valid */
   testGeminiApiKey: (apiKey: string) => Promise<{ valid: boolean; message: string }>
+  /** Test if an OpenAI API key is valid */
+  testOpenaiApiKey: (apiKey: string) => Promise<{ valid: boolean; message: string }>
+  /** Test if a DeepSeek API key is valid */
+  testDeepseekApiKey: (apiKey: string) => Promise<{ valid: boolean; message: string }>
+  /** Test if a Groq API key is valid */
+  testGroqApiKey: (apiKey: string) => Promise<{ valid: boolean; message: string }>
 
   // ── CLI Tool Validation ─────────────────────────────────────────────────────
   /** Test if a CLI tool is accessible */
@@ -141,6 +147,9 @@ const electronAPI: ElectronAPI = {
   // ── API Key Validation ──────────────────────────────────────────────────────
   testApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_API_KEY, apiKey),
   testGeminiApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_GEMINI_API_KEY, apiKey),
+  testOpenaiApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_OPENAI_API_KEY, apiKey),
+  testDeepseekApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_DEEPSEEK_API_KEY, apiKey),
+  testGroqApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_GROQ_API_KEY, apiKey),
 
   // ── CLI Tool Validation ─────────────────────────────────────────────────────
   testCliTool: (cliPath: string, cliName: string) =>

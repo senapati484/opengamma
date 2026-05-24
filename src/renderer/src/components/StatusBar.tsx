@@ -7,8 +7,27 @@ export const StatusBar: React.FC = () => {
   if (!settings) return null
 
   const isLocal = settings.executionMode === 'local-cli'
-  const modeText = isLocal ? 'Local CLI' : 'Anthropic API'
-  const agentText = isLocal ? settings.selectedCliId || 'None' : 'Claude'
+  let modeText = 'Local CLI'
+  let agentText = settings.selectedCliId || 'None'
+
+  if (!isLocal) {
+    if (settings.executionMode === 'anthropic-api') {
+      modeText = 'Anthropic API'
+      agentText = 'Claude'
+    } else if (settings.executionMode === 'gemini-api') {
+      modeText = 'Gemini API'
+      agentText = 'Gemini'
+    } else if (settings.executionMode === 'openai-api') {
+      modeText = 'OpenAI API'
+      agentText = 'GPT-4o'
+    } else if (settings.executionMode === 'deepseek-api') {
+      modeText = 'DeepSeek API'
+      agentText = 'DeepSeek-V3'
+    } else if (settings.executionMode === 'groq-api') {
+      modeText = 'Groq API'
+      agentText = 'Llama 3'
+    }
+  }
 
   return (
     <div className="h-[28px] bg-[#141414] border-t border-white/5 flex items-center px-4 justify-between select-none pointer-events-auto no-drag">

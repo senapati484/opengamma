@@ -69,7 +69,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
     }
   })
 
-  const isMusicAvailable = settings?.executionMode === 'gemini-api'
+  const isMusicAvailable = true
 
   useEffect(() => {
     localStorage.setItem('og-auto-generate-images', String(autoGenerateImages))

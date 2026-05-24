@@ -44,7 +44,164 @@ function isNetworkError(error: any): boolean {
   )
 }
 
+async function streamOpenAiCompatible(
+  url: string,
+  apiKey: string,
+  modelName: string,
+  systemPrompt: string,
+  finalUserPrompt: string,
+  wrappedOnSlide: (slide: Slide) => void,
+  wrappedOnStatus: (status: StreamStatus) => void,
+  abortSignal: AbortSignal,
+  config: GenerationConfig
+): Promise<void> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: modelName,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: finalUserPrompt }
+      ],
+      stream: true
+    }),
+    signal: abortSignal
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`)
+  }
+
+  const reader = response.body
+  if (!reader) throw new Error('Response body is null')
+
+  let buffer = ''
+  let count = 0
+  let slideBuffer = ''
+
+  for await (const chunk of reader) {
+    if (abortSignal.aborted) throw new Error('AbortError')
+    const chunkStr = new TextDecoder('utf-8').decode(chunk as any)
+    buffer += chunkStr
+
+    const lines = buffer.split('\n')
+    buffer = lines.pop() || ''
+
+    for (const line of lines) {
+      const cleaned = line.trim()
+      if (!cleaned) continue
+      if (cleaned === 'data: [DONE]') continue
+      if (cleaned.startsWith('data: ')) {
+        try {
+          const jsonStr = cleaned.slice(6)
+          const parsed = JSON.parse(jsonStr)
+          const text = parsed.choices?.[0]?.delta?.content || ''
+          if (text) {
+            slideBuffer += text
+            const [completeSlides, remainder] = extractCompleteSlides(slideBuffer)
+            slideBuffer = remainder
+
+            for (const html of completeSlides) {
+              if (abortSignal.aborted) throw new Error('AbortError')
+              wrappedOnSlide(parseSlideHtml(html, count++))
+              wrappedOnStatus({
+                state: 'generating',
+                slidesGenerated: count,
+                totalSlides: config.slideCount
+              })
+            }
+          }
+        } catch (e) {
+          // ignore parsing error
+        }
+      }
+    }
+  }
+
+  if (slideBuffer.includes('<section')) {
+    wrappedOnSlide(parseSlideHtml(slideBuffer, count++))
+  }
+
+  wrappedOnStatus({
+    state: 'done',
+    slidesGenerated: count,
+    totalSlides: config.slideCount
+  })
+}
+
+async function regenerateSlideOpenAiCompatible(
+  url: string,
+  apiKey: string,
+  modelName: string,
+  systemPrompt: string,
+  userPrompt: string
+): Promise<string> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: modelName,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 1024
+    })
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`API error: ${response.status} - ${errorText}`)
+  }
+
+  const resJson: any = await response.json()
+  return resJson?.choices?.[0]?.message?.content || ''
+}
+
+async function queryOpenAiCompatibleMusic(
+  url: string,
+  apiKey: string,
+  modelName: string,
+  prompt: string,
+  abortSignal?: AbortSignal
+): Promise<string> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: modelName,
+      messages: [
+        { role: 'system', content: 'You are an AI Music Selector. Respond with ONLY the exact track key from the provided list, with no other text.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.2,
+      max_tokens: 20
+    }),
+    signal: abortSignal
+  })
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`)
+  }
+
+  const resJson: any = await response.json()
+  return resJson?.choices?.[0]?.message?.content || ''
+}
+
 // ─── Overloads to maintain compatibility with calling code ─────────────────
+
 
 export async function generatePresentation(
   config: GenerationConfig,
@@ -258,7 +415,173 @@ export async function generatePresentation(
     }
   }
 
+  if (settings.executionMode === 'openai-api') {
+    // Step 1: Research Pass for OpenAI
+    wrappedOnStatus({
+      state: 'researching',
+      slidesGenerated: 0,
+      totalSlides: config.slideCount
+    })
+
+    try {
+      if (abortSignal.aborted) {
+        throw new Error('AbortError')
+      }
+
+      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const url = 'https://api.openai.com/v1/chat/completions'
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${settings.openaiApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: researchSystemPrompt },
+            { role: 'user', content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.` }
+          ],
+          temperature: 0.7,
+          max_tokens: 2048
+        }),
+        signal: abortSignal
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${errorText}`)
+      }
+
+      const resJson: any = await response.json()
+      const text = resJson?.choices?.[0]?.message?.content
+      if (text) {
+        researchOutline = text
+      }
+    } catch (researchErr: any) {
+      if (researchErr.message === 'AbortError' || abortSignal.aborted) {
+        wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+        return
+      }
+      console.warn(
+        '[generator] OpenAI API Research pass failed, falling back to direct prompt:',
+        researchErr
+      )
+    }
+  }
+
+  if (settings.executionMode === 'deepseek-api') {
+    // Step 1: Research Pass for DeepSeek
+    wrappedOnStatus({
+      state: 'researching',
+      slidesGenerated: 0,
+      totalSlides: config.slideCount
+    })
+
+    try {
+      if (abortSignal.aborted) {
+        throw new Error('AbortError')
+      }
+
+      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const url = 'https://api.deepseek.com/chat/completions'
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${settings.deepseekApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: researchSystemPrompt },
+            { role: 'user', content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.` }
+          ],
+          temperature: 0.7,
+          max_tokens: 2048
+        }),
+        signal: abortSignal
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`DeepSeek API error: ${response.status} ${response.statusText} - ${errorText}`)
+      }
+
+      const resJson: any = await response.json()
+      const text = resJson?.choices?.[0]?.message?.content
+      if (text) {
+        researchOutline = text
+      }
+    } catch (researchErr: any) {
+      if (researchErr.message === 'AbortError' || abortSignal.aborted) {
+        wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+        return
+      }
+      console.warn(
+        '[generator] DeepSeek API Research pass failed, falling back to direct prompt:',
+        researchErr
+      )
+    }
+  }
+
+  if (settings.executionMode === 'groq-api') {
+    // Step 1: Research Pass for Groq
+    wrappedOnStatus({
+      state: 'researching',
+      slidesGenerated: 0,
+      totalSlides: config.slideCount
+    })
+
+    try {
+      if (abortSignal.aborted) {
+        throw new Error('AbortError')
+      }
+
+      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const url = 'https://api.groq.com/openai/v1/chat/completions'
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${settings.groqApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: researchSystemPrompt },
+            { role: 'user', content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.` }
+          ],
+          temperature: 0.7,
+          max_tokens: 2048
+        }),
+        signal: abortSignal
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Groq API error: ${response.status} ${response.statusText} - ${errorText}`)
+      }
+
+      const resJson: any = await response.json()
+      const text = resJson?.choices?.[0]?.message?.content
+      if (text) {
+        researchOutline = text
+      }
+    } catch (researchErr: any) {
+      if (researchErr.message === 'AbortError' || abortSignal.aborted) {
+        wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+        return
+      }
+      console.warn(
+        '[generator] Groq API Research pass failed, falling back to direct prompt:',
+        researchErr
+      )
+    }
+  }
+
   if (settings.executionMode === 'anthropic-api') {
+
     // Step 1: Research Pass
     wrappedOnStatus({
       state: 'researching',
@@ -374,8 +697,47 @@ export async function generatePresentation(
           totalSlides: config.slideCount
         })
 
+      } else if (settings.executionMode === 'openai-api') {
+        await streamOpenAiCompatible(
+          'https://api.openai.com/v1/chat/completions',
+          settings.openaiApiKey || '',
+          'gpt-4o',
+          systemPrompt,
+          finalUserPrompt,
+          wrappedOnSlide,
+          wrappedOnStatus,
+          abortSignal,
+          config
+        )
+        break
+      } else if (settings.executionMode === 'deepseek-api') {
+        await streamOpenAiCompatible(
+          'https://api.deepseek.com/chat/completions',
+          settings.deepseekApiKey || '',
+          'deepseek-chat',
+          systemPrompt,
+          finalUserPrompt,
+          wrappedOnSlide,
+          wrappedOnStatus,
+          abortSignal,
+          config
+        )
+        break
+      } else if (settings.executionMode === 'groq-api') {
+        await streamOpenAiCompatible(
+          'https://api.groq.com/openai/v1/chat/completions',
+          settings.groqApiKey || '',
+          'llama-3.3-70b-versatile',
+          systemPrompt,
+          finalUserPrompt,
+          wrappedOnSlide,
+          wrappedOnStatus,
+          abortSignal,
+          config
+        )
         break
       } else {
+
         const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
         const stream = await anthropic.messages.stream({
           model: 'claude-3-5-sonnet-20241022',
@@ -526,7 +888,65 @@ export async function regenerateSlide(
     return
   }
 
+  if (settings.executionMode === 'openai-api') {
+    const responseText = await regenerateSlideOpenAiCompatible(
+      'https://api.openai.com/v1/chat/completions',
+      settings.openaiApiKey || '',
+      'gpt-4o',
+      systemPrompt,
+      userPrompt
+    )
+
+    let sectionHtml = responseText
+    const match = /<section[^>]*>[\s\S]*?<\/section>/i.exec(responseText)
+    if (match) {
+      sectionHtml = match[0]
+    }
+
+    onResult(parseSlideHtml(sectionHtml, slideIndex))
+    return
+  }
+
+  if (settings.executionMode === 'deepseek-api') {
+    const responseText = await regenerateSlideOpenAiCompatible(
+      'https://api.deepseek.com/chat/completions',
+      settings.deepseekApiKey || '',
+      'deepseek-chat',
+      systemPrompt,
+      userPrompt
+    )
+
+    let sectionHtml = responseText
+    const match = /<section[^>]*>[\s\S]*?<\/section>/i.exec(responseText)
+    if (match) {
+      sectionHtml = match[0]
+    }
+
+    onResult(parseSlideHtml(sectionHtml, slideIndex))
+    return
+  }
+
+  if (settings.executionMode === 'groq-api') {
+    const responseText = await regenerateSlideOpenAiCompatible(
+      'https://api.groq.com/openai/v1/chat/completions',
+      settings.groqApiKey || '',
+      'llama-3.3-70b-versatile',
+      systemPrompt,
+      userPrompt
+    )
+
+    let sectionHtml = responseText
+    const match = /<section[^>]*>[\s\S]*?<\/section>/i.exec(responseText)
+    if (match) {
+      sectionHtml = match[0]
+    }
+
+    onResult(parseSlideHtml(sectionHtml, slideIndex))
+    return
+  }
+
   const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
+
 
   const response = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
@@ -838,6 +1258,24 @@ Respond with ONLY the exact name of the selected track (choose from: tech-house,
     for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
       if (cleanChoice.includes(k)) return k
     }
+  } else if (settings.executionMode === 'openai-api' && settings.openaiApiKey) {
+    const choice = await queryOpenAiCompatibleMusic('https://api.openai.com/v1/chat/completions', settings.openaiApiKey, 'gpt-4o-mini', tracksList, abortSignal)
+    const cleanChoice = choice.trim().toLowerCase()
+    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+      if (cleanChoice.includes(k)) return k
+    }
+  } else if (settings.executionMode === 'deepseek-api' && settings.deepseekApiKey) {
+    const choice = await queryOpenAiCompatibleMusic('https://api.deepseek.com/chat/completions', settings.deepseekApiKey, 'deepseek-chat', tracksList, abortSignal)
+    const cleanChoice = choice.trim().toLowerCase()
+    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+      if (cleanChoice.includes(k)) return k
+    }
+  } else if (settings.executionMode === 'groq-api' && settings.groqApiKey) {
+    const choice = await queryOpenAiCompatibleMusic('https://api.groq.com/openai/v1/chat/completions', settings.groqApiKey, 'llama-3.3-70b-versatile', tracksList, abortSignal)
+    const cleanChoice = choice.trim().toLowerCase()
+    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+      if (cleanChoice.includes(k)) return k
+    }
   } else if (settings.executionMode === 'anthropic-api' && settings.claudeApiKey) {
     const choice = await queryAnthropicApiForMusic(tracksList, settings.claudeApiKey)
     const cleanChoice = choice.trim().toLowerCase()
@@ -847,6 +1285,7 @@ Respond with ONLY the exact name of the selected track (choose from: tech-house,
   }
   return undefined
 }
+
 
 async function fetchMusicBase64(
   themeId: string,
