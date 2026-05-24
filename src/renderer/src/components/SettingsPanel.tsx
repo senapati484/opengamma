@@ -642,7 +642,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                         max={20}
                         value={defaultSlideCount}
                         onChange={(e) => setDefaultSlideCount(parseInt(e.target.value))}
-                        className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm"
+                        className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#e8ff57]/50"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -652,12 +652,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                       <select
                         value={defaultNarrative}
                         onChange={(e) => setDefaultNarrative(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm"
+                        className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#e8ff57]/50"
                       >
-                        <option value="explainer">Explainer</option>
-                        <option value="pitch">VC Pitch</option>
-                        <option value="report">Report</option>
-                        <option value="academic">Academic</option>
+                        <option value="explainer" className="bg-[#141414] text-white">Explainer</option>
+                        <option value="pitch" className="bg-[#141414] text-white">VC Pitch</option>
+                        <option value="report" className="bg-[#141414] text-white">Report</option>
+                        <option value="academic" className="bg-[#141414] text-white">Academic</option>
                       </select>
                     </div>
                   </div>
