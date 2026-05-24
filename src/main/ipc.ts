@@ -188,13 +188,28 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
   // Scan and gather custom fonts
   const fontsToLoad = new Set<string>()
   const standardFonts = [
-    'sans-serif', 'serif', 'monospace', 'system-ui', 'arial', 'helvetica', 
-    'times new roman', 'courier new', 'georgia', 'trebuchet ms', 'verdana', 
-    'geneva', 'tahoma', 'courier'
+    'sans-serif',
+    'serif',
+    'monospace',
+    'system-ui',
+    'arial',
+    'helvetica',
+    'times new roman',
+    'courier new',
+    'georgia',
+    'trebuchet ms',
+    'verdana',
+    'geneva',
+    'tahoma',
+    'courier'
   ]
 
-  const mainFontMatch = cssTokens.match(/--r-main-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i)
-  const headingFontMatch = cssTokens.match(/--r-heading-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i)
+  const mainFontMatch = cssTokens.match(
+    /--r-main-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i
+  )
+  const headingFontMatch = cssTokens.match(
+    /--r-heading-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i
+  )
   if (mainFontMatch && mainFontMatch[1]) fontsToLoad.add(mainFontMatch[1].trim())
   if (headingFontMatch && headingFontMatch[1]) fontsToLoad.add(headingFontMatch[1].trim())
 
@@ -403,17 +418,33 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
   // Scan and gather custom fonts
   const fontsToLoad = new Set<string>()
   const standardFonts = [
-    'sans-serif', 'serif', 'monospace', 'system-ui', 'arial', 'helvetica', 
-    'times new roman', 'courier new', 'georgia', 'trebuchet ms', 'verdana', 
-    'geneva', 'tahoma', 'courier'
+    'sans-serif',
+    'serif',
+    'monospace',
+    'system-ui',
+    'arial',
+    'helvetica',
+    'times new roman',
+    'courier new',
+    'georgia',
+    'trebuchet ms',
+    'verdana',
+    'geneva',
+    'tahoma',
+    'courier'
   ]
 
-  const mainFontMatch = cssTokens.match(/--r-main-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i)
-  const headingFontMatch = cssTokens.match(/--r-heading-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i)
+  const mainFontMatch = cssTokens.match(
+    /--r-main-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i
+  )
+  const headingFontMatch = cssTokens.match(
+    /--r-heading-font:\s*['"]?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"]?/i
+  )
   if (mainFontMatch && mainFontMatch[1]) fontsToLoad.add(mainFontMatch[1].trim())
   if (headingFontMatch && headingFontMatch[1]) fontsToLoad.add(headingFontMatch[1].trim())
 
-  if (options.headingFont && options.headingFont !== 'original') fontsToLoad.add(options.headingFont.trim())
+  if (options.headingFont && options.headingFont !== 'original')
+    fontsToLoad.add(options.headingFont.trim())
   if (options.bodyFont && options.bodyFont !== 'original') fontsToLoad.add(options.bodyFont.trim())
 
   presentation.slides.forEach((slide) => {
@@ -446,7 +477,13 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
   let extraFontsImport = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');\n`
 
   if (options.headingFont && options.headingFont !== 'original') {
-    if (options.headingFont !== 'Inter' && options.headingFont !== 'Outfit' && options.headingFont !== 'JetBrains Mono' && options.headingFont !== 'Space Grotesk' && options.headingFont !== 'Playfair Display') {
+    if (
+      options.headingFont !== 'Inter' &&
+      options.headingFont !== 'Outfit' &&
+      options.headingFont !== 'JetBrains Mono' &&
+      options.headingFont !== 'Space Grotesk' &&
+      options.headingFont !== 'Playfair Display'
+    ) {
       extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${options.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
     }
     typographyStyles += `
@@ -462,7 +499,13 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
     `
   }
   if (options.bodyFont && options.bodyFont !== 'original') {
-    if (options.bodyFont !== 'Inter' && options.bodyFont !== 'Outfit' && options.bodyFont !== 'JetBrains Mono' && options.bodyFont !== 'Space Grotesk' && options.bodyFont !== 'Playfair Display') {
+    if (
+      options.bodyFont !== 'Inter' &&
+      options.bodyFont !== 'Outfit' &&
+      options.bodyFont !== 'JetBrains Mono' &&
+      options.bodyFont !== 'Space Grotesk' &&
+      options.bodyFont !== 'Playfair Display'
+    ) {
       extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${options.bodyFont.replace(/\s+/g, '+')}:wght@400;600&display=swap');\n`
     }
     typographyStyles += `
@@ -898,7 +941,13 @@ export function registerIpcHandlers(): void {
       defaultTheme: store.get('defaultTheme', 'midnight') as string,
       defaultSlideCount: store.get('defaultSlideCount', 8) as number,
       defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api',
+      executionMode: store.get('executionMode', 'local-cli') as
+        | 'local-cli'
+        | 'anthropic-api'
+        | 'gemini-api'
+        | 'openai-api'
+        | 'deepseek-api'
+        | 'groq-api',
       selectedCliId: store.get('selectedCliId', '') as string,
       defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
       includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
@@ -922,7 +971,10 @@ export function registerIpcHandlers(): void {
       return
     }
 
-    if (currentSettings.executionMode === 'gemini-api' && (!currentSettings.geminiApiKey || !currentSettings.geminiApiKey.trim())) {
+    if (
+      currentSettings.executionMode === 'gemini-api' &&
+      (!currentSettings.geminiApiKey || !currentSettings.geminiApiKey.trim())
+    ) {
       pushStatus(window, {
         state: 'error',
         slidesGenerated: 0,
@@ -932,7 +984,10 @@ export function registerIpcHandlers(): void {
       return
     }
 
-    if (currentSettings.executionMode === 'openai-api' && (!currentSettings.openaiApiKey || !currentSettings.openaiApiKey.trim())) {
+    if (
+      currentSettings.executionMode === 'openai-api' &&
+      (!currentSettings.openaiApiKey || !currentSettings.openaiApiKey.trim())
+    ) {
       pushStatus(window, {
         state: 'error',
         slidesGenerated: 0,
@@ -942,7 +997,10 @@ export function registerIpcHandlers(): void {
       return
     }
 
-    if (currentSettings.executionMode === 'deepseek-api' && (!currentSettings.deepseekApiKey || !currentSettings.deepseekApiKey.trim())) {
+    if (
+      currentSettings.executionMode === 'deepseek-api' &&
+      (!currentSettings.deepseekApiKey || !currentSettings.deepseekApiKey.trim())
+    ) {
       pushStatus(window, {
         state: 'error',
         slidesGenerated: 0,
@@ -952,7 +1010,10 @@ export function registerIpcHandlers(): void {
       return
     }
 
-    if (currentSettings.executionMode === 'groq-api' && (!currentSettings.groqApiKey || !currentSettings.groqApiKey.trim())) {
+    if (
+      currentSettings.executionMode === 'groq-api' &&
+      (!currentSettings.groqApiKey || !currentSettings.groqApiKey.trim())
+    ) {
       pushStatus(window, {
         state: 'error',
         slidesGenerated: 0,
@@ -1020,7 +1081,13 @@ export function registerIpcHandlers(): void {
         defaultTheme: store.get('defaultTheme', 'midnight') as string,
         defaultSlideCount: store.get('defaultSlideCount', 8) as number,
         defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-        executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api',
+        executionMode: store.get('executionMode', 'local-cli') as
+          | 'local-cli'
+          | 'anthropic-api'
+          | 'gemini-api'
+          | 'openai-api'
+          | 'deepseek-api'
+          | 'groq-api',
         selectedCliId: store.get('selectedCliId', '') as string,
         defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
         includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
@@ -1074,9 +1141,7 @@ export function registerIpcHandlers(): void {
         currentSettings.executionMode === 'groq-api' &&
         (!currentSettings.groqApiKey || !currentSettings.groqApiKey.trim())
       ) {
-        throw new Error(
-          'No Groq API key configured. Add your key in Settings before regenerating.'
-        )
+        throw new Error('No Groq API key configured. Add your key in Settings before regenerating.')
       }
 
       if (currentSettings.executionMode === 'local-cli' && !currentSettings.selectedCliId) {
@@ -1480,7 +1545,13 @@ export function registerIpcHandlers(): void {
       defaultTheme: store.get('defaultTheme', 'midnight') as string,
       defaultSlideCount: store.get('defaultSlideCount', 8) as number,
       defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
-      executionMode: store.get('executionMode', 'local-cli') as 'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api',
+      executionMode: store.get('executionMode', 'local-cli') as
+        | 'local-cli'
+        | 'anthropic-api'
+        | 'gemini-api'
+        | 'openai-api'
+        | 'deepseek-api'
+        | 'groq-api',
       selectedCliId: store.get('selectedCliId', '') as string,
       defaultSaveLocation: store.get('defaultSaveLocation', '') as string,
       includeSpeakerNotes: store.get('includeSpeakerNotes', true) as boolean,
@@ -1733,7 +1804,7 @@ export function registerIpcHandlers(): void {
       // 4. Generate audio per slide
       for (let i = 0; i < presentation.slides.length; i++) {
         const slide = presentation.slides[i]
-        
+
         // Notify progress for this slide
         window.webContents.send('voiceover-progress', {
           state: 'generating',
@@ -1776,7 +1847,6 @@ export function registerIpcHandlers(): void {
       window.webContents.send('audio-map-ready', audioMap)
 
       return { success: true, audioMap, presentation }
-
     } catch (err: any) {
       console.error('[ipc] generate-voiceovers error:', err)
       window.webContents.send('voiceover-progress', {

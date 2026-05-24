@@ -148,7 +148,8 @@ const electronAPI: ElectronAPI = {
   testApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_API_KEY, apiKey),
   testGeminiApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_GEMINI_API_KEY, apiKey),
   testOpenaiApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_OPENAI_API_KEY, apiKey),
-  testDeepseekApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_DEEPSEEK_API_KEY, apiKey),
+  testDeepseekApiKey: (apiKey: string) =>
+    ipcRenderer.invoke(IpcChannels.TEST_DEEPSEEK_API_KEY, apiKey),
   testGroqApiKey: (apiKey: string) => ipcRenderer.invoke(IpcChannels.TEST_GROQ_API_KEY, apiKey),
 
   // ── CLI Tool Validation ─────────────────────────────────────────────────────
@@ -199,10 +200,8 @@ const electronAPI: ElectronAPI = {
   },
 
   onAudioMapReady: (callback) => {
-    const handler = (
-      _event: Electron.IpcRendererEvent,
-      audioMap: Record<number, string>
-    ): void => callback(audioMap)
+    const handler = (_event: Electron.IpcRendererEvent, audioMap: Record<number, string>): void =>
+      callback(audioMap)
     ipcRenderer.on('audio-map-ready', handler)
     return () => {
       ipcRenderer.removeListener('audio-map-ready', handler)

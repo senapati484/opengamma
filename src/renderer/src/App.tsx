@@ -98,9 +98,7 @@ function AppInner() {
       if (res && res.success && res.presentation) {
         const generatedPres = res.presentation
         setActivePresentation(generatedPres)
-        setPresentations((prev) =>
-          prev.map((p) => (p.id === generatedPres.id ? generatedPres : p))
-        )
+        setPresentations((prev) => prev.map((p) => (p.id === generatedPres.id ? generatedPres : p)))
       }
     } catch (err: any) {
       console.error('[App] Failed to generate voiceovers:', err)
@@ -144,7 +142,10 @@ function AppInner() {
       }
     },
     onNextSlide: () => {
-      if ((currentView === 'editor' || isPresenting) && activeSlideIndex < displayedSlides.length - 1) {
+      if (
+        (currentView === 'editor' || isPresenting) &&
+        activeSlideIndex < displayedSlides.length - 1
+      ) {
         setActiveSlideIndex((prev) => prev + 1)
       }
     }
@@ -179,7 +180,8 @@ function AppInner() {
             current: 0,
             total: newPresentation.slides.length
           })
-          electronAPI.generateVoiceovers(newPresentation)
+          electronAPI
+            .generateVoiceovers(newPresentation)
             .then((res) => {
               if (res && res.success && res.presentation) {
                 const generatedPres = res.presentation
@@ -443,26 +445,46 @@ function AppInner() {
                       {voiceoverProgress.state === 'generating' && (
                         <>
                           <div className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin border-[#e8ff57]" />
-                          <span>Generating Voiceover {voiceoverProgress.current}/{voiceoverProgress.total}...</span>
+                          <span>
+                            Generating Voiceover {voiceoverProgress.current}/
+                            {voiceoverProgress.total}...
+                          </span>
                         </>
                       )}
                       {voiceoverProgress.state === 'done' && (
                         <span className="text-[#e8ff57] font-semibold flex items-center gap-1">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4.5 12.75l6 6 9-13.5"
+                            />
                           </svg>
                           Voiceovers Ready
                         </span>
                       )}
                       {voiceoverProgress.state === 'error' && (
-                        <span className="text-red-500 font-semibold flex items-center gap-1" title={voiceoverProgress.error}>
+                        <span
+                          className="text-red-500 font-semibold flex items-center gap-1"
+                          title={voiceoverProgress.error}
+                        >
                           ⚠ Error Generating
                         </span>
                       )}
                     </div>
                   ) : (
                     <button
-                      disabled={!activePresentation || status.state === 'generating' || status.state === 'researching'}
+                      disabled={
+                        !activePresentation ||
+                        status.state === 'generating' ||
+                        status.state === 'researching'
+                      }
                       onClick={handleGenerateVoiceovers}
                       className="px-4 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 active:scale-95 disabled:opacity-20 transition-all uppercase tracking-widest flex items-center gap-1.5"
                     >
@@ -500,7 +522,9 @@ function AppInner() {
                     }
                     activeSlideIndex={activeSlideIndex}
                     onActiveSlideChange={setActiveSlideIndex}
-                    bgMusicUrl={activePresentation ? activePresentation.bgMusicUrl : status.bgMusicUrl}
+                    bgMusicUrl={
+                      activePresentation ? activePresentation.bgMusicUrl : status.bgMusicUrl
+                    }
                     audioMap={audioMap}
                   />
                 </ErrorBoundary>

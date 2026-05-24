@@ -716,10 +716,24 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
 
                 // Gather extra Google fonts imports if overrides are active
                 let extraFontsImport = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');\n`
-                if (settings.headingFont !== 'original' && settings.headingFont !== 'Inter' && settings.headingFont !== 'Outfit' && settings.headingFont !== 'JetBrains Mono' && settings.headingFont !== 'Space Grotesk' && settings.headingFont !== 'Playfair Display') {
+                if (
+                  settings.headingFont !== 'original' &&
+                  settings.headingFont !== 'Inter' &&
+                  settings.headingFont !== 'Outfit' &&
+                  settings.headingFont !== 'JetBrains Mono' &&
+                  settings.headingFont !== 'Space Grotesk' &&
+                  settings.headingFont !== 'Playfair Display'
+                ) {
                   extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
                 }
-                if (settings.bodyFont !== 'original' && settings.bodyFont !== 'Inter' && settings.bodyFont !== 'Outfit' && settings.bodyFont !== 'JetBrains Mono' && settings.bodyFont !== 'Space Grotesk' && settings.bodyFont !== 'Playfair Display') {
+                if (
+                  settings.bodyFont !== 'original' &&
+                  settings.bodyFont !== 'Inter' &&
+                  settings.bodyFont !== 'Outfit' &&
+                  settings.bodyFont !== 'JetBrains Mono' &&
+                  settings.bodyFont !== 'Space Grotesk' &&
+                  settings.bodyFont !== 'Playfair Display'
+                ) {
                   extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.bodyFont.replace(/\s+/g, '+')}:wght@400;600&display=swap');\n`
                 }
 
@@ -913,7 +927,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                           transformOrigin: 'top left',
                           // The container has class `cardAspectRatio` so its width determines
                           // the visible area. We scale from 1280 → container width.
-                          transform: 'scale(var(--pdf-preview-scale, 0.5625))',
+                          transform: 'scale(var(--pdf-preview-scale, 0.5625))'
                         }}
                         title={`Preview Booklet Slide ${index + 1}`}
                       />

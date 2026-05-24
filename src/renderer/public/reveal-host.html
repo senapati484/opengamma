@@ -89,16 +89,21 @@
         min-height: 240px;
         width: 100%;
         border-radius: 14px;
-        background: linear-gradient(110deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+        background: linear-gradient(
+          110deg,
+          rgba(255, 255, 255, 0.04) 0%,
+          rgba(255, 255, 255, 0.08) 50%,
+          rgba(255, 255, 255, 0.04) 100%
+        );
         background-size: 200% 100%;
         animation: og-shimmer 1.6s ease-in-out infinite;
-        border: 1px dashed rgba(255,255,255,0.12);
+        border: 1px dashed rgba(255, 255, 255, 0.12);
         margin: 0;
       }
       figure.og-image-placeholder::after {
         content: '⚡ Generating image…';
         font-size: 0.75em;
-        color: rgba(255,255,255,0.3);
+        color: rgba(255, 255, 255, 0.3);
         font-family: 'Inter', sans-serif;
         letter-spacing: 0.08em;
         font-weight: 600;
@@ -117,10 +122,12 @@
         max-height: 380px;
         border-radius: 12px;
         object-fit: cover;
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
       }
-      .og-img-left { text-align: left; }
+      .og-img-left {
+        text-align: left;
+      }
       .og-img-right {
         display: flex;
         justify-content: center;
@@ -128,8 +135,12 @@
         min-height: 200px;
       }
       @keyframes og-shimmer {
-        0%   { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
       }
 
       /* ── Design System Layouts ── */
@@ -158,7 +169,9 @@
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
         text-align: left !important;
         backdrop-filter: blur(12px) !important;
-        transition: transform 0.2s ease, border-color 0.2s ease !important;
+        transition:
+          transform 0.2s ease,
+          border-color 0.2s ease !important;
       }
       .reveal .card:hover {
         border-color: rgba(255, 255, 255, 0.15) !important;
@@ -260,7 +273,8 @@
         font-family: var(--og-slide-font-body, sans-serif) !important;
       }
 
-      .reveal ul, .reveal ol {
+      .reveal ul,
+      .reveal ol {
         margin-top: 16px !important;
         margin-bottom: 16px !important;
         line-height: 1.5 !important;
@@ -287,8 +301,8 @@
         display: none;
         align-items: center;
         gap: 8px;
-        background: rgba(0,0,0,0.7);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(0, 0, 0, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 999px;
         padding: 6px 14px;
         color: #e8ff57;
@@ -301,16 +315,26 @@
         pointer-events: none;
         user-select: none;
       }
-      #og-audio-indicator.visible { display: flex; }
+      #og-audio-indicator.visible {
+        display: flex;
+      }
       #og-audio-indicator .dot {
-        width: 7px; height: 7px;
+        width: 7px;
+        height: 7px;
         background: #e8ff57;
         border-radius: 50%;
         animation: og-pulse 1.1s ease-in-out infinite;
       }
       @keyframes og-pulse {
-        0%,100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.3; transform: scale(0.7); }
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.3;
+          transform: scale(0.7);
+        }
       }
     </style>
   </head>
@@ -335,39 +359,54 @@
       //  1.  FONT MANAGEMENT
       // ══════════════════════════════════════════════════════════════════════════
       const loadedFonts = new Set([
-        'sans-serif', 'serif', 'monospace', 'system-ui', 'arial', 'helvetica',
-        'times new roman', 'courier new', 'georgia', 'trebuchet ms', 'verdana',
-        'geneva', 'tahoma', 'courier'
-      ]);
+        'sans-serif',
+        'serif',
+        'monospace',
+        'system-ui',
+        'arial',
+        'helvetica',
+        'times new roman',
+        'courier new',
+        'georgia',
+        'trebuchet ms',
+        'verdana',
+        'geneva',
+        'tahoma',
+        'courier'
+      ])
 
       function ensureFontsLoaded() {
-        const sections = document.querySelectorAll('.reveal .slides section');
-        const fontsToLoad = new Set();
+        const sections = document.querySelectorAll('.reveal .slides section')
+        const fontsToLoad = new Set()
 
-        sections.forEach(section => {
-          const style = section.getAttribute('style') || '';
-          const headingMatch = style.match(/--og-slide-font-heading:\s*['"']?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"']?/i);
-          const bodyMatch    = style.match(/--og-slide-font-body:\s*['"']?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"']?/i);
+        sections.forEach((section) => {
+          const style = section.getAttribute('style') || ''
+          const headingMatch = style.match(
+            /--og-slide-font-heading:\s*['"']?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"']?/i
+          )
+          const bodyMatch = style.match(
+            /--og-slide-font-body:\s*['"']?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"']?/i
+          )
           if (headingMatch && headingMatch[1]) {
-            const name = headingMatch[1].trim();
-            if (!loadedFonts.has(name.toLowerCase())) fontsToLoad.add(name);
+            const name = headingMatch[1].trim()
+            if (!loadedFonts.has(name.toLowerCase())) fontsToLoad.add(name)
           }
           if (bodyMatch && bodyMatch[1]) {
-            const name = bodyMatch[1].trim();
-            if (!loadedFonts.has(name.toLowerCase())) fontsToLoad.add(name);
+            const name = bodyMatch[1].trim()
+            if (!loadedFonts.has(name.toLowerCase())) fontsToLoad.add(name)
           }
-        });
+        })
 
         if (fontsToLoad.size > 0) {
-          const families = Array.from(fontsToLoad).map(name => {
-            loadedFonts.add(name.toLowerCase());
-            return `family=${name.replace(/\s+/g, '+')}:wght@400;500;700;800`;
-          });
-          const url = `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`;
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = url;
-          document.head.appendChild(link);
+          const families = Array.from(fontsToLoad).map((name) => {
+            loadedFonts.add(name.toLowerCase())
+            return `family=${name.replace(/\s+/g, '+')}:wght@400;500;700;800`
+          })
+          const url = `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = url
+          document.head.appendChild(link)
         }
       }
 
@@ -375,38 +414,38 @@
       //  2.  SLIDE FONT-SIZE AUTO-SHRINK
       // ══════════════════════════════════════════════════════════════════════════
       function adjustSlideFontSize(section) {
-        if (!section) return;
-        section.style.fontSize = '';
+        if (!section) return
+        section.style.fontSize = ''
 
-        const config   = Reveal.getConfig();
-        const maxH     = config.height * 0.85;
-        const maxW     = config.width  * 0.90;
+        const config = Reveal.getConfig()
+        const maxH = config.height * 0.85
+        const maxW = config.width * 0.9
 
-        const prevDisplay    = section.style.display;
-        const prevVisibility = section.style.visibility;
-        const prevPosition   = section.style.position;
+        const prevDisplay = section.style.display
+        const prevVisibility = section.style.visibility
+        const prevPosition = section.style.position
 
-        section.style.display    = 'block';
-        section.style.visibility = 'hidden';
-        section.style.position   = 'absolute';
+        section.style.display = 'block'
+        section.style.visibility = 'hidden'
+        section.style.position = 'absolute'
 
-        let fontSize = 1.0;
-        const MIN    = 0.45;
-        const STEP   = 0.03;
+        let fontSize = 1.0
+        const MIN = 0.45
+        const STEP = 0.03
 
         while ((section.scrollHeight > maxH || section.scrollWidth > maxW) && fontSize > MIN) {
-          fontSize -= STEP;
-          section.style.fontSize = fontSize + 'em';
+          fontSize -= STEP
+          section.style.fontSize = fontSize + 'em'
         }
 
-        section.style.display    = prevDisplay;
-        section.style.visibility = prevVisibility;
-        section.style.position   = prevPosition;
+        section.style.display = prevDisplay
+        section.style.visibility = prevVisibility
+        section.style.position = prevPosition
       }
 
       function adjustAllSlideFontSizes() {
-        document.querySelectorAll('.reveal .slides section').forEach(adjustSlideFontSize);
-        Reveal.layout();
+        document.querySelectorAll('.reveal .slides section').forEach(adjustSlideFontSize)
+        Reveal.layout()
       }
 
       // ══════════════════════════════════════════════════════════════════════════
@@ -419,15 +458,15 @@
         slideNumber: 'c/t',
         transition: 'fade',
         transitionSpeed: 'fast',
-        width:  1280,
+        width: 1280,
         height: 720,
         margin: 0.1
-      });
+      })
 
       Reveal.on('ready', () => {
-        ensureFontsLoaded();
-        adjustAllSlideFontSizes();
-      });
+        ensureFontsLoaded()
+        adjustAllSlideFontSizes()
+      })
 
       // ══════════════════════════════════════════════════════════════════════════
       //  4.  VOICEOVER + AUTO-ADVANCE STATE MACHINE
@@ -446,41 +485,41 @@
       //    audio 'error'      →  if autoAdvance → scheduleNextSlide(fallbackMs)
       // ══════════════════════════════════════════════════════════════════════════
 
-      let audioMap              = {};
-      let currentAudio          = null;
-      let autoAdvanceTimer      = null;
-      let isPresentationPlaying = false;
-      let voiceoverMuted        = false;
-      let voiceoverVolume       = 1.0;
-      let autoAdvance           = true;   // default ON — Reveal advances with audio
+      let audioMap = {}
+      let currentAudio = null
+      let autoAdvanceTimer = null
+      let isPresentationPlaying = false
+      let voiceoverMuted = false
+      let voiceoverVolume = 1.0
+      let autoAdvance = true // default ON — Reveal advances with audio
 
-      const indicator      = document.getElementById('og-audio-indicator');
-      const indicatorLabel = document.getElementById('og-audio-label');
+      const indicator = document.getElementById('og-audio-indicator')
+      const indicatorLabel = document.getElementById('og-audio-label')
 
       function setIndicator(visible, text) {
         if (visible) {
-          indicator.classList.add('visible');
-          indicatorLabel.textContent = text || 'Playing voiceover…';
+          indicator.classList.add('visible')
+          indicatorLabel.textContent = text || 'Playing voiceover…'
         } else {
-          indicator.classList.remove('visible');
+          indicator.classList.remove('visible')
         }
       }
 
       function clearAutoAdvanceTimer() {
         if (autoAdvanceTimer !== null) {
-          clearTimeout(autoAdvanceTimer);
-          autoAdvanceTimer = null;
+          clearTimeout(autoAdvanceTimer)
+          autoAdvanceTimer = null
         }
       }
 
       function stopCurrentAudio() {
-        clearAutoAdvanceTimer();
+        clearAutoAdvanceTimer()
         if (currentAudio) {
-          currentAudio.pause();
-          currentAudio.src = '';
-          currentAudio = null;
+          currentAudio.pause()
+          currentAudio.src = ''
+          currentAudio = null
         }
-        setIndicator(false);
+        setIndicator(false)
       }
 
       /**
@@ -488,12 +527,12 @@
        * has no voiceover or when audio playback fails).
        */
       function scheduleNextSlide(ms) {
-        clearAutoAdvanceTimer();
-        if (!autoAdvance || !isPresentationPlaying) return;
+        clearAutoAdvanceTimer()
+        if (!autoAdvance || !isPresentationPlaying) return
         autoAdvanceTimer = setTimeout(() => {
-          autoAdvanceTimer = null;
-          Reveal.next();
-        }, ms);
+          autoAdvanceTimer = null
+          Reveal.next()
+        }, ms)
       }
 
       /**
@@ -501,299 +540,321 @@
        * When audio ends (or fails) it triggers Reveal.next() if autoAdvance is on.
        */
       function playSlide(index) {
-        stopCurrentAudio();
+        stopCurrentAudio()
 
-        if (!isPresentationPlaying) return;
+        if (!isPresentationPlaying) return
 
-        const src = audioMap[index];
+        const src = audioMap[index]
 
         if (!src) {
           // No voiceover for this slide: wait a fixed dwell time then advance
-          const totalSlides = Reveal.getTotalSlides();
-          const isLastSlide = (index >= totalSlides - 1);
+          const totalSlides = Reveal.getTotalSlides()
+          const isLastSlide = index >= totalSlides - 1
           if (!isLastSlide) {
-            scheduleNextSlide(4000); // 4-second dwell for slides without voiceover
+            scheduleNextSlide(4000) // 4-second dwell for slides without voiceover
           }
-          return;
+          return
         }
 
-        const audio = new Audio(src);
-        currentAudio = audio;
-        audio.muted  = voiceoverMuted;
-        audio.volume = voiceoverMuted ? 0 : voiceoverVolume;
+        const audio = new Audio(src)
+        currentAudio = audio
+        audio.muted = voiceoverMuted
+        audio.volume = voiceoverMuted ? 0 : voiceoverVolume
 
         audio.addEventListener('play', () => {
-          setIndicator(true, 'Speaking…');
-          window.parent.postMessage({ type: 'AUDIO_PLAYING', index }, '*');
-        });
+          setIndicator(true, 'Speaking…')
+          window.parent.postMessage({ type: 'AUDIO_PLAYING', index }, '*')
+        })
 
         audio.addEventListener('pause', () => {
-          setIndicator(false);
-          window.parent.postMessage({ type: 'AUDIO_PAUSED', index }, '*');
-        });
+          setIndicator(false)
+          window.parent.postMessage({ type: 'AUDIO_PAUSED', index }, '*')
+        })
 
         audio.addEventListener('ended', () => {
-          setIndicator(false);
-          window.parent.postMessage({ type: 'AUDIO_ENDED', index }, '*');
-          currentAudio = null;
-          const totalSlides = Reveal.getTotalSlides();
-          const isLastSlide  = (index >= totalSlides - 1);
+          setIndicator(false)
+          window.parent.postMessage({ type: 'AUDIO_ENDED', index }, '*')
+          currentAudio = null
+          const totalSlides = Reveal.getTotalSlides()
+          const isLastSlide = index >= totalSlides - 1
           if (autoAdvance && isPresentationPlaying && !isLastSlide) {
             // Small natural pause between slides
-            scheduleNextSlide(600);
+            scheduleNextSlide(600)
           }
-        });
+        })
 
         audio.addEventListener('error', (e) => {
-          console.warn('[og-audio] Playback error on slide', index, e);
-          setIndicator(false);
-          currentAudio = null;
-          scheduleNextSlide(4000); // Fallback dwell
-        });
+          console.warn('[og-audio] Playback error on slide', index, e)
+          setIndicator(false)
+          currentAudio = null
+          scheduleNextSlide(4000) // Fallback dwell
+        })
 
-        audio.play().catch(err => {
-          console.warn('[og-audio] play() rejected:', err);
-          setIndicator(false);
-          currentAudio = null;
-          scheduleNextSlide(4000);
-        });
+        audio.play().catch((err) => {
+          console.warn('[og-audio] play() rejected:', err)
+          setIndicator(false)
+          currentAudio = null
+          scheduleNextSlide(4000)
+        })
       }
 
       // ── Reveal slide-changed hook ───────────────────────────────────────────
-      Reveal.on('slidechanged', event => {
-        const idx = event.indexh;
-        window.parent.postMessage({ type: 'SLIDE_CHANGED', index: idx }, '*');
+      Reveal.on('slidechanged', (event) => {
+        const idx = event.indexh
+        window.parent.postMessage({ type: 'SLIDE_CHANGED', index: idx }, '*')
         // Always stop whatever was playing; restart if presentation is running
-        stopCurrentAudio();
+        stopCurrentAudio()
         if (isPresentationPlaying) {
           // Small delay to let the transition animation finish before speaking
-          setTimeout(() => playSlide(idx), 400);
+          setTimeout(() => playSlide(idx), 400)
         }
-      });
+      })
 
       // ══════════════════════════════════════════════════════════════════════════
       //  5.  SLIDE MANAGEMENT API
       // ══════════════════════════════════════════════════════════════════════════
-      window.addSlide = function(html) {
-        const slidesContainer = document.querySelector('.reveal .slides');
-        if (!slidesContainer) return;
+      window.addSlide = function (html) {
+        const slidesContainer = document.querySelector('.reveal .slides')
+        if (!slidesContainer) return
 
-        const trimmed = html.trim();
-        let section;
+        const trimmed = html.trim()
+        let section
 
         if (trimmed.startsWith('<section')) {
-          const div = document.createElement('div');
-          div.innerHTML = trimmed;
-          section = div.firstElementChild;
+          const div = document.createElement('div')
+          div.innerHTML = trimmed
+          section = div.firstElementChild
         }
 
         if (!section) {
-          section = document.createElement('section');
-          section.innerHTML = html;
+          section = document.createElement('section')
+          section.innerHTML = html
         }
 
-        slidesContainer.appendChild(section);
-        Reveal.sync();
-        Reveal.slide(Reveal.getTotalSlides() - 1);
+        slidesContainer.appendChild(section)
+        Reveal.sync()
+        Reveal.slide(Reveal.getTotalSlides() - 1)
 
         setTimeout(() => {
-          ensureFontsLoaded();
-          adjustAllSlideFontSizes();
-        }, 60);
-      };
+          ensureFontsLoaded()
+          adjustAllSlideFontSizes()
+        }, 60)
+      }
 
-      window.clearSlides = function() {
-        const slidesContainer = document.querySelector('.reveal .slides');
-        if (slidesContainer) slidesContainer.innerHTML = '';
-        Reveal.sync();
-        stopCurrentAudio();
-      };
+      window.clearSlides = function () {
+        const slidesContainer = document.querySelector('.reveal .slides')
+        if (slidesContainer) slidesContainer.innerHTML = ''
+        Reveal.sync()
+        stopCurrentAudio()
+      }
 
-      window.setTheme = function(cssTokens) {
-        let styleTag = document.getElementById('custom-theme-variables');
+      window.setTheme = function (cssTokens) {
+        let styleTag = document.getElementById('custom-theme-variables')
         if (!styleTag) {
-          styleTag = document.createElement('style');
-          styleTag.id = 'custom-theme-variables';
-          document.head.appendChild(styleTag);
+          styleTag = document.createElement('style')
+          styleTag.id = 'custom-theme-variables'
+          document.head.appendChild(styleTag)
         }
-        styleTag.innerHTML = cssTokens;
+        styleTag.innerHTML = cssTokens
 
-        const themeFonts = new Set();
-        const mainMatch    = cssTokens.match(/--r-main-font:\s*['"']?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"']?/i);
-        const headingMatch = cssTokens.match(/--r-heading-font:\s*['"']?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"']?/i);
+        const themeFonts = new Set()
+        const mainMatch = cssTokens.match(
+          /--r-main-font:\s*['"']?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"']?/i
+        )
+        const headingMatch = cssTokens.match(
+          /--r-heading-font:\s*['"']?([^,'";\s]+(?:\s+[^,'";\s]+)*)['"']?/i
+        )
 
-        if (mainMatch    && mainMatch[1])    { const n = mainMatch[1].trim();    if (!loadedFonts.has(n.toLowerCase())) themeFonts.add(n); }
-        if (headingMatch && headingMatch[1]) { const n = headingMatch[1].trim(); if (!loadedFonts.has(n.toLowerCase())) themeFonts.add(n); }
+        if (mainMatch && mainMatch[1]) {
+          const n = mainMatch[1].trim()
+          if (!loadedFonts.has(n.toLowerCase())) themeFonts.add(n)
+        }
+        if (headingMatch && headingMatch[1]) {
+          const n = headingMatch[1].trim()
+          if (!loadedFonts.has(n.toLowerCase())) themeFonts.add(n)
+        }
 
         if (themeFonts.size > 0) {
-          const families = Array.from(themeFonts).map(name => {
-            loadedFonts.add(name.toLowerCase());
-            return `family=${name.replace(/\s+/g, '+')}:wght@400;500;700;800`;
-          });
-          const url = `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`;
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = url;
-          document.head.appendChild(link);
+          const families = Array.from(themeFonts).map((name) => {
+            loadedFonts.add(name.toLowerCase())
+            return `family=${name.replace(/\s+/g, '+')}:wght@400;500;700;800`
+          })
+          const url = `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = url
+          document.head.appendChild(link)
         }
 
-        setTimeout(adjustAllSlideFontSizes, 60);
-      };
+        setTimeout(adjustAllSlideFontSizes, 60)
+      }
 
       // ══════════════════════════════════════════════════════════════════════════
       //  6.  postMessage RECEIVER  (React ↔ iframe bridge)
       // ══════════════════════════════════════════════════════════════════════════
-      window.addEventListener('message', function(event) {
-        const data = event.data;
-        if (!data || typeof data !== 'object') return;
+      window.addEventListener('message', function (event) {
+        const data = event.data
+        if (!data || typeof data !== 'object') return
 
         switch (data.type) {
-
           // ── Layout ──────────────────────────────────────────────────────────
           case 'SET_ASPECT_RATIO': {
             if (typeof data.aspectRatio === 'string') {
-              let w = 1280, h = 720;
-              if (data.aspectRatio === '9:16') { w = 720;  h = 1280; }
-              else if (data.aspectRatio === '1:1') { w = 960; h = 960; }
-              Reveal.configure({ width: w, height: h });
-              Reveal.layout();
-              setTimeout(adjustAllSlideFontSizes, 60);
+              let w = 1280,
+                h = 720
+              if (data.aspectRatio === '9:16') {
+                w = 720
+                h = 1280
+              } else if (data.aspectRatio === '1:1') {
+                w = 960
+                h = 960
+              }
+              Reveal.configure({ width: w, height: h })
+              Reveal.layout()
+              setTimeout(adjustAllSlideFontSizes, 60)
             }
-            break;
+            break
           }
 
           // ── Slide mutations ─────────────────────────────────────────────────
           case 'ADD_SLIDE':
-            if (typeof data.html === 'string') window.addSlide(data.html);
-            break;
+            if (typeof data.html === 'string') window.addSlide(data.html)
+            break
 
           case 'CLEAR_SLIDES':
-            window.clearSlides();
-            break;
+            window.clearSlides()
+            break
 
           case 'REPLACE_SLIDE': {
             if (typeof data.index === 'number' && typeof data.html === 'string') {
-              const cont = document.querySelector('.reveal .slides');
+              const cont = document.querySelector('.reveal .slides')
               if (cont) {
-                const secs = cont.querySelectorAll('section');
-                const target = secs[data.index];
+                const secs = cont.querySelectorAll('section')
+                const target = secs[data.index]
                 if (target) {
-                  const tmp = document.createElement('div');
-                  tmp.innerHTML = data.html;
-                  const newSec = tmp.firstElementChild || document.createElement('section');
-                  if (!tmp.firstElementChild) newSec.innerHTML = data.html;
-                  cont.replaceChild(newSec, target);
-                  Reveal.sync();
-                  Reveal.slide(data.index);
-                  setTimeout(() => { ensureFontsLoaded(); adjustAllSlideFontSizes(); }, 60);
+                  const tmp = document.createElement('div')
+                  tmp.innerHTML = data.html
+                  const newSec = tmp.firstElementChild || document.createElement('section')
+                  if (!tmp.firstElementChild) newSec.innerHTML = data.html
+                  cont.replaceChild(newSec, target)
+                  Reveal.sync()
+                  Reveal.slide(data.index)
+                  setTimeout(() => {
+                    ensureFontsLoaded()
+                    adjustAllSlideFontSizes()
+                  }, 60)
                 }
               }
             }
-            break;
+            break
           }
 
           // ── Navigation ─────────────────────────────────────────────────────
           case 'GO_TO_SLIDE':
             if (typeof data.index === 'number') {
-              stopCurrentAudio();
-              Reveal.slide(data.index);
+              stopCurrentAudio()
+              Reveal.slide(data.index)
             }
-            break;
+            break
 
           case 'NEXT_SLIDE':
-            stopCurrentAudio();
-            Reveal.next();
-            break;
+            stopCurrentAudio()
+            Reveal.next()
+            break
 
           case 'PREV_SLIDE':
-            stopCurrentAudio();
-            Reveal.prev();
-            break;
+            stopCurrentAudio()
+            Reveal.prev()
+            break
 
           // ── Theme ───────────────────────────────────────────────────────────
           case 'SET_THEME':
-            if (typeof data.cssTokens === 'string') window.setTheme(data.cssTokens);
-            break;
+            if (typeof data.cssTokens === 'string') window.setTheme(data.cssTokens)
+            break
 
           case 'SET_REVEAL_THEME': {
             if (typeof data.themeName === 'string') {
-              const link = document.getElementById('reveal-theme');
-              if (link) link.setAttribute('href', `https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/${data.themeName}.css`);
+              const link = document.getElementById('reveal-theme')
+              if (link)
+                link.setAttribute(
+                  'href',
+                  `https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/${data.themeName}.css`
+                )
             }
-            break;
+            break
           }
 
           // ── Audio Map ───────────────────────────────────────────────────────
           case 'SET_AUDIO_MAP':
             if (data.audioMap && typeof data.audioMap === 'object') {
-              audioMap = data.audioMap;
-              console.log('[og-reveal] audioMap updated, keys:', Object.keys(audioMap));
+              audioMap = data.audioMap
+              console.log('[og-reveal] audioMap updated, keys:', Object.keys(audioMap))
             }
-            break;
+            break
 
           // ── Playback control ────────────────────────────────────────────────
           //  PLAY_PRESENTATION  : called when user clicks ▶ Play in React UI
           //  PAUSE_PRESENTATION : called when user clicks ⏸ Pause
           //  TOGGLE_PLAY_PAUSE  : legacy toggle (keeps compatibility)
           case 'PLAY_PRESENTATION': {
-            isPresentationPlaying = true;
-            const idx = Reveal.getIndices().h;
-            window.parent.postMessage({ type: 'AUDIO_PLAYING', index: idx }, '*');
-            playSlide(idx);
-            break;
+            isPresentationPlaying = true
+            const idx = Reveal.getIndices().h
+            window.parent.postMessage({ type: 'AUDIO_PLAYING', index: idx }, '*')
+            playSlide(idx)
+            break
           }
 
           case 'PAUSE_PRESENTATION': {
-            isPresentationPlaying = false;
-            if (currentAudio && !currentAudio.paused) currentAudio.pause();
-            clearAutoAdvanceTimer();
-            window.parent.postMessage({ type: 'AUDIO_PAUSED', index: Reveal.getIndices().h }, '*');
-            break;
+            isPresentationPlaying = false
+            if (currentAudio && !currentAudio.paused) currentAudio.pause()
+            clearAutoAdvanceTimer()
+            window.parent.postMessage({ type: 'AUDIO_PAUSED', index: Reveal.getIndices().h }, '*')
+            break
           }
 
           case 'TOGGLE_PLAY_PAUSE': {
             if (isPresentationPlaying) {
               // Pause
-              isPresentationPlaying = false;
-              if (currentAudio && !currentAudio.paused) currentAudio.pause();
-              clearAutoAdvanceTimer();
-              window.parent.postMessage({ type: 'AUDIO_PAUSED', index: Reveal.getIndices().h }, '*');
+              isPresentationPlaying = false
+              if (currentAudio && !currentAudio.paused) currentAudio.pause()
+              clearAutoAdvanceTimer()
+              window.parent.postMessage({ type: 'AUDIO_PAUSED', index: Reveal.getIndices().h }, '*')
             } else {
               // Resume / start
-              isPresentationPlaying = true;
-              const idx = Reveal.getIndices().h;
+              isPresentationPlaying = true
+              const idx = Reveal.getIndices().h
               if (currentAudio && currentAudio.src && currentAudio.paused) {
-                currentAudio.play().catch(() => playSlide(idx));
+                currentAudio.play().catch(() => playSlide(idx))
               } else {
-                playSlide(idx);
+                playSlide(idx)
               }
-              window.parent.postMessage({ type: 'AUDIO_PLAYING', index: idx }, '*');
+              window.parent.postMessage({ type: 'AUDIO_PLAYING', index: idx }, '*')
             }
-            break;
+            break
           }
 
           case 'STOP_AUDIO':
-            isPresentationPlaying = false;
-            stopCurrentAudio();
-            break;
+            isPresentationPlaying = false
+            stopCurrentAudio()
+            break
 
           // ── Auto-advance ────────────────────────────────────────────────────
           case 'SET_AUTO_ADVANCE':
-            autoAdvance = !!data.autoAdvance;
-            if (!autoAdvance) clearAutoAdvanceTimer();
-            break;
+            autoAdvance = !!data.autoAdvance
+            if (!autoAdvance) clearAutoAdvanceTimer()
+            break
 
           // ── Voiceover settings ──────────────────────────────────────────────
           case 'SET_VOICEOVER_SETTINGS':
-            voiceoverMuted  = !!data.muted;
-            voiceoverVolume = typeof data.volume === 'number' ? data.volume : 1.0;
+            voiceoverMuted = !!data.muted
+            voiceoverVolume = typeof data.volume === 'number' ? data.volume : 1.0
             if (currentAudio) {
-              currentAudio.muted  = voiceoverMuted;
-              currentAudio.volume = voiceoverMuted ? 0 : voiceoverVolume;
+              currentAudio.muted = voiceoverMuted
+              currentAudio.volume = voiceoverMuted ? 0 : voiceoverVolume
             }
-            break;
+            break
         }
-      });
+      })
     </script>
   </body>
 </html>

@@ -186,17 +186,26 @@ const browserMock: ElectronAPI = {
   },
 
   generateVoiceovers: async (presentation: Presentation) => {
-    console.warn('[useElectron] generateVoiceovers called outside Electron for presentation:', presentation)
+    console.warn(
+      '[useElectron] generateVoiceovers called outside Electron for presentation:',
+      presentation
+    )
     return { success: false, error: 'Running outside Electron' }
   },
 
   onVoiceoverProgress: (callback: (progress: any) => void): (() => void) => {
-    console.warn('[useElectron] onVoiceoverProgress registered outside Electron with callback:', callback)
+    console.warn(
+      '[useElectron] onVoiceoverProgress registered outside Electron with callback:',
+      callback
+    )
     return noopCleanup()
   },
 
   onAudioMapReady: (callback: (audioMap: Record<number, string>) => void): (() => void) => {
-    console.warn('[useElectron] onAudioMapReady registered outside Electron with callback:', callback)
+    console.warn(
+      '[useElectron] onAudioMapReady registered outside Electron with callback:',
+      callback
+    )
     return noopCleanup()
   }
 }

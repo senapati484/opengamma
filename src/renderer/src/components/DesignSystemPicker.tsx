@@ -181,7 +181,9 @@ export const DesignSystemPicker: React.FC<DesignSystemPickerProps> = ({
                 <p className="text-xs text-neutral-500 mt-0.5 capitalize">{system.category}</p>
               </div>
             </div>
-            <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2">{system.description}</p>
+            <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2">
+              {system.description}
+            </p>
             {selectedId === system.id && (
               <div className="mt-2.5 flex items-center gap-1.5 text-xs text-[#e8ff57] font-bold">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

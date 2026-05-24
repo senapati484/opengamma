@@ -76,7 +76,9 @@ export const PromptInputExpanded: React.FC<PromptInputExpandedProps> = ({
                 disabled={readOnly}
                 className="w-24 h-1.5 rounded-full accent-[#e8ff57] cursor-pointer"
               />
-              <span className="text-sm font-black text-[#e8ff57] w-5 text-center">{slideCount}</span>
+              <span className="text-sm font-black text-[#e8ff57] w-5 text-center">
+                {slideCount}
+              </span>
             </div>
           </div>
 

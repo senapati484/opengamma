@@ -111,7 +111,10 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
     if (!iframe) return
     const contentWindow = iframe.contentWindow
     if (!contentWindow || !isLoaded) return
-    contentWindow.postMessage({ type: 'SET_VOICEOVER_SETTINGS', muted: isVoiceoverMuted, volume: voiceoverVolume }, '*')
+    contentWindow.postMessage(
+      { type: 'SET_VOICEOVER_SETTINGS', muted: isVoiceoverMuted, volume: voiceoverVolume },
+      '*'
+    )
   }, [isLoaded, isVoiceoverMuted, voiceoverVolume])
 
   // When audioMap updates while already playing, restart playback from current slide
@@ -148,7 +151,8 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
     }
   }
 
-  const hasVoiceover = slides.some((s) => s.voiceoverUrl) || (audioMap && Object.keys(audioMap).length > 0)
+  const hasVoiceover =
+    slides.some((s) => s.voiceoverUrl) || (audioMap && Object.keys(audioMap).length > 0)
   const hasAudio = !!bgMusicUrl || hasVoiceover
 
   // ─── Direct DOM Injection Helper ───────────────────────────────────────────
@@ -219,7 +223,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
     const handleMessage = (event: MessageEvent) => {
       const data = event.data
       if (!data || typeof data !== 'object') return
-      
+
       if (data.type === 'SLIDE_CHANGED' && typeof data.index === 'number') {
         if (data.index !== activeSlideIndex && onActiveSlideChange) {
           onActiveSlideChange(data.index)
@@ -404,8 +408,18 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
                   }`}
                   title={autoAdvance ? 'Disable Slide Auto-Advance' : 'Enable Slide Auto-Advance'}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7C4.547 9.547 4.5 10.768 4.5 12s.047 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.092-1.209.138-2.43.138-3.662z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7C4.547 9.547 4.5 10.768 4.5 12s.047 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.092-1.209.138-2.43.138-3.662z"
+                    />
                   </svg>
                 </button>
                 <span className="text-[10px] font-bold text-neutral-400">Auto-Play</span>
@@ -427,12 +441,32 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
                 title={isVoiceoverMuted ? 'Unmute AI Voiceover' : 'Mute AI Voiceover'}
               >
                 {isVoiceoverMuted ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6L4.5 9H1.5v6h3l4.5 3.75V5.25z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2.5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6L4.5 9H1.5v6h3l4.5 3.75V5.25z"
+                    />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2.5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
+                    />
                   </svg>
                 )}
               </button>
@@ -455,18 +489,38 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
                   title={isBgMusicMuted ? 'Unmute Background Music' : 'Mute Background Music'}
                 >
                   {isBgMusicMuted ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6L4.5 9H1.5v6h3l4.5 3.75V5.25z" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth="2.5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6L4.5 9H1.5v6h3l4.5 3.75V5.25z"
+                      />
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 10l12-3M9 21a3 3 0 11-6-0 3 3 0 016 0zm12-4a3 3 0 11-6-0 3 3 0 016 0z" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      strokeWidth="2.5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 19V6l12-3v13M9 10l12-3M9 21a3 3 0 11-6-0 3 3 0 016 0zm12-4a3 3 0 11-6-0 3 3 0 016 0z"
+                      />
                     </svg>
                   )}
                 </button>
-                
+
                 <span className="text-[10px] font-bold text-neutral-400">Ambient</span>
-                
+
                 {/* Micro Volume Slider */}
                 <input
                   type="range"

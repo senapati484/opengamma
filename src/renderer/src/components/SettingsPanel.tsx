@@ -18,8 +18,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
   )
 
   // Execution & Model state
-  const [executionMode, setExecutionMode] = useState<'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api'>('local-cli')
-  const [selectedApiProvider, setSelectedApiProvider] = useState<'anthropic' | 'gemini' | 'openai' | 'deepseek' | 'groq'>('anthropic')
+  const [executionMode, setExecutionMode] = useState<
+    'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api'
+  >('local-cli')
+  const [selectedApiProvider, setSelectedApiProvider] = useState<
+    'anthropic' | 'gemini' | 'openai' | 'deepseek' | 'groq'
+  >('anthropic')
   const [selectedCliId, setSelectedCliId] = useState('')
   const [tempApiKey, setTempApiKey] = useState('')
   const [tempGeminiApiKey, setTempGeminiApiKey] = useState('')
@@ -29,10 +33,21 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
   const [detectedCLIs, setDetectedCLIs] = useState<DetectedCLI[]>([])
   const [isScanning, setIsScanning] = useState(false)
   const [testStatus, setTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
-  const [geminiTestStatus, setGeminiTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
-  const [openaiTestStatus, setOpenaiTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
-  const [deepseekTestStatus, setDeepseekTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
-  const [groqTestStatus, setGroqTestStatus] = useState<{ valid: boolean; error?: string } | null>(null)
+  const [geminiTestStatus, setGeminiTestStatus] = useState<{
+    valid: boolean
+    error?: string
+  } | null>(null)
+  const [openaiTestStatus, setOpenaiTestStatus] = useState<{
+    valid: boolean
+    error?: string
+  } | null>(null)
+  const [deepseekTestStatus, setDeepseekTestStatus] = useState<{
+    valid: boolean
+    error?: string
+  } | null>(null)
+  const [groqTestStatus, setGroqTestStatus] = useState<{ valid: boolean; error?: string } | null>(
+    null
+  )
   const [isTestingKey, setIsTestingKey] = useState(false)
   const [isTestingGeminiKey, setIsTestingGeminiKey] = useState(false)
   const [isTestingOpenaiKey, setIsTestingOpenaiKey] = useState(false)
@@ -250,7 +265,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                   </p>
                 </div>
 
-                 <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div
                     onClick={() => setExecutionMode('local-cli')}
                     className={`p-5 rounded-xl border-2 transition-all cursor-pointer ${executionMode === 'local-cli' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/5' : 'border-white/5 bg-white/5 hover:border-white/10'}`}
@@ -271,8 +286,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                     }}
                     className={`p-5 rounded-xl border-2 transition-all cursor-pointer ${executionMode !== 'local-cli' ? 'border-[#e8ff57]/40 bg-[#e8ff57]/5' : 'border-white/5 bg-white/5 hover:border-white/10'}`}
                   >
-                    <div className="font-bold text-white mb-1 text-sm sm:text-base">External API</div>
-                    <div className="text-[10px] sm:text-xs text-neutral-500">Claude, Gemini, OpenAI, DeepSeek, Groq</div>
+                    <div className="font-bold text-white mb-1 text-sm sm:text-base">
+                      External API
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-neutral-500">
+                      Claude, Gemini, OpenAI, DeepSeek, Groq
+                    </div>
                   </div>
                 </div>
 
@@ -654,10 +673,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                         onChange={(e) => setDefaultNarrative(e.target.value)}
                         className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#e8ff57]/50"
                       >
-                        <option value="explainer" className="bg-[#141414] text-white">Explainer</option>
-                        <option value="pitch" className="bg-[#141414] text-white">VC Pitch</option>
-                        <option value="report" className="bg-[#141414] text-white">Report</option>
-                        <option value="academic" className="bg-[#141414] text-white">Academic</option>
+                        <option value="explainer" className="bg-[#141414] text-white">
+                          Explainer
+                        </option>
+                        <option value="pitch" className="bg-[#141414] text-white">
+                          VC Pitch
+                        </option>
+                        <option value="report" className="bg-[#141414] text-white">
+                          Report
+                        </option>
+                        <option value="academic" className="bg-[#141414] text-white">
+                          Academic
+                        </option>
                       </select>
                     </div>
                   </div>

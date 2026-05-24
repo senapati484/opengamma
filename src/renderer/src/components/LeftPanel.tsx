@@ -16,7 +16,6 @@ interface LeftPanelProps {
   onUpdateTheme: (theme: Theme) => void
 }
 
-
 export const LeftPanel: React.FC<LeftPanelProps> = ({
   onGenerate,
   isGenerating,
@@ -133,8 +132,6 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
       theme.name.toLowerCase().includes(themeSearchQuery.toLowerCase()) ||
       theme.description.toLowerCase().includes(themeSearchQuery.toLowerCase())
   )
-
-
 
   return (
     <div className="w-[260px] h-full bg-[#141414] border-r border-white/5 flex flex-col overflow-hidden no-drag relative">
@@ -447,11 +444,11 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
             </div>
 
             {/* AI Background Music Toggle */}
-            <div 
+            <div
               className={`flex items-center justify-between bg-[#1a1a1a] p-3 rounded-xl border border-white/5 transition-all duration-300 ${
                 !isMusicAvailable ? 'opacity-40 select-none' : ''
               }`}
-              title={!isMusicAvailable ? "Only available in Gemini API" : undefined}
+              title={!isMusicAvailable ? 'Only available in Gemini API' : undefined}
             >
               <div className="flex flex-col gap-0.5">
                 <span className="text-[10px] font-bold text-white uppercase tracking-wider">

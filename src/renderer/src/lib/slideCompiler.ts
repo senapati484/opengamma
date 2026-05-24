@@ -46,11 +46,10 @@ function compileItemsToHtml(bullets: string[], contentStyle = ''): string {
       // Centred image block
       flushList()
       flushCols()
-      parts.push(`<div style="margin: 16px 0; display: flex; justify-content: center; width: 100%;">${t}</div>`)
-    } else if (
-      t.startsWith('<div class="card"') ||
-      t.startsWith('<div class="stat-block"')
-    ) {
+      parts.push(
+        `<div style="margin: 16px 0; display: flex; justify-content: center; width: 100%;">${t}</div>`
+      )
+    } else if (t.startsWith('<div class="card"') || t.startsWith('<div class="stat-block"')) {
       // Card / stat-block → collect into auto-grid cols
       flushList()
       colsBuf.push(t)
@@ -91,31 +90,39 @@ export function compileSlideHtml(
 ): string {
   // ── CSS variable injection ───────────────────────────────────────────────────
   const vars: string[] = []
-  if (style.textAlign)   vars.push(`text-align: ${style.textAlign}`)
-  if (style.bgColor)     { vars.push(`--og-slide-bg: ${style.bgColor}`); vars.push(`background: ${style.bgColor} !important`) }
-  if (style.textColor)   { vars.push(`--og-slide-text: ${style.textColor}`); vars.push(`color: ${style.textColor} !important`) }
+  if (style.textAlign) vars.push(`text-align: ${style.textAlign}`)
+  if (style.bgColor) {
+    vars.push(`--og-slide-bg: ${style.bgColor}`)
+    vars.push(`background: ${style.bgColor} !important`)
+  }
+  if (style.textColor) {
+    vars.push(`--og-slide-text: ${style.textColor}`)
+    vars.push(`color: ${style.textColor} !important`)
+  }
   if (style.accentColor) vars.push(`--og-slide-accent: ${style.accentColor}`)
   if (style.headingFont) vars.push(`--og-slide-font-heading: '${style.headingFont}', sans-serif`)
-  if (style.bodyFont)    vars.push(`--og-slide-font-body: '${style.bodyFont}', sans-serif`)
+  if (style.bodyFont) vars.push(`--og-slide-font-body: '${style.bodyFont}', sans-serif`)
 
-  const styleAttr   = vars.length > 0 ? ` style="${vars.join('; ')}"` : ''
-  const slugAttr    = slug ? ` data-slug="${slug}"` : ''
-  const typeAttr    = ` data-slide-type="${slideType}"`
-  const titleStyle  = style.titleSize   ? ` style="font-size: ${style.titleSize}em !important;"` : ''
-  const contentStyle = style.contentSize ? ` style="font-size: ${style.contentSize}em !important;"` : ''
+  const styleAttr = vars.length > 0 ? ` style="${vars.join('; ')}"` : ''
+  const slugAttr = slug ? ` data-slug="${slug}"` : ''
+  const typeAttr = ` data-slide-type="${slideType}"`
+  const titleStyle = style.titleSize ? ` style="font-size: ${style.titleSize}em !important;"` : ''
+  const contentStyle = style.contentSize
+    ? ` style="font-size: ${style.contentSize}em !important;"`
+    : ''
 
   let contentHtml = ''
 
   switch (slideType) {
-
     // ── TITLE ────────────────────────────────────────────────────────────────
     case 'title': {
       const heading = `<h1 class="accent"${titleStyle}>${title || 'Untitled Presentation'}</h1>`
-      const sub = bullets.length > 0
-        ? `<p${contentStyle}>${bullets[0]}</p>`
-        : style.accentText
-          ? `<p${contentStyle}>${style.accentText}</p>`
-          : ''
+      const sub =
+        bullets.length > 0
+          ? `<p${contentStyle}>${bullets[0]}</p>`
+          : style.accentText
+            ? `<p${contentStyle}>${style.accentText}</p>`
+            : ''
       contentHtml = `\n  ${heading}\n  ${sub}`
       break
     }
@@ -134,7 +141,10 @@ export function compileSlideHtml(
         // Ensure image is sized for the right column
         imgHtml = imgHtml.includes('max-height')
           ? imgHtml.replace(/max-height:\s*\d+px/gi, 'max-height: 360px')
-          : imgHtml.replace('<img', '<img style="max-height: 360px; width: 100%; border-radius: 12px; object-fit: cover;"')
+          : imgHtml.replace(
+              '<img',
+              '<img style="max-height: 360px; width: 100%; border-radius: 12px; object-fit: cover;"'
+            )
 
         contentHtml = `
   ${heading}
@@ -172,23 +182,23 @@ export function compileSlideHtml(
         // Use h3 text as labels; content between h3s as bullets
         const leftH3 = bullets[h3Indices[0]]
         const rightH3 = bullets[h3Indices[1]]
-        leftLabel  = leftH3.replace(/<[^>]*>/g, '').trim() || leftLabel
+        leftLabel = leftH3.replace(/<[^>]*>/g, '').trim() || leftLabel
         rightLabel = rightH3.replace(/<[^>]*>/g, '').trim() || rightLabel
 
-        leftBullets  = bullets.slice(h3Indices[0] + 1, h3Indices[1])
+        leftBullets = bullets.slice(h3Indices[0] + 1, h3Indices[1])
         rightBullets = bullets.slice(h3Indices[1] + 1)
       } else if (h3Indices.length === 1) {
-        leftLabel    = bullets[h3Indices[0]].replace(/<[^>]*>/g, '').trim() || leftLabel
-        leftBullets  = bullets.slice(h3Indices[0] + 1, Math.ceil(bullets.length / 2))
+        leftLabel = bullets[h3Indices[0]].replace(/<[^>]*>/g, '').trim() || leftLabel
+        leftBullets = bullets.slice(h3Indices[0] + 1, Math.ceil(bullets.length / 2))
         rightBullets = bullets.slice(Math.ceil(bullets.length / 2))
       } else {
         // Even split
-        const half   = Math.ceil(bullets.length / 2)
-        leftBullets  = bullets.slice(0, half)
+        const half = Math.ceil(bullets.length / 2)
+        leftBullets = bullets.slice(0, half)
         rightBullets = bullets.slice(half)
       }
 
-      const leftHtml  = leftBullets.map(compileBulletItem).join('\n        ')
+      const leftHtml = leftBullets.map(compileBulletItem).join('\n        ')
       const rightHtml = rightBullets.map(compileBulletItem).join('\n        ')
 
       contentHtml = `
@@ -216,7 +226,8 @@ export function compileSlideHtml(
 
       // Detect if bullets contain stat-blocks (the LLM used the design components)
       const hasStatBlocks = bullets.some(
-        (b) => b.trim().startsWith('<div class="stat-block"') || b.trim().startsWith('<div class="card"')
+        (b) =>
+          b.trim().startsWith('<div class="stat-block"') || b.trim().startsWith('<div class="card"')
       )
 
       if (hasStatBlocks) {
@@ -229,7 +240,10 @@ export function compileSlideHtml(
         const rows: string[][] = []
 
         bullets.forEach((bullet, idx) => {
-          const parts = bullet.replace(/<[^>]*>/g, '').split('|').map((p) => p.trim())
+          const parts = bullet
+            .replace(/<[^>]*>/g, '')
+            .split('|')
+            .map((p) => p.trim())
           if (idx === 0 && parts.length >= 2) {
             headers = parts
             return
@@ -243,11 +257,19 @@ export function compileSlideHtml(
         }
 
         const thead = headers
-          .map((h) => `<th style="padding: 12px 16px; font-weight: 800; border-bottom: 2px solid var(--og-slide-accent, #e8ff57); text-align: left;">${h}</th>`)
+          .map(
+            (h) =>
+              `<th style="padding: 12px 16px; font-weight: 800; border-bottom: 2px solid var(--og-slide-accent, #e8ff57); text-align: left;">${h}</th>`
+          )
           .join('')
         const tbody = rows
           .map((r) => {
-            const cells = r.map((c) => `<td style="padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); text-align: left;">${c}</td>`).join('')
+            const cells = r
+              .map(
+                (c) =>
+                  `<td style="padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); text-align: left;">${c}</td>`
+              )
+              .join('')
             return `<tr>${cells}</tr>`
           })
           .join('\n      ')
@@ -275,15 +297,14 @@ export function compileSlideHtml(
 
       // Separate any figure placeholder from supporting bullets
       const figureBullets = bullets.filter((b) => b.includes('og-image-placeholder'))
-      const textBullets   = bullets.filter((b) => !b.includes('og-image-placeholder'))
+      const textBullets = bullets.filter((b) => !b.includes('og-image-placeholder'))
 
-      const figureHtml = figureBullets.length > 0
-        ? figureBullets[0]
-        : `<figure class="og-image-placeholder" data-prompt="${title} professional illustration, wide landscape, clean modern style, no text"></figure>`
+      const figureHtml =
+        figureBullets.length > 0
+          ? figureBullets[0]
+          : `<figure class="og-image-placeholder" data-prompt="${title} professional illustration, wide landscape, clean modern style, no text"></figure>`
 
-      const textHtml = textBullets.length > 0
-        ? compileItemsToHtml(textBullets, contentStyle)
-        : ''
+      const textHtml = textBullets.length > 0 ? compileItemsToHtml(textBullets, contentStyle) : ''
 
       contentHtml = `
   ${heading}
@@ -304,22 +325,24 @@ export function compileSlideHtml(
       const heading = `<h2${titleStyle}>${title || 'Key Metric'}</h2>`
 
       const statBlocks = bullets.filter(
-        (b) => b.trim().startsWith('<div class="stat-block"') || b.trim().startsWith('<div class="card"')
+        (b) =>
+          b.trim().startsWith('<div class="stat-block"') || b.trim().startsWith('<div class="card"')
       )
       const prose = bullets.filter(
-        (b) => !b.trim().startsWith('<div class="stat-block"') && !b.trim().startsWith('<div class="card"')
+        (b) =>
+          !b.trim().startsWith('<div class="stat-block"') &&
+          !b.trim().startsWith('<div class="card"')
       )
 
-      const statsHtml = statBlocks.length > 0
-        ? `<div class="cols" style="margin: 28px 0;">${statBlocks.join('\n  ')}</div>`
-        : `<div class="stat-block" style="margin: 28px auto; max-width: 480px;">
+      const statsHtml =
+        statBlocks.length > 0
+          ? `<div class="cols" style="margin: 28px 0;">${statBlocks.join('\n  ')}</div>`
+          : `<div class="stat-block" style="margin: 28px auto; max-width: 480px;">
     <span class="stat-number">${title || '—'}</span>
     <span class="stat-label">Key Metric</span>
   </div>`
 
-      const proseHtml = prose.length > 0
-        ? compileItemsToHtml(prose, contentStyle)
-        : ''
+      const proseHtml = prose.length > 0 ? compileItemsToHtml(prose, contentStyle) : ''
 
       contentHtml = `\n  ${heading}\n  ${statsHtml}\n  ${proseHtml}`
       break
@@ -330,18 +353,17 @@ export function compileSlideHtml(
       const heading = `<h2${titleStyle}>${title || 'Testimonial'}</h2>`
 
       const quoteBlocks = bullets.filter((b) => b.trim().startsWith('<div class="quote-block"'))
-      const supporting  = bullets.filter((b) => !b.trim().startsWith('<div class="quote-block"'))
+      const supporting = bullets.filter((b) => !b.trim().startsWith('<div class="quote-block"'))
 
-      const quoteHtml = quoteBlocks.length > 0
-        ? quoteBlocks.join('\n  ')
-        : `<div class="quote-block">
+      const quoteHtml =
+        quoteBlocks.length > 0
+          ? quoteBlocks.join('\n  ')
+          : `<div class="quote-block">
     <p class="quote-text">"${bullets[0]?.replace(/<[^>]*>/g, '') || 'An impactful quote here.'}"</p>
     <span class="quote-author">— Source</span>
   </div>`
 
-      const supportHtml = supporting.length > 0
-        ? compileItemsToHtml(supporting, contentStyle)
-        : ''
+      const supportHtml = supporting.length > 0 ? compileItemsToHtml(supporting, contentStyle) : ''
 
       contentHtml = `\n  ${heading}\n  ${quoteHtml}\n  ${supportHtml}`
       break
@@ -350,8 +372,10 @@ export function compileSlideHtml(
     // ── CTA ──────────────────────────────────────────────────────────────────
     case 'cta': {
       const heading = `<h2${titleStyle}>${title || 'Take Action Now'}</h2>`
-      const ctaText  = style.accentText || bullets.find((b) => !b.startsWith('<li')) || 'Act today'
-      const listBullets = bullets.filter((b) => b.trim().startsWith('<li') || (!b.trim().startsWith('<') && !b.includes(ctaText)))
+      const ctaText = style.accentText || bullets.find((b) => !b.startsWith('<li')) || 'Act today'
+      const listBullets = bullets.filter(
+        (b) => b.trim().startsWith('<li') || (!b.trim().startsWith('<') && !b.includes(ctaText))
+      )
       const listHtml = listBullets.map(compileBulletItem).join('\n      ')
 
       contentHtml = `
@@ -359,11 +383,12 @@ export function compileSlideHtml(
   <div class="cta-block" style="background: var(--og-slide-accent, #e8ff57) !important; color: #000000 !important; padding: 28px 32px; border-radius: 14px; margin-top: 32px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
     <p style="font-size: 1.3em; font-weight: 900; margin: 0; font-family: var(--og-slide-font-heading, sans-serif); letter-spacing: -0.02em;">${ctaText}</p>
   </div>
-  ${listBullets.length > 0
-    ? `<ul style="margin-top: 24px; padding-left: 20px; text-align: left; ${style.contentSize ? `font-size: ${style.contentSize}em;` : 'font-size: 0.85em;'}">
+  ${
+    listBullets.length > 0
+      ? `<ul style="margin-top: 24px; padding-left: 20px; text-align: left; ${style.contentSize ? `font-size: ${style.contentSize}em;` : 'font-size: 0.85em;'}">
     ${listHtml}
   </ul>`
-    : ''
+      : ''
   }`
       break
     }

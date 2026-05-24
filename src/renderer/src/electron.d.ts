@@ -112,7 +112,12 @@ interface ElectronAPI {
   // ── Voiceover TTS ────────────────────────────────────────────────────────────
   generateVoiceovers(
     presentation: Presentation
-  ): Promise<{ success: boolean; audioMap?: Record<number, string>; presentation?: Presentation; error?: string }>
+  ): Promise<{
+    success: boolean
+    audioMap?: Record<number, string>
+    presentation?: Presentation
+    error?: string
+  }>
   onVoiceoverProgress(
     callback: (progress: {
       state: 'generating' | 'done' | 'error'

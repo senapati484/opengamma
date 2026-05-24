@@ -141,7 +141,13 @@ export interface AppSettings {
   onboardingComplete?: boolean
 
   // Execution Mode (Fix 1)
-  executionMode: 'local-cli' | 'anthropic-api' | 'gemini-api' | 'openai-api' | 'deepseek-api' | 'groq-api'
+  executionMode:
+    | 'local-cli'
+    | 'anthropic-api'
+    | 'gemini-api'
+    | 'openai-api'
+    | 'deepseek-api'
+    | 'groq-api'
   selectedCliId: string
   geminiApiKey?: string
   openaiApiKey?: string

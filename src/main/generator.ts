@@ -59,7 +59,7 @@ async function streamOpenAiCompatible(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      Authorization: `Bearer ${apiKey}`
     },
     body: JSON.stringify({
       model: modelName,
@@ -145,7 +145,7 @@ async function regenerateSlideOpenAiCompatible(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      Authorization: `Bearer ${apiKey}`
     },
     body: JSON.stringify({
       model: modelName,
@@ -178,12 +178,16 @@ async function queryOpenAiCompatibleMusic(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      Authorization: `Bearer ${apiKey}`
     },
     body: JSON.stringify({
       model: modelName,
       messages: [
-        { role: 'system', content: 'You are an AI Music Selector. Respond with ONLY the exact track key from the provided list, with no other text.' },
+        {
+          role: 'system',
+          content:
+            'You are an AI Music Selector. Respond with ONLY the exact track key from the provided list, with no other text.'
+        },
         { role: 'user', content: prompt }
       ],
       temperature: 0.2,
@@ -201,7 +205,6 @@ async function queryOpenAiCompatibleMusic(
 }
 
 // ─── Overloads to maintain compatibility with calling code ─────────────────
-
 
 export async function generatePresentation(
   config: GenerationConfig,
@@ -252,7 +255,12 @@ export async function generatePresentation(
             await Promise.all(imagePromises)
           }
           if (config.generateBgMusic) {
-            bgMusicBase64 = await fetchMusicBase64(config.theme.id, config.prompt, settings, abortSignal)
+            bgMusicBase64 = await fetchMusicBase64(
+              config.theme.id,
+              config.prompt,
+              settings,
+              abortSignal
+            )
           }
         } catch (e) {
           console.error('[generator] Error waiting for assets/music:', e)
@@ -285,9 +293,11 @@ export async function generatePresentation(
         const isImageSlide = slide.slideType === 'image'
         const isNonTitleSlide = slide.slideType !== 'title' && slide.index > 0
         if (isImageSlide || isNonTitleSlide) {
-          await generateAndInjectImage(slide, config, settings, onSlide, abortSignal).catch((err) => {
-            console.error('[generator] Image generation failed:', err)
-          })
+          await generateAndInjectImage(slide, config, settings, onSlide, abortSignal).catch(
+            (err) => {
+              console.error('[generator] Image generation failed:', err)
+            }
+          )
         }
       }
     })
@@ -382,7 +392,11 @@ export async function generatePresentation(
           contents: [
             {
               role: 'user',
-              parts: [{ text: `${researchSystemPrompt}\n\nPlease research and build a detailed ${config.slideCount}-slide presentation plan.` }]
+              parts: [
+                {
+                  text: `${researchSystemPrompt}\n\nPlease research and build a detailed ${config.slideCount}-slide presentation plan.`
+                }
+              ]
             }
           ],
           generationConfig: {
@@ -395,7 +409,9 @@ export async function generatePresentation(
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`)
+        throw new Error(
+          `Gemini API error: ${response.status} ${response.statusText} - ${errorText}`
+        )
       }
 
       const resJson: any = await response.json()
@@ -434,13 +450,16 @@ export async function generatePresentation(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${settings.openaiApiKey}`
+          Authorization: `Bearer ${settings.openaiApiKey}`
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: researchSystemPrompt },
-            { role: 'user', content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.` }
+            {
+              role: 'user',
+              content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.`
+            }
           ],
           temperature: 0.7,
           max_tokens: 2048
@@ -450,7 +469,9 @@ export async function generatePresentation(
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${errorText}`)
+        throw new Error(
+          `OpenAI API error: ${response.status} ${response.statusText} - ${errorText}`
+        )
       }
 
       const resJson: any = await response.json()
@@ -489,13 +510,16 @@ export async function generatePresentation(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${settings.deepseekApiKey}`
+          Authorization: `Bearer ${settings.deepseekApiKey}`
         },
         body: JSON.stringify({
           model: 'deepseek-chat',
           messages: [
             { role: 'system', content: researchSystemPrompt },
-            { role: 'user', content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.` }
+            {
+              role: 'user',
+              content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.`
+            }
           ],
           temperature: 0.7,
           max_tokens: 2048
@@ -505,7 +529,9 @@ export async function generatePresentation(
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`DeepSeek API error: ${response.status} ${response.statusText} - ${errorText}`)
+        throw new Error(
+          `DeepSeek API error: ${response.status} ${response.statusText} - ${errorText}`
+        )
       }
 
       const resJson: any = await response.json()
@@ -544,13 +570,16 @@ export async function generatePresentation(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${settings.groqApiKey}`
+          Authorization: `Bearer ${settings.groqApiKey}`
         },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
             { role: 'system', content: researchSystemPrompt },
-            { role: 'user', content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.` }
+            {
+              role: 'user',
+              content: `Please research and build a detailed ${config.slideCount}-slide presentation plan.`
+            }
           ],
           temperature: 0.7,
           max_tokens: 2048
@@ -581,7 +610,6 @@ export async function generatePresentation(
   }
 
   if (settings.executionMode === 'anthropic-api') {
-
     // Step 1: Research Pass
     wrappedOnStatus({
       state: 'researching',
@@ -696,7 +724,6 @@ export async function generatePresentation(
           slidesGenerated: count,
           totalSlides: config.slideCount
         })
-
       } else if (settings.executionMode === 'openai-api') {
         await streamOpenAiCompatible(
           'https://api.openai.com/v1/chat/completions',
@@ -737,7 +764,6 @@ export async function generatePresentation(
         )
         break
       } else {
-
         const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
         const stream = await anthropic.messages.stream({
           model: 'claude-3-5-sonnet-20241022',
@@ -947,7 +973,6 @@ export async function regenerateSlide(
 
   const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
 
-
   const response = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 1024,
@@ -999,15 +1024,20 @@ async function generateAndInjectImage(
   if (!generatedPrompt) {
     // Fall back to deriving a prompt from the slide content
     const slideTitle = slide.title || ''
-    const firstBullet = slide.bullets && slide.bullets.length > 0
-      ? slide.bullets[0].replace(/<[^>]*>/g, '').substring(0, 80).trim()
-      : ''
+    const firstBullet =
+      slide.bullets && slide.bullets.length > 0
+        ? slide.bullets[0]
+            .replace(/<[^>]*>/g, '')
+            .substring(0, 80)
+            .trim()
+        : ''
     if (slideTitle && firstBullet) {
       generatedPrompt = `Professional visual for: ${slideTitle} — ${firstBullet}. Clean, modern corporate illustration, premium presentation aesthetics, wide landscape, no text.`
     } else if (slideTitle) {
       generatedPrompt = `Minimalist professional graphic for: ${slideTitle}. Premium corporate style, wide landscape, no text overlays.`
     } else {
-      generatedPrompt = 'Abstract modern technology background, geometric shapes, clean minimalist corporate style, wide landscape'
+      generatedPrompt =
+        'Abstract modern technology background, geometric shapes, clean minimalist corporate style, wide landscape'
     }
   }
 
@@ -1019,7 +1049,10 @@ async function generateAndInjectImage(
 
     let timeoutId: any
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error('Image generation timed out after 10 seconds')), 10000)
+      timeoutId = setTimeout(
+        () => reject(new Error('Image generation timed out after 10 seconds')),
+        10000
+      )
     })
 
     const networkPromise = (async () => {
@@ -1065,7 +1098,10 @@ async function generateAndInjectImage(
 
         const rightDiv = doc.createElement('div')
         rightDiv.setAttribute('class', 'og-img-right')
-        rightDiv.setAttribute('style', 'display: flex; justify-content: center; align-items: center;')
+        rightDiv.setAttribute(
+          'style',
+          'display: flex; justify-content: center; align-items: center;'
+        )
         rightDiv.innerHTML = imgHtml
 
         // Move all body content (not heading, not notes) into leftDiv
@@ -1079,7 +1115,10 @@ async function generateAndInjectImage(
 
         const colsDiv = doc.createElement('div')
         colsDiv.setAttribute('class', 'cols')
-        colsDiv.setAttribute('style', 'display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 32px; margin-top: 24px; align-items: center;')
+        colsDiv.setAttribute(
+          'style',
+          'display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 32px; margin-top: 24px; align-items: center;'
+        )
         colsDiv.appendChild(leftDiv)
         colsDiv.appendChild(rightDiv)
 
@@ -1108,23 +1147,28 @@ async function generateAndInjectImage(
 
     // Refresh bullets from updated DOM
     const updatedBullets: string[] = []
-    section.querySelectorAll('p, li, h3, table, pre, div.card, div.stat-block, div.quote-block').forEach((el) => {
-      let isNested = false
-      let parent = el.parentElement
-      while (parent && parent !== section) {
-        const tag = parent.tagName?.toLowerCase()
-        const cls = parent.getAttribute('class') || ''
-        if (['p', 'li', 'h3', 'table', 'pre'].includes(tag) ||
-            (tag === 'div' && (cls.includes('card') || cls.includes('stat-block') || cls.includes('quote-block')))) {
-          if (!['ul', 'ol'].includes(tag)) {
-            isNested = true
-            break
+    section
+      .querySelectorAll('p, li, h3, table, pre, div.card, div.stat-block, div.quote-block')
+      .forEach((el) => {
+        let isNested = false
+        let parent = el.parentElement
+        while (parent && parent !== section) {
+          const tag = parent.tagName?.toLowerCase()
+          const cls = parent.getAttribute('class') || ''
+          if (
+            ['p', 'li', 'h3', 'table', 'pre'].includes(tag) ||
+            (tag === 'div' &&
+              (cls.includes('card') || cls.includes('stat-block') || cls.includes('quote-block')))
+          ) {
+            if (!['ul', 'ol'].includes(tag)) {
+              isNested = true
+              break
+            }
           }
+          parent = parent.parentElement
         }
-        parent = parent.parentElement
-      }
-      if (!isNested) updatedBullets.push(el.outerHTML.trim())
-    })
+        if (!isNested) updatedBullets.push(el.outerHTML.trim())
+      })
     slide.bullets = updatedBullets
 
     onSlide(slide)
@@ -1204,15 +1248,13 @@ async function queryGeminiApiForMusic(
   return resJson?.candidates?.[0]?.content?.parts?.[0]?.text || ''
 }
 
-async function queryAnthropicApiForMusic(
-  prompt: string,
-  apiKey: string
-): Promise<string> {
+async function queryAnthropicApiForMusic(prompt: string, apiKey: string): Promise<string> {
   const anthropic = new Anthropic({ apiKey })
   const response = await anthropic.messages.create({
     model: 'claude-3-5-haiku-20241022',
     max_tokens: 20,
-    system: 'You are an AI Music Selector. Respond with ONLY the exact track key from the provided list, with no other text.',
+    system:
+      'You are an AI Music Selector. Respond with ONLY the exact track key from the provided list, with no other text.',
     messages: [{ role: 'user', content: prompt }]
   })
   const textBlock = response.content[0]
@@ -1248,44 +1290,103 @@ Respond with ONLY the exact name of the selected track (choose from: tech-house,
         settings
       )
       const cleanChoice = choice.trim().toLowerCase()
-      for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+      for (const k of [
+        'tech-house',
+        'dreaming-big',
+        'hazy-after-hours',
+        'sun-and-pam-trees',
+        'valley-sunset',
+        'deep-urban'
+      ]) {
         if (cleanChoice.includes(k)) return k
       }
     }
   } else if (settings.executionMode === 'gemini-api' && settings.geminiApiKey) {
     const choice = await queryGeminiApiForMusic(tracksList, settings.geminiApiKey, abortSignal)
     const cleanChoice = choice.trim().toLowerCase()
-    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+    for (const k of [
+      'tech-house',
+      'dreaming-big',
+      'hazy-after-hours',
+      'sun-and-pam-trees',
+      'valley-sunset',
+      'deep-urban'
+    ]) {
       if (cleanChoice.includes(k)) return k
     }
   } else if (settings.executionMode === 'openai-api' && settings.openaiApiKey) {
-    const choice = await queryOpenAiCompatibleMusic('https://api.openai.com/v1/chat/completions', settings.openaiApiKey, 'gpt-4o-mini', tracksList, abortSignal)
+    const choice = await queryOpenAiCompatibleMusic(
+      'https://api.openai.com/v1/chat/completions',
+      settings.openaiApiKey,
+      'gpt-4o-mini',
+      tracksList,
+      abortSignal
+    )
     const cleanChoice = choice.trim().toLowerCase()
-    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+    for (const k of [
+      'tech-house',
+      'dreaming-big',
+      'hazy-after-hours',
+      'sun-and-pam-trees',
+      'valley-sunset',
+      'deep-urban'
+    ]) {
       if (cleanChoice.includes(k)) return k
     }
   } else if (settings.executionMode === 'deepseek-api' && settings.deepseekApiKey) {
-    const choice = await queryOpenAiCompatibleMusic('https://api.deepseek.com/chat/completions', settings.deepseekApiKey, 'deepseek-chat', tracksList, abortSignal)
+    const choice = await queryOpenAiCompatibleMusic(
+      'https://api.deepseek.com/chat/completions',
+      settings.deepseekApiKey,
+      'deepseek-chat',
+      tracksList,
+      abortSignal
+    )
     const cleanChoice = choice.trim().toLowerCase()
-    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+    for (const k of [
+      'tech-house',
+      'dreaming-big',
+      'hazy-after-hours',
+      'sun-and-pam-trees',
+      'valley-sunset',
+      'deep-urban'
+    ]) {
       if (cleanChoice.includes(k)) return k
     }
   } else if (settings.executionMode === 'groq-api' && settings.groqApiKey) {
-    const choice = await queryOpenAiCompatibleMusic('https://api.groq.com/openai/v1/chat/completions', settings.groqApiKey, 'llama-3.3-70b-versatile', tracksList, abortSignal)
+    const choice = await queryOpenAiCompatibleMusic(
+      'https://api.groq.com/openai/v1/chat/completions',
+      settings.groqApiKey,
+      'llama-3.3-70b-versatile',
+      tracksList,
+      abortSignal
+    )
     const cleanChoice = choice.trim().toLowerCase()
-    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+    for (const k of [
+      'tech-house',
+      'dreaming-big',
+      'hazy-after-hours',
+      'sun-and-pam-trees',
+      'valley-sunset',
+      'deep-urban'
+    ]) {
       if (cleanChoice.includes(k)) return k
     }
   } else if (settings.executionMode === 'anthropic-api' && settings.claudeApiKey) {
     const choice = await queryAnthropicApiForMusic(tracksList, settings.claudeApiKey)
     const cleanChoice = choice.trim().toLowerCase()
-    for (const k of ['tech-house', 'dreaming-big', 'hazy-after-hours', 'sun-and-pam-trees', 'valley-sunset', 'deep-urban']) {
+    for (const k of [
+      'tech-house',
+      'dreaming-big',
+      'hazy-after-hours',
+      'sun-and-pam-trees',
+      'valley-sunset',
+      'deep-urban'
+    ]) {
       if (cleanChoice.includes(k)) return k
     }
   }
   return undefined
 }
-
 
 async function fetchMusicBase64(
   themeId: string,
@@ -1304,10 +1405,15 @@ async function fetchMusicBase64(
         console.log(`[music-generator] AI selected soundtrack: "${trackKey}"`)
       } else {
         trackKey = getTrackKeyForTheme(themeId)
-        console.log(`[music-generator] AI selection yielded no valid match, falling back to theme default: "${trackKey}"`)
+        console.log(
+          `[music-generator] AI selection yielded no valid match, falling back to theme default: "${trackKey}"`
+        )
       }
     } catch (err) {
-      console.warn('[music-generator] AI music selection failed, falling back to theme default:', err)
+      console.warn(
+        '[music-generator] AI music selection failed, falling back to theme default:',
+        err
+      )
       trackKey = getTrackKeyForTheme(themeId)
     }
   } else {
