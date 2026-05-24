@@ -1,6 +1,7 @@
 node_modules
 dist
 dist-electron
+buildFiles
 out
 .DS_Store
 .eslintcache
