@@ -1122,51 +1122,54 @@ async function generateAndInjectImage(
       placeholder.removeAttribute('data-prompt')
       placeholder.classList.remove('og-image-placeholder')
       placeholder.classList.add('og-image-figure')
+      section.classList.add('og-full-bleed-split')
     } else {
       // No placeholder: inject as a right-column split layout if slide is 'content' type
-      section.classList.add('has-image')
+      section.classList.add('og-full-bleed-split')
 
       // Find the first block of content (ul/p) to pair with the image
       const contentBlock = section.querySelector('ul, ol, p')
       const heading = section.querySelector('h2, h1')
 
       if (contentBlock && heading) {
-        // Wrap existing content in left col, image in right col
-        const leftDiv = doc.createElement('div')
-        leftDiv.setAttribute('class', 'og-img-left')
-        leftDiv.setAttribute('style', 'text-align: left;')
+        // Create full-bleed split layout DOM structure
+        const splitLayout = doc.createElement('div')
+        splitLayout.setAttribute('class', 'og-split-layout og-img-on-right')
 
-        const rightDiv = doc.createElement('div')
-        rightDiv.setAttribute('class', 'og-img-right')
-        rightDiv.setAttribute(
-          'style',
-          'display: flex; justify-content: center; align-items: center;'
-        )
-        rightDiv.innerHTML = imgHtml
+        const textCol = doc.createElement('div')
+        textCol.setAttribute('class', 'og-text-column')
 
-        // Move all body content (not heading, not notes) into leftDiv
+        const imgCol = doc.createElement('div')
+        imgCol.setAttribute('class', 'og-image-column')
+
+        const figure = doc.createElement('figure')
+        figure.setAttribute('class', 'og-image-figure')
+        figure.innerHTML = imgHtml
+        imgCol.appendChild(figure)
+
+        // Move the heading into the text column
+        textCol.appendChild(heading.cloneNode(true))
+        heading.parentNode?.removeChild(heading)
+
+        // Move all other body content (not heading, not notes) into textCol
         const bodyNodes = Array.from(section.childNodes).filter((n) => {
           const el = n as Element
           const tag = el.tagName?.toLowerCase()
           return tag && !['h1', 'h2', 'aside'].includes(tag)
         })
-        bodyNodes.forEach((n) => leftDiv.appendChild(n.cloneNode(true)))
-        bodyNodes.forEach((n) => n.parentNode?.removeChild(n))
+        bodyNodes.forEach((n) => {
+          textCol.appendChild(n.cloneNode(true))
+          n.parentNode?.removeChild(n)
+        })
 
-        const colsDiv = doc.createElement('div')
-        colsDiv.setAttribute('class', 'cols')
-        colsDiv.setAttribute(
-          'style',
-          'display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 32px; margin-top: 24px; align-items: center;'
-        )
-        colsDiv.appendChild(leftDiv)
-        colsDiv.appendChild(rightDiv)
+        splitLayout.appendChild(textCol)
+        splitLayout.appendChild(imgCol)
 
         const aside = section.querySelector('aside.notes')
         if (aside) {
-          section.insertBefore(colsDiv, aside)
+          section.insertBefore(splitLayout, aside)
         } else {
-          section.appendChild(colsDiv)
+          section.appendChild(splitLayout)
         }
       } else {
         // Minimal fallback: just append centered image

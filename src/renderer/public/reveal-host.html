@@ -143,6 +143,84 @@
         }
       }
 
+      /* Full-bleed split layouts */
+      .reveal .slides section.og-full-bleed-split {
+        padding: 0 !important;
+        top: 0 !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: stretch !important;
+      }
+      .reveal .slides section.og-full-bleed-split .og-split-layout {
+        flex: 1 !important;
+        height: 100% !important;
+        display: grid !important;
+        align-items: stretch !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .reveal .slides section.og-full-bleed-split .og-split-layout.og-img-on-left {
+        grid-template-columns: 0.95fr 1.05fr !important;
+      }
+      .reveal .slides section.og-full-bleed-split .og-split-layout.og-img-on-right {
+        grid-template-columns: 1.05fr 0.95fr !important;
+      }
+
+      /* Split columns */
+      .reveal .og-text-column {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        padding: 60px 60px 60px 80px !important;
+        box-sizing: border-box !important;
+        text-align: left !important;
+        overflow-y: auto !important;
+      }
+      .reveal .slides section.og-full-bleed-split .og-split-layout.og-img-on-left .og-text-column {
+        padding: 60px 80px 60px 60px !important;
+      }
+      .reveal .og-image-column {
+        position: relative !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .reveal .og-image-column figure.og-image-figure,
+      .reveal .og-image-column figure.og-image-placeholder {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        border: none !important;
+        overflow: hidden !important;
+      }
+
+      /* Full-bleed cover images */
+      .reveal .og-image-column img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        object-fit: cover !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+
+      /* Inline diagrams & graphics (non-full-bleed) */
+      .reveal section:not(.og-full-bleed-split) img {
+        object-fit: contain !important;
+        background: transparent !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+        border: 1px solid var(--og-slide-border, rgba(255, 255, 255, 0.08)) !important;
+        border-radius: 12px !important;
+      }
+
       /* ── Design System Layouts ── */
       .reveal .cols {
         display: grid !important;
@@ -159,11 +237,20 @@
         justify-content: flex-start !important;
       }
 
+      /* Stack cards vertically inside narrow split text columns */
+      .reveal .og-text-column .cols {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+
       /* Premium Card UI */
       .reveal .card {
         background: rgba(255, 255, 255, 0.03) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-left: 5px solid var(--og-slide-accent, #e8ff57) !important;
         border-radius: 12px !important;
+        border-top-left-radius: 0px !important;
+        border-bottom-left-radius: 0px !important;
         padding: 24px !important;
         box-sizing: border-box !important;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;

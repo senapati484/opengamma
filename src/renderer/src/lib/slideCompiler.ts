@@ -112,19 +112,67 @@ export function compileSlideHtml(
     ? ` style="font-size: ${style.contentSize}em !important;"`
     : ''
 
+  // Determine if this slide is a full-bleed vertical split layout
+  let isFullBleed = false
+  if (slideType === 'image') {
+    isFullBleed = true
+  } else if (slideType === 'content') {
+    const hasImg = bullets.some((b) => b.includes('<img') || b.includes('og-image-placeholder') || b.includes('og-image-figure'))
+    if (hasImg) {
+      isFullBleed = true
+    }
+  } else if (slideType === 'title') {
+    const hasImg = bullets.some((b) => b.includes('<img') || b.includes('og-image-placeholder') || b.includes('og-image-figure')) || !!existingImageHtml
+    if (hasImg) {
+      isFullBleed = true
+    }
+  }
+  const classAttr = isFullBleed ? ' class="og-full-bleed-split"' : ''
+
   let contentHtml = ''
 
   switch (slideType) {
     // ── TITLE ────────────────────────────────────────────────────────────────
     case 'title': {
       const heading = `<h1 class="accent"${titleStyle}>${title || 'Untitled Presentation'}</h1>`
+      const nonImageBullets = bullets.filter(
+        (b) =>
+          !b.includes('og-image-placeholder') &&
+          !b.includes('og-image-figure') &&
+          !b.includes('<img')
+      )
       const sub =
-        bullets.length > 0
-          ? `<p${contentStyle}>${bullets[0]}</p>`
+        nonImageBullets.length > 0
+          ? `<p${contentStyle}>${nonImageBullets[0]}</p>`
           : style.accentText
             ? `<p${contentStyle}>${style.accentText}</p>`
             : ''
-      contentHtml = `\n  ${heading}\n  ${sub}`
+
+      // Find any image
+      const figureBullets = bullets.filter((b) => b.includes('og-image-placeholder') || b.includes('og-image-figure') || b.includes('<img'))
+      const hasImage = figureBullets.length > 0 || !!existingImageHtml
+
+      if (hasImage) {
+        const imageHtml =
+          existingImageHtml ||
+          (figureBullets[0]?.trim().startsWith('<img')
+            ? figureBullets[0]
+            : `<figure class="og-image-placeholder" data-prompt="${title} cover illustration, tech modern minimalist style, wide landscape"></figure>`)
+
+        // Render as a full-bleed split with image on the left, text on the right
+        contentHtml = `
+  <div class="og-split-layout og-img-on-left">
+    <div class="og-image-column">
+      ${imageHtml}
+    </div>
+    <div class="og-text-column">
+      ${heading}
+      ${sub}
+    </div>
+  </div>`
+      } else {
+        contentHtml = `\n  ${heading}\n  ${sub}`
+      }
       break
     }
 
@@ -132,28 +180,26 @@ export function compileSlideHtml(
     case 'content': {
       const heading = `<h2${titleStyle}>${title || 'Core Insights'}</h2>`
 
-      // Check if any bullet contains an <img> — if so, do a 2-column layout
-      const imgBulletIdx = bullets.findIndex((b) => b.includes('<img'))
+      // Check if any bullet contains an <img> or placeholder — if so, do a 2-column layout
+      const imgBulletIdx = bullets.findIndex((b) => b.includes('<img') || b.includes('og-image-placeholder') || b.includes('og-image-figure'))
       if (imgBulletIdx !== -1) {
         const imgBullet = bullets[imgBulletIdx]
         const otherBullets = bullets.filter((_, i) => i !== imgBulletIdx)
         const leftHtml = compileItemsToHtml(otherBullets, contentStyle)
+        
         let imgHtml = imgBullet
-        // Ensure image is sized for the right column
+        // Clear max-height overrides if present to let the full-bleed CSS scale it
         imgHtml = imgHtml.includes('max-height')
-          ? imgHtml.replace(/max-height:\s*\d+px/gi, 'max-height: 360px')
-          : imgHtml.replace(
-              '<img',
-              '<img style="max-height: 360px; width: 100%; border-radius: 12px; object-fit: cover;"'
-            )
+          ? imgHtml.replace(/max-height:\s*\d+px/gi, '')
+          : imgHtml
 
         contentHtml = `
-  ${heading}
-  <div class="cols" style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 36px; margin-top: 24px; align-items: center; ${style.contentSize ? `font-size: ${style.contentSize}em;` : ''}">
-    <div style="text-align: left;">
+  <div class="og-split-layout og-img-on-right">
+    <div class="og-text-column">
+      ${heading}
       ${leftHtml}
     </div>
-    <div style="display: flex; justify-content: center; align-items: center;">
+    <div class="og-image-column">
       ${imgHtml}
     </div>
   </div>`
@@ -297,8 +343,8 @@ export function compileSlideHtml(
       const heading = `<h2${titleStyle}>${title || 'Visual Context'}</h2>`
 
       // Separate any figure placeholder/image from supporting bullets
-      const figureBullets = bullets.filter((b) => b.includes('og-image-placeholder') || b.includes('og-image-figure'))
-      const textBullets = bullets.filter((b) => !b.includes('og-image-placeholder') && !b.includes('og-image-figure'))
+      const figureBullets = bullets.filter((b) => b.includes('og-image-placeholder') || b.includes('og-image-figure') || b.includes('<img'))
+      const textBullets = bullets.filter((b) => !b.includes('og-image-placeholder') && !b.includes('og-image-figure') && !b.includes('<img'))
 
       const figureHtml =
         existingImageHtml ||
@@ -309,12 +355,12 @@ export function compileSlideHtml(
       const textHtml = textBullets.length > 0 ? compileItemsToHtml(textBullets, contentStyle) : ''
 
       contentHtml = `
-  ${heading}
-  <div class="cols" style="display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 36px; margin-top: 24px; align-items: center; ${style.contentSize ? `font-size: ${style.contentSize}em;` : ''}">
-    <div style="text-align: left;">
+  <div class="og-split-layout og-img-on-right">
+    <div class="og-text-column">
+      ${heading}
       ${textHtml}
     </div>
-    <div style="display: flex; justify-content: center; align-items: center; min-height: 280px;">
+    <div class="og-image-column">
       ${figureHtml}
     </div>
   </div>`
@@ -397,5 +443,5 @@ export function compileSlideHtml(
   }
 
   const asideNotes = notes ? `\n  <aside class="notes">\n    ${notes}\n  </aside>` : ''
-  return `<section${slugAttr}${typeAttr}${styleAttr}>${contentHtml}${asideNotes}\n</section>`
+  return `<section${slugAttr}${typeAttr}${styleAttr}${classAttr}>${contentHtml}${asideNotes}\n</section>`
 }
