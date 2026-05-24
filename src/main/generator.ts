@@ -1042,32 +1042,57 @@ async function generateAndInjectImage(
   }
 
   // ── 2. Fetch the image from Pollinations ──────────────────────────────────
-  try {
-    const sanitizedPrompt = encodeURIComponent(generatedPrompt)
-    // Request landscape images that fit slide proportions
-    const url = `https://image.pollinations.ai/prompt/${sanitizedPrompt}?width=1024&height=576&nologo=true&enhance=true`
+  const sanitizedPrompt = encodeURIComponent(generatedPrompt)
+  // Request landscape images that fit slide proportions. Disable enhance to prevent slow LLM calls on Pollinations end.
+  const url = `https://image.pollinations.ai/prompt/${sanitizedPrompt}?width=1024&height=576&nologo=true&enhance=false&private=true&feed=false`
 
-    let timeoutId: any
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(
-        () => reject(new Error('Image generation timed out after 10 seconds')),
-        10000
-      )
-    })
+  let arrayBuffer: ArrayBuffer | null = null
+  let lastError: any = null
+  const maxRetries = 3
+  const timeoutMs = 25000 // 25s timeout per attempt
 
-    const networkPromise = (async () => {
-      try {
-        const response = await fetch(url, { signal: abortSignal })
-        if (!response.ok) throw new Error(`Image API returned status ${response.status}`)
-        if (abortSignal?.aborted) return new ArrayBuffer(0)
-        return await response.arrayBuffer()
-      } finally {
-        clearTimeout(timeoutId)
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    if (abortSignal?.aborted) break
+    try {
+      let timeoutId: any
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(
+          () => reject(new Error(`Image generation timed out after ${timeoutMs / 1000} seconds`)),
+          timeoutMs
+        )
+      })
+
+      const networkPromise = (async () => {
+        try {
+          const response = await fetch(url, { signal: abortSignal })
+          if (!response.ok) {
+            throw new Error(`Image API returned status ${response.status}`)
+          }
+          if (abortSignal?.aborted) return new ArrayBuffer(0)
+          return await response.arrayBuffer()
+        } finally {
+          clearTimeout(timeoutId)
+        }
+      })()
+
+      arrayBuffer = await Promise.race([networkPromise, timeoutPromise])
+      if (arrayBuffer && arrayBuffer.byteLength > 0) {
+        break // Success!
       }
-    })()
+    } catch (err: any) {
+      lastError = err
+      console.warn(`[generator] Image generation attempt ${attempt} failed: ${err.message}`)
+      if (attempt < maxRetries && !abortSignal?.aborted) {
+        // Wait 2 seconds before retrying
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+      }
+    }
+  }
 
-    const arrayBuffer = await Promise.race([networkPromise, timeoutPromise])
-    if (arrayBuffer.byteLength === 0) return
+  try {
+    if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+      throw lastError || new Error('Failed to generate image after multiple attempts')
+    }
     const buffer = Buffer.from(arrayBuffer)
     const base64data = `data:image/jpeg;base64,${buffer.toString('base64')}`
 
