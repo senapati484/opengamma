@@ -101,7 +101,7 @@ const browserMock: ElectronAPI = {
     return {
       claudeApiKey: '',
       geminiApiKey: '',
-      defaultTheme: 'midnight',
+      defaultTheme: 'midnight-violet',
       defaultSlideCount: 8,
       defaultNarrative: 'explainer',
       executionMode: 'local-cli',

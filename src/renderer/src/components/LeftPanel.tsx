@@ -59,16 +59,9 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
     }
   })
 
-  const [autoGenerateBgMusic, setAutoGenerateBgMusic] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('og-auto-generate-bgmusic')
-      return saved === 'true'
-    } catch (e) {
-      return false
-    }
-  })
 
-  const isMusicAvailable = true
+
+
 
   useEffect(() => {
     localStorage.setItem('og-auto-generate-images', String(autoGenerateImages))
@@ -78,9 +71,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
     localStorage.setItem('og-auto-generate-voiceover', String(autoGenerateVoiceover))
   }, [autoGenerateVoiceover])
 
-  useEffect(() => {
-    localStorage.setItem('og-auto-generate-bgmusic', String(autoGenerateBgMusic))
-  }, [autoGenerateBgMusic])
+
 
   // Close theme dropdown on outside click
   useEffect(() => {
@@ -121,7 +112,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
       aspectRatio,
       generateImages: autoGenerateImages,
       generateVoiceover: autoGenerateVoiceover,
-      generateBgMusic: autoGenerateBgMusic && isMusicAvailable
+      generateBgMusic: false
     })
   }
 
@@ -443,36 +434,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
               </button>
             </div>
 
-            {/* AI Background Music Toggle */}
-            <div
-              className={`flex items-center justify-between bg-[#1a1a1a] p-3 rounded-xl border border-white/5 transition-all duration-300 ${
-                !isMusicAvailable ? 'opacity-40 select-none' : ''
-              }`}
-              title={!isMusicAvailable ? 'Only available in Gemini API' : undefined}
-            >
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold text-white uppercase tracking-wider">
-                  AI Music
-                </span>
-                <span className="text-[8px] text-neutral-500 font-semibold leading-tight">
-                  Theme-matching soundtrack
-                </span>
-              </div>
-              <button
-                type="button"
-                disabled={!isMusicAvailable}
-                onClick={() => setAutoGenerateBgMusic((prev) => !prev)}
-                className={`w-9 h-5 rounded-full p-0.5 transition-all duration-300 outline-none ${
-                  isMusicAvailable && autoGenerateBgMusic ? 'bg-[#e8ff57]' : 'bg-[#2a2a2a]'
-                } ${!isMusicAvailable ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-              >
-                <div
-                  className={`w-4 h-4 rounded-full bg-black transition-all duration-300 transform ${
-                    isMusicAvailable && autoGenerateBgMusic ? 'translate-x-4' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
+            {/* AI Background Music Toggle hidden */}
           </div>
         </div>
 

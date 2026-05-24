@@ -11,3 +11,23 @@
   --og-slide-radius: 4px;
   --og-slide-shadow: none;
 }
+
+.reveal .card {
+  background: #000000 !important;
+  border: 2px solid #facc15 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  border-radius: 4px !important;
+}
+.reveal .stat-block {
+  background: #000000 !important;
+  border: 2px solid #facc15 !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.reveal .badge {
+  background: rgba(250, 204, 21, 0.15) !important;
+  border: 2px solid #facc15 !important;
+  color: #facc15 !important;
+  border-radius: 4px !important;
+}

@@ -460,12 +460,26 @@
         transitionSpeed: 'fast',
         width: 1280,
         height: 720,
-        margin: 0.1
+        margin: 0.1,
+        keyboard: false
       })
 
       Reveal.on('ready', () => {
         ensureFontsLoaded()
         adjustAllSlideFontSizes()
+      })
+
+      window.addEventListener('keydown', (e) => {
+        window.parent.postMessage({
+          type: 'IFRAME_KEY_DOWN',
+          key: e.key,
+          keyCode: e.keyCode,
+          code: e.code,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          shiftKey: e.shiftKey,
+          altKey: e.altKey
+        }, '*')
       })
 
       // ══════════════════════════════════════════════════════════════════════════

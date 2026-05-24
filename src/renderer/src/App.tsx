@@ -271,7 +271,23 @@ function AppInner() {
 
     const updatedSlides = activePresentation.slides.map((s) => {
       if (s.id === editingSlide.id) {
-        const compiledHtml = compileSlideHtml(title, bullets, notes, layout, style, s.id)
+        // Extract existing image HTML if any to preserve it
+        let existingImageHtml: string | undefined = undefined
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(s.html, 'text/html')
+        const figure = doc.querySelector('figure.og-image-figure, figure.og-image-placeholder')
+        if (figure) {
+          existingImageHtml = figure.outerHTML
+        }
+        const compiledHtml = compileSlideHtml(
+          title,
+          bullets,
+          notes,
+          layout,
+          style,
+          s.id,
+          existingImageHtml
+        )
         return {
           ...s,
           title,
@@ -302,13 +318,22 @@ function AppInner() {
 
     const updatedSlides = activePresentation.slides.map((s) => {
       if (s.id === activeSlide.id) {
+        // Extract existing image HTML if any to preserve it
+        let existingImageHtml: string | undefined = undefined
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(s.html, 'text/html')
+        const figure = doc.querySelector('figure.og-image-figure, figure.og-image-placeholder')
+        if (figure) {
+          existingImageHtml = figure.outerHTML
+        }
         const compiledHtml = compileSlideHtml(
           s.title,
           bullets,
           s.notes,
           s.slideType,
           s.style || {},
-          s.id
+          s.id,
+          existingImageHtml
         )
         return {
           ...s,
@@ -511,22 +536,24 @@ function AppInner() {
               {/* Slide Canvas */}
               <div className="flex-1 p-8 min-h-0">
                 <ErrorBoundary>
-                  <SlidePreview
-                    slides={displayedSlides}
-                    activeTheme={activeTheme || themes[0]}
-                    status={status}
-                    aspectRatio={
-                      activePresentation?.aspectRatio ||
-                      currentConfigRef.current?.aspectRatio ||
-                      '16:9'
-                    }
-                    activeSlideIndex={activeSlideIndex}
-                    onActiveSlideChange={setActiveSlideIndex}
-                    bgMusicUrl={
-                      activePresentation ? activePresentation.bgMusicUrl : status.bgMusicUrl
-                    }
-                    audioMap={audioMap}
-                  />
+                  {!isPresenting && (
+                    <SlidePreview
+                      slides={displayedSlides}
+                      activeTheme={activeTheme || themes[0]}
+                      status={status}
+                      aspectRatio={
+                        activePresentation?.aspectRatio ||
+                        currentConfigRef.current?.aspectRatio ||
+                        '16:9'
+                      }
+                      activeSlideIndex={activeSlideIndex}
+                      onActiveSlideChange={setActiveSlideIndex}
+                      bgMusicUrl={
+                        activePresentation ? activePresentation.bgMusicUrl : status.bgMusicUrl
+                      }
+                      audioMap={audioMap}
+                    />
+                  )}
                 </ErrorBoundary>
               </div>
 

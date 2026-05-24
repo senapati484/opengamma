@@ -11,3 +11,18 @@
   --og-slide-radius: 12px;
   --og-slide-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
 }
+
+.reveal .card {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f3f4f6 !important;
+}
+.reveal .stat-block {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+.reveal .badge {
+  background: rgba(236, 72, 153, 0.1) !important;
+  border: 1px solid rgba(236, 72, 153, 0.2) !important;
+  color: #ec4899 !important;
+}

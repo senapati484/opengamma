@@ -27,7 +27,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   aspectRatio = '16:9',
   activeSlideIndex,
   onActiveSlideChange,
-  bgMusicUrl,
+  bgMusicUrl: _bgMusicUrl,
   audioMap
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -43,47 +43,9 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   const [isPlaying, setIsPlaying] = useState(false)
   const [autoAdvance, setAutoAdvance] = useState(true)
   const [isVoiceoverMuted, setIsVoiceoverMuted] = useState(false)
-  const [isBgMusicMuted, setIsBgMusicMuted] = useState(false)
   const [voiceoverVolume, _setVoiceoverVolume] = useState(1.0)
-  const [bgMusicVolume, setBgMusicVolume] = useState(0.15)
 
-  const bgMusicAudioRef = useRef<HTMLAudioElement | null>(null)
 
-  // Initialize bg music audio element
-  useEffect(() => {
-    bgMusicAudioRef.current = new Audio()
-    bgMusicAudioRef.current.loop = true
-    return () => {
-      bgMusicAudioRef.current?.pause()
-    }
-  }, [])
-
-  // Sync background music src & playback
-  useEffect(() => {
-    const bgAudio = bgMusicAudioRef.current
-    if (!bgAudio) return
-    if (bgMusicUrl) {
-      bgAudio.src = bgMusicUrl
-      bgAudio.load()
-      if (isPlaying && !isBgMusicMuted) {
-        bgAudio.play().catch((err) => console.log('[SlidePreview] BG music autoplay blocked:', err))
-      }
-    } else {
-      bgAudio.pause()
-    }
-  }, [bgMusicUrl])
-
-  // React to mute/volume/play changes for background music
-  useEffect(() => {
-    const bgAudio = bgMusicAudioRef.current
-    if (!bgAudio) return
-    bgAudio.volume = isBgMusicMuted ? 0 : bgMusicVolume
-    if (isPlaying && bgMusicUrl && !isBgMusicMuted) {
-      bgAudio.play().catch(() => {})
-    } else {
-      bgAudio.pause()
-    }
-  }, [isBgMusicMuted, bgMusicVolume, isPlaying, bgMusicUrl])
 
   // Sync audioMap to Reveal iframe
   useEffect(() => {
@@ -153,7 +115,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
 
   const hasVoiceover =
     slides.some((s) => s.voiceoverUrl) || (audioMap && Object.keys(audioMap).length > 0)
-  const hasAudio = !!bgMusicUrl || hasVoiceover
+  const hasAudio = hasVoiceover
 
   // ─── Direct DOM Injection Helper ───────────────────────────────────────────
   const reinjectAllSlides = () => {
@@ -195,7 +157,17 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   // ─── Handle Iframe Load ──────────────────────────────────────────────────
   const handleLoad = () => {
     setIsLoaded(true)
+    if (iframeRef.current) {
+      iframeRef.current.focus()
+    }
   }
+
+  // Focus the iframe on load to receive keyboard events
+  useEffect(() => {
+    if (isLoaded && iframeRef.current) {
+      iframeRef.current.focus()
+    }
+  }, [isLoaded])
 
   // ─── Watch aspect ratio changes ──────────────────────────────────────────
   useEffect(() => {
@@ -221,6 +193,11 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   // ─── Listen for SLIDE_CHANGED and AUDIO events from iframe ────────────────
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      // Security: Only accept messages from our own iframe
+      if (iframeRef.current && event.source !== iframeRef.current.contentWindow) {
+        return
+      }
+
       const data = event.data
       if (!data || typeof data !== 'object') return
 
@@ -232,6 +209,18 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
         setIsPlaying(true)
       } else if (data.type === 'AUDIO_PAUSED' || data.type === 'AUDIO_ENDED') {
         setIsPlaying(false)
+      } else if (data.type === 'IFRAME_KEY_DOWN') {
+        // Forward iframe key events to the parent window
+        const eventInit = {
+          key: data.key,
+          code: data.code,
+          ctrlKey: data.ctrlKey,
+          metaKey: data.metaKey,
+          shiftKey: data.shiftKey,
+          altKey: data.altKey,
+          bubbles: true
+        }
+        window.dispatchEvent(new KeyboardEvent('keydown', eventInit))
       }
     }
 
@@ -474,72 +463,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
             </div>
           )}
 
-          {/* Background Music Controls */}
-          {bgMusicUrl && (
-            <>
-              {hasVoiceover && <div className="w-px h-5 bg-white/10" />}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsBgMusicMuted(!isBgMusicMuted)}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    isBgMusicMuted
-                      ? 'text-neutral-500 hover:text-neutral-300'
-                      : 'text-[#e8ff57] hover:text-[#f3ff99]'
-                  }`}
-                  title={isBgMusicMuted ? 'Unmute Background Music' : 'Mute Background Music'}
-                >
-                  {isBgMusicMuted ? (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2.5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6L4.5 9H1.5v6h3l4.5 3.75V5.25z"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2.5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 19V6l12-3v13M9 10l12-3M9 21a3 3 0 11-6-0 3 3 0 016 0zm12-4a3 3 0 11-6-0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  )}
-                </button>
-
-                <span className="text-[10px] font-bold text-neutral-400">Ambient</span>
-
-                {/* Micro Volume Slider */}
-                <input
-                  type="range"
-                  min="0"
-                  max="0.5"
-                  step="0.01"
-                  value={bgMusicVolume}
-                  onChange={(e) => {
-                    setBgMusicVolume(parseFloat(e.target.value))
-                    if (isBgMusicMuted && parseFloat(e.target.value) > 0) {
-                      setIsBgMusicMuted(false)
-                    }
-                  }}
-                  className="w-12 h-1 bg-[#333] rounded-full appearance-none accent-[#e8ff57] cursor-pointer outline-none transition-all hover:w-16"
-                  title="Ambient Music Volume"
-                />
-              </div>
-            </>
-          )}
+          {/* Background Music Controls hidden */}
         </div>
       )}
     </div>

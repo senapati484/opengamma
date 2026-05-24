@@ -851,6 +851,20 @@ export async function regenerateSlide(
     slideCount: currentPresentation.slides.length
   }
 
+  const wrappedOnResult = async (newSlide: Slide) => {
+    if (newSlide.slideType === 'image' || newSlide.html.includes('og-image-placeholder')) {
+      try {
+        console.log(`[generator] Slide regeneration produced image slide or placeholder. Generating image...`)
+        await generateAndInjectImage(newSlide, pseudoConfig, settings, onResult)
+      } catch (err) {
+        console.error('[generator] Image generation failed for regenerated slide:', err)
+        onResult(newSlide)
+      }
+    } else {
+      onResult(newSlide)
+    }
+  }
+
   const slideToRegen = currentPresentation.slides[slideIndex]
   if (!slideToRegen) throw new Error(`Slide at index ${slideIndex} not found.`)
 
@@ -869,7 +883,7 @@ export async function regenerateSlide(
       { ...pseudoConfig, prompt: userPrompt },
       selected.executablePath,
       selected.id,
-      onResult,
+      wrappedOnResult,
       () => {},
       abortController.signal,
       settings
@@ -911,7 +925,7 @@ export async function regenerateSlide(
       sectionHtml = match[0]
     }
 
-    onResult(parseSlideHtml(sectionHtml, slideIndex))
+    wrappedOnResult(parseSlideHtml(sectionHtml, slideIndex))
     return
   }
 
@@ -930,7 +944,7 @@ export async function regenerateSlide(
       sectionHtml = match[0]
     }
 
-    onResult(parseSlideHtml(sectionHtml, slideIndex))
+    wrappedOnResult(parseSlideHtml(sectionHtml, slideIndex))
     return
   }
 
@@ -949,7 +963,7 @@ export async function regenerateSlide(
       sectionHtml = match[0]
     }
 
-    onResult(parseSlideHtml(sectionHtml, slideIndex))
+    wrappedOnResult(parseSlideHtml(sectionHtml, slideIndex))
     return
   }
 
@@ -968,7 +982,7 @@ export async function regenerateSlide(
       sectionHtml = match[0]
     }
 
-    onResult(parseSlideHtml(sectionHtml, slideIndex))
+    wrappedOnResult(parseSlideHtml(sectionHtml, slideIndex))
     return
   }
 
@@ -992,7 +1006,7 @@ export async function regenerateSlide(
     sectionHtml = match[0]
   }
 
-  onResult(parseSlideHtml(sectionHtml, slideIndex))
+  wrappedOnResult(parseSlideHtml(sectionHtml, slideIndex))
 }
 
 async function generateAndInjectImage(

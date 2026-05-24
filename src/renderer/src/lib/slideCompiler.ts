@@ -86,7 +86,8 @@ export function compileSlideHtml(
   notes: string,
   slideType: 'title' | 'content' | 'split' | 'data' | 'cta' | 'image' | 'stat' | 'quote',
   style: SlideStyle = {},
-  slug?: string
+  slug?: string,
+  existingImageHtml?: string
 ): string {
   // ── CSS variable injection ───────────────────────────────────────────────────
   const vars: string[] = []
@@ -295,14 +296,15 @@ export function compileSlideHtml(
     case 'image': {
       const heading = `<h2${titleStyle}>${title || 'Visual Context'}</h2>`
 
-      // Separate any figure placeholder from supporting bullets
-      const figureBullets = bullets.filter((b) => b.includes('og-image-placeholder'))
-      const textBullets = bullets.filter((b) => !b.includes('og-image-placeholder'))
+      // Separate any figure placeholder/image from supporting bullets
+      const figureBullets = bullets.filter((b) => b.includes('og-image-placeholder') || b.includes('og-image-figure'))
+      const textBullets = bullets.filter((b) => !b.includes('og-image-placeholder') && !b.includes('og-image-figure'))
 
       const figureHtml =
-        figureBullets.length > 0
+        existingImageHtml ||
+        (figureBullets.length > 0
           ? figureBullets[0]
-          : `<figure class="og-image-placeholder" data-prompt="${title} professional illustration, wide landscape, clean modern style, no text"></figure>`
+          : `<figure class="og-image-placeholder" data-prompt="${title} professional illustration, wide landscape, clean modern style, no text"></figure>`)
 
       const textHtml = textBullets.length > 0 ? compileItemsToHtml(textBullets, contentStyle) : ''
 

@@ -13,6 +13,244 @@ import * as fs from 'fs'
 import { exec } from 'child_process'
 import { themes } from '../renderer/src/lib/themes'
 
+const LAYOUT_CSS = `
+      /* Design System Token Mappings & Core Styles */
+      .reveal {
+        background: var(--og-slide-bg, #0d0d0d) !important;
+        color: var(--og-slide-text, #bab6ae) !important;
+      }
+      .reveal h1,
+      .reveal h2,
+      .reveal h3 {
+        font-family: var(--og-slide-font-heading, sans-serif) !important;
+        color: var(--og-slide-text, #ede9e1) !important;
+      }
+      .reveal p,
+      .reveal li {
+        font-family: var(--og-slide-font-body, sans-serif) !important;
+      }
+      .reveal section .accent {
+        color: var(--og-slide-accent, #e8ff57) !important;
+      }
+      .reveal section strong {
+        color: var(--og-slide-accent, #e8ff57) !important;
+      }
+      .reveal .slide-background {
+        background: var(--og-slide-bg, #0d0d0d) !important;
+      }
+
+      /* ── Image placeholder & figures ── */
+      figure.og-image-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 240px;
+        width: 100%;
+        border-radius: 14px;
+        background: linear-gradient(
+          110deg,
+          rgba(255, 255, 255, 0.04) 0%,
+          rgba(255, 255, 255, 0.08) 50%,
+          rgba(255, 255, 255, 0.04) 100%
+        );
+        background-size: 200% 100%;
+        animation: og-shimmer 1.6s ease-in-out infinite;
+        border: 1px dashed rgba(255, 255, 255, 0.12);
+        margin: 0;
+      }
+      figure.og-image-placeholder::after {
+        content: '⚡ Generating image…';
+        font-size: 0.75em;
+        color: rgba(255, 255, 255, 0.3);
+        font-family: 'Inter', sans-serif;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+      }
+      figure.og-image-figure {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0;
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      figure.og-image-figure img {
+        max-width: 100%;
+        max-height: 380px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      }
+      .og-img-left {
+        text-align: left;
+      }
+      .og-img-right {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 200px;
+      }
+      @keyframes og-shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      /* ── Design System Layouts ── */
+      .reveal .cols {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+        gap: 30px !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        margin-top: 25px !important;
+        text-align: left;
+      }
+      .reveal .col {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+      }
+
+      /* Premium Card UI */
+      .reveal .card {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: var(--og-slide-radius, 12px) !important;
+        padding: 24px !important;
+        box-sizing: border-box !important;
+        box-shadow: var(--og-slide-shadow, 0 10px 30px rgba(0, 0, 0, 0.2)) !important;
+        text-align: left !important;
+        backdrop-filter: blur(12px) !important;
+        transition:
+          transform 0.2s ease,
+          border-color 0.2s ease !important;
+      }
+      .reveal .card:hover {
+        border-color: rgba(255, 255, 255, 0.15) !important;
+      }
+      .reveal .card h3 {
+        margin-top: 0 !important;
+        margin-bottom: 12px !important;
+        font-size: 1.25em !important;
+        font-family: var(--og-slide-font-heading, sans-serif) !important;
+        color: var(--og-slide-text, #ede9e1) !important;
+      }
+      .reveal .card p {
+        margin: 0 !important;
+        font-size: 0.9em !important;
+        line-height: 1.5 !important;
+        color: var(--og-slide-text, #bab6ae) !important;
+        opacity: 0.9 !important;
+      }
+
+      /* Statistics Display */
+      .reveal .stat-block {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 24px !important;
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid var(--og-slide-border, rgba(255, 255, 255, 0.06)) !important;
+        border-radius: var(--og-slide-radius, 12px) !important;
+        box-sizing: border-box !important;
+        backdrop-filter: blur(8px) !important;
+        box-shadow: var(--og-slide-shadow, 0 8px 24px rgba(0, 0, 0, 0.15)) !important;
+      }
+      .reveal .stat-number {
+        font-size: 3.4em !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+        color: var(--og-slide-accent, #e8ff57) !important;
+        margin-bottom: 8px !important;
+        text-shadow: 0 0 15px rgba(232, 255, 87, 0.15) !important;
+        font-family: var(--og-slide-font-heading, sans-serif) !important;
+      }
+      .reveal .stat-label {
+        font-size: 0.8em !important;
+        font-weight: 700 !important;
+        color: var(--og-slide-text, #ede9e1) !important;
+        opacity: 0.8 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
+      }
+
+      /* Testimonials & Pull Quotes */
+      .reveal .quote-block {
+        border-left: 4px solid var(--og-slide-accent, #e8ff57) !important;
+        padding-left: 24px !important;
+        text-align: left !important;
+        margin: 30px auto !important;
+        max-width: 85% !important;
+        font-style: italic !important;
+        box-sizing: border-box !important;
+        background: rgba(255, 255, 255, 0.01) !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+        border-top-right-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
+      }
+      .reveal .quote-text {
+        font-size: 1.3em !important;
+        line-height: 1.4 !important;
+        font-weight: 500 !important;
+        margin-bottom: 12px !important;
+        color: var(--og-slide-text, #ede9e1) !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
+      }
+      .reveal .quote-author {
+        font-size: 0.85em !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        color: var(--og-slide-muted, #9ca3af) !important;
+        font-style: normal !important;
+        letter-spacing: 0.08em !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
+      }
+
+      /* Pill Badges */
+      .reveal .badge {
+        display: inline-block !important;
+        background: rgba(232, 255, 87, 0.1) !important;
+        border: 1px solid rgba(232, 255, 87, 0.2) !important;
+        color: var(--og-slide-accent, #e8ff57) !important;
+        padding: 5px 14px !important;
+        border-radius: 9999px !important;
+        font-size: 0.7em !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.12em !important;
+        margin-bottom: 20px !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
+      }
+
+      .reveal ul,
+      .reveal ol {
+        margin-top: 16px !important;
+        margin-bottom: 16px !important;
+        line-height: 1.5 !important;
+      }
+      .reveal li {
+        margin-bottom: 10px !important;
+      }
+
+      /* ── Stat / Quote / CTA blocks ── */
+      .cta-block {
+        background: var(--og-slide-accent, #e8ff57) !important;
+        color: #000 !important;
+        padding: 28px 32px;
+        border-radius: 14px;
+        text-align: center;
+      }
+`;
+
 // ─── Stub imports (filled in later sessions) ──────────────────────────────────
 // These modules will be implemented in their own files; referenced here as
 // typed stubs so the IPC layer compiles and the full shape is clear upfront.
@@ -71,7 +309,7 @@ async function getStore(): Promise<{
       defaults: {
         claudeApiKey: '',
         geminiApiKey: '',
-        defaultTheme: 'midnight',
+        defaultTheme: 'midnight-violet',
         defaultSlideCount: 8,
         defaultNarrative: 'explainer',
         defaultSaveLocation: '',
@@ -104,7 +342,7 @@ async function getStore(): Promise<{
       defaults: {
         claudeApiKey: '',
         geminiApiKey: '',
-        defaultTheme: 'midnight',
+        defaultTheme: 'midnight-violet',
         defaultSlideCount: 8,
         defaultNarrative: 'explainer',
         defaultSaveLocation: '',
@@ -258,6 +496,7 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
         height: 100%;
       }
       ${cssTokens}
+      ${LAYOUT_CSS}
       
       /* Scale down text in slides with images */
       .reveal section.has-image h1,
@@ -614,6 +853,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         height: 100%;
       }
       ${cssTokens}
+      ${LAYOUT_CSS}
       ${typographyStyles}
       ${presetStyles}
       ${marginStyles}
@@ -938,7 +1178,7 @@ export function registerIpcHandlers(): void {
       openaiApiKey: store.get('openaiApiKey', '') as string,
       deepseekApiKey: store.get('deepseekApiKey', '') as string,
       groqApiKey: store.get('groqApiKey', '') as string,
-      defaultTheme: store.get('defaultTheme', 'midnight') as string,
+      defaultTheme: store.get('defaultTheme', 'midnight-violet') as string,
       defaultSlideCount: store.get('defaultSlideCount', 8) as number,
       defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
       executionMode: store.get('executionMode', 'local-cli') as
@@ -1078,7 +1318,7 @@ export function registerIpcHandlers(): void {
         openaiApiKey: store.get('openaiApiKey', '') as string,
         deepseekApiKey: store.get('deepseekApiKey', '') as string,
         groqApiKey: store.get('groqApiKey', '') as string,
-        defaultTheme: store.get('defaultTheme', 'midnight') as string,
+        defaultTheme: store.get('defaultTheme', 'midnight-violet') as string,
         defaultSlideCount: store.get('defaultSlideCount', 8) as number,
         defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
         executionMode: store.get('executionMode', 'local-cli') as
@@ -1542,7 +1782,7 @@ export function registerIpcHandlers(): void {
       openaiApiKey: store.get('openaiApiKey', '') as string,
       deepseekApiKey: store.get('deepseekApiKey', '') as string,
       groqApiKey: store.get('groqApiKey', '') as string,
-      defaultTheme: store.get('defaultTheme', 'midnight') as string,
+      defaultTheme: store.get('defaultTheme', 'midnight-violet') as string,
       defaultSlideCount: store.get('defaultSlideCount', 8) as number,
       defaultNarrative: store.get('defaultNarrative', 'explainer') as string,
       executionMode: store.get('executionMode', 'local-cli') as

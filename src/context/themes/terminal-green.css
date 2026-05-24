@@ -11,3 +11,23 @@
   --og-slide-radius: 2px;
   --og-slide-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
 }
+
+.reveal .card {
+  background: #050b14 !important;
+  border: 1px solid #10b981 !important;
+  color: #e0e7ff !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15) !important;
+  border-radius: 2px !important;
+}
+.reveal .stat-block {
+  background: #050b14 !important;
+  border: 1px solid #10b981 !important;
+  border-radius: 2px !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.1) !important;
+}
+.reveal .badge {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  color: #10b981 !important;
+  border-radius: 2px !important;
+}

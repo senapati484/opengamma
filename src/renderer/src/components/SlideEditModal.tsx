@@ -131,6 +131,17 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
       .filter((b) => b.length > 0)
   }
 
+  // Extract existing image HTML if any
+  let existingImageHtml: string | undefined = undefined
+  if (slide?.html) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(slide.html, 'text/html')
+    const figure = doc.querySelector('figure.og-image-figure, figure.og-image-placeholder')
+    if (figure) {
+      existingImageHtml = figure.outerHTML
+    }
+  }
+
   // Compile full HTML using the slide compiler
   const compiledHtml = compileSlideHtml(
     title,
@@ -138,7 +149,8 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
     notes,
     layout,
     currentStyle,
-    slide?.id
+    slide?.id,
+    existingImageHtml
   )
 
   // 2. Sync visual customizer properties directly to live sandboxed Reveal preview frame
