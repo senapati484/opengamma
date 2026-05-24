@@ -1,3 +1,9 @@
+<img width="1710" height="1112" alt="Screenshot 2026-05-24 at 2 03 58 PM" src="https://github.com/user-attachments/assets/cd1ed6e1-6dad-42a2-a426-3e901f243e4d" />
+<img width="1710" height="1112" alt="Screenshot 2026-05-24 at 2 04 05 PM" src="https://github.com/user-attachments/assets/9abbe7ff-c729-4980-b52e-2cb050122753" />
+
+
+
+
 # Open Gamma — the open-source Gamma.app alternative
 
 > **Open Gamma is the premium, open-source, local-first alternative to [Gamma.app](https://gamma.app/).** Built on a modern Electron, React, and TypeScript desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security and BYOK model flexibility.
