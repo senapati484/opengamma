@@ -724,6 +724,7 @@ export async function generatePresentation(
           slidesGenerated: count,
           totalSlides: config.slideCount
         })
+        break
       } else if (settings.executionMode === 'openai-api') {
         await streamOpenAiCompatible(
           'https://api.openai.com/v1/chat/completions',

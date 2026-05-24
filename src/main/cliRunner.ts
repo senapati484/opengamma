@@ -8,6 +8,43 @@ import { extractCompleteSlides, parseSlideHtml } from './slideParser'
 import type { Slide, StreamStatus, GenerationConfig, AppSettings } from '../renderer/src/types'
 
 /**
+ * Helper to build the environment variables for child CLI processes.
+ * Forwards all API keys and prevents the "Both GOOGLE_API_KEY and GEMINI_API_KEY are set" warning.
+ */
+function buildChildEnv(settings?: AppSettings): Record<string, string> {
+  const env = { ...process.env } as Record<string, string>
+  env.NO_COLOR = '1'
+  env.FORCE_COLOR = '0'
+  env.GEMINI_CLI_TRUST_WORKSPACE = 'true'
+
+  if (settings?.geminiApiKey) {
+    env.GEMINI_API_KEY = settings.geminiApiKey
+    env.GOOGLE_API_KEY = settings.geminiApiKey
+  }
+  if (settings?.claudeApiKey) {
+    env.ANTHROPIC_API_KEY = settings.claudeApiKey
+    env.CLAUDE_API_KEY = settings.claudeApiKey
+  }
+  if (settings?.openaiApiKey) {
+    env.OPENAI_API_KEY = settings.openaiApiKey
+  }
+  if (settings?.deepseekApiKey) {
+    env.DEEPSEEK_API_KEY = settings.deepseekApiKey
+  }
+  if (settings?.groqApiKey) {
+    env.GROQ_API_KEY = settings.groqApiKey
+  }
+
+  // To prevent the "Both GOOGLE_API_KEY and GEMINI_API_KEY are set" warning from gemini-cli,
+  // we delete GOOGLE_API_KEY if GEMINI_API_KEY is also present.
+  if (env.GEMINI_API_KEY && env.GOOGLE_API_KEY) {
+    delete env.GOOGLE_API_KEY
+  }
+
+  return env
+}
+
+/**
  * Builds the CLI args array for a given CLI agent.
  * Returns { args, useStdin } where useStdin means the full prompt should be
  * piped to the process via stdin instead of being passed as an argument.
@@ -16,7 +53,8 @@ function buildCliArgs(
   cliId: string,
   systemPrompt: string,
   userPrompt: string,
-  tempFile: string
+  tempFile: string,
+  purpose: 'slides' | 'research' | 'music' = 'slides'
 ): { args: string[]; useStdin: boolean } {
   const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${userPrompt}`
 
@@ -32,10 +70,19 @@ function buildCliArgs(
       // so Gemini has nothing to scan and responds purely to the prompt.
       // The -p flag is what triggers non-interactive/headless mode.
       // We pipe the long prompt via stdin to avoid macOS/CLI argument limit/parsing issues.
+      let geminiPrompt = ''
+      if (purpose === 'research') {
+        geminiPrompt = 'Research the topic and output a structured outline/blueprint plan in Markdown.'
+      } else if (purpose === 'music') {
+        geminiPrompt = 'Analyze the presentation topic and select the best soundtrack name from the list.'
+      } else {
+        geminiPrompt = 'Generate raw Reveal.js slide sections based on the system prompt and instructions provided on stdin.'
+      }
+
       return {
         args: [
           '-p',
-          'Generate slides based on the system prompt and instructions provided on stdin.',
+          geminiPrompt,
           '--approval-mode',
           'plan',
           '-o',
@@ -71,6 +118,13 @@ function buildCliArgs(
       // qwen --print "<prompt>" (similar to claude-code)
       return {
         args: ['--print', fullPrompt],
+        useStdin: false
+      }
+
+    case 'kimi-cli':
+      // kimi --print --quiet "<prompt>"
+      return {
+        args: ['--print', '--quiet', fullPrompt],
         useStdin: false
       }
 
@@ -117,27 +171,14 @@ export async function generateWithCLI(
     await fs.promises.mkdir(workDir, { recursive: true })
 
     const userPrompt = config.prompt
-    const { args, useStdin } = buildCliArgs(cliId, systemPrompt, userPrompt, tempFile)
+    const { args, useStdin } = buildCliArgs(cliId, systemPrompt, userPrompt, tempFile, 'slides')
 
     console.log(`[cliRunner] Spawning ${cliId} at path: ${cliPath} cwd: ${workDir}`)
 
     const child = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       cwd: workDir,
-      env: {
-        ...process.env,
-        // Suppress color codes so our parser isn't confused by ANSI sequences
-        NO_COLOR: '1',
-        FORCE_COLOR: '0',
-        // Tell Gemini CLI to trust this workspace automatically (needed in headless mode
-        // when the cwd is not already in Gemini's trusted-folders list)
-        GEMINI_CLI_TRUST_WORKSPACE: 'true',
-        // Pass API keys to CLI environment
-        GEMINI_API_KEY: settings?.geminiApiKey || '',
-        GOOGLE_API_KEY: settings?.geminiApiKey || '',
-        ANTHROPIC_API_KEY: settings?.claudeApiKey || '',
-        CLAUDE_API_KEY: settings?.claudeApiKey || ''
-      }
+      env: buildChildEnv(settings)
     })
 
     // For CLIs that read from stdin
@@ -304,24 +345,14 @@ export async function runResearchWithCLI(
     await fs.promises.mkdir(workDir, { recursive: true })
 
     const userPrompt = `Please research the topic: "${config.prompt}" and provide a slide-by-slide concepts plan for a ${config.slideCount}-slide presentation.`
-    const { args, useStdin } = buildCliArgs(cliId, systemPrompt, userPrompt, tempFile)
+    const { args, useStdin } = buildCliArgs(cliId, systemPrompt, userPrompt, tempFile, 'research')
 
     console.log(`[cliRunner] Spawning CLI for research: ${cliId} cwd: ${workDir}`)
 
     const child = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       cwd: workDir,
-      env: {
-        ...process.env,
-        NO_COLOR: '1',
-        FORCE_COLOR: '0',
-        GEMINI_CLI_TRUST_WORKSPACE: 'true',
-        // Pass API keys to CLI environment
-        GEMINI_API_KEY: settings?.geminiApiKey || '',
-        GOOGLE_API_KEY: settings?.geminiApiKey || '',
-        ANTHROPIC_API_KEY: settings?.claudeApiKey || '',
-        CLAUDE_API_KEY: settings?.claudeApiKey || ''
-      }
+      env: buildChildEnv(settings)
     })
 
     if (useStdin) {
@@ -401,23 +432,14 @@ export async function runMusicQueryWithCLI(
     await fs.promises.writeFile(tempFile, systemPrompt, 'utf-8')
     await fs.promises.mkdir(workDir, { recursive: true })
 
-    const { args, useStdin } = buildCliArgs(cliId, systemPrompt, prompt, tempFile)
+    const { args, useStdin } = buildCliArgs(cliId, systemPrompt, prompt, tempFile, 'music')
 
     console.log(`[cliRunner-music] Spawning CLI for music query: ${cliId} cwd: ${workDir}`)
 
     const child = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       cwd: workDir,
-      env: {
-        ...process.env,
-        NO_COLOR: '1',
-        FORCE_COLOR: '0',
-        GEMINI_CLI_TRUST_WORKSPACE: 'true',
-        GEMINI_API_KEY: settings?.geminiApiKey || '',
-        GOOGLE_API_KEY: settings?.geminiApiKey || '',
-        ANTHROPIC_API_KEY: settings?.claudeApiKey || '',
-        CLAUDE_API_KEY: settings?.claudeApiKey || ''
-      }
+      env: buildChildEnv(settings)
     })
 
     if (useStdin) {
