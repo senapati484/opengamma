@@ -9,10 +9,10 @@
 > All draft presentations, generated assets, slide history, and system settings are securely stored locally inside a lightweight, fast, local SQLite database. No cloud lock-in, no recurring subscription fees.
 
 <p align="center">
-  <a href="https://github.com/senapati484/opengamma/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=ffd700&logo=github&logoColor=white" /></a>
-  <a href="https://github.com/senapati484/opengamma/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=2ecc71&logo=github&logoColor=white" /></a>
-  <a href="https://github.com/senapati484/opengamma/issues"><img alt="Issues" src="https://img.shields.io/github/issues/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=ff6b6b&logo=github&logoColor=white" /></a>
-  <a href="https://github.com/senapati484/opengamma/pulls"><img alt="Pull Requests" src="https://img.shields.io/github/issues-pr/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=9b59b6&logo=github&logoColor=white" /></a>
+  <a href="https://github.com/senapati484/opengamma/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=ffd700&logo=github&logoColor=white&v=2" /></a>
+  <a href="https://github.com/senapati484/opengamma/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=2ecc71&logo=github&logoColor=white&v=2" /></a>
+  <a href="https://github.com/senapati484/opengamma/issues"><img alt="Issues" src="https://img.shields.io/github/issues/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=ff6b6b&logo=github&logoColor=white&v=2" /></a>
+  <a href="https://github.com/senapati484/opengamma/pulls"><img alt="Pull Requests" src="https://img.shields.io/github/issues-pr/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=9b59b6&logo=github&logoColor=white&v=2" /></a>
 </p>
 
 <p align="center">
