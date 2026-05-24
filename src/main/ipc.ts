@@ -621,16 +621,22 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         box-sizing: border-box !important;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
         text-align: left !important;
+        backdrop-filter: blur(12px) !important;
       }
       .reveal .card h3 {
         margin-top: 0 !important;
         margin-bottom: 12px !important;
         font-size: 1.25em !important;
+        font-family: var(--og-slide-font-heading, sans-serif) !important;
+        color: var(--og-slide-text, #ede9e1) !important;
       }
       .reveal .card p {
         margin: 0 !important;
         font-size: 0.9em !important;
         line-height: 1.5 !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
+        color: var(--og-slide-text, #bab6ae) !important;
+        opacity: 0.9 !important;
       }
 
       /* Statistics Display */
@@ -639,11 +645,13 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         flex-direction: column !important;
         align-items: center !important;
         text-align: center !important;
-        padding: 20px !important;
+        padding: 24px !important;
         background: rgba(255, 255, 255, 0.02) !important;
         border: 1px solid rgba(255, 255, 255, 0.06) !important;
         border-radius: 12px !important;
         box-sizing: border-box !important;
+        backdrop-filter: blur(8px) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
       }
       .reveal .stat-number {
         font-size: 3.4em !important;
@@ -652,6 +660,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         color: var(--og-slide-accent, #e8ff57) !important;
         margin-bottom: 8px !important;
         text-shadow: 0 0 15px rgba(232, 255, 87, 0.15) !important;
+        font-family: var(--og-slide-font-heading, sans-serif) !important;
       }
       .reveal .stat-label {
         font-size: 0.8em !important;
@@ -660,6 +669,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         opacity: 0.8 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.1em !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
       }
 
       /* Testimonials & Pull Quotes */
@@ -671,6 +681,11 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         max-width: 85% !important;
         font-style: italic !important;
         box-sizing: border-box !important;
+        background: rgba(255, 255, 255, 0.01) !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+        border-top-right-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
       }
       .reveal .quote-text {
         font-size: 1.3em !important;
@@ -678,6 +693,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         font-weight: 500 !important;
         margin-bottom: 12px !important;
         color: var(--og-slide-text, #ede9e1) !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
       }
       .reveal .quote-author {
         font-size: 0.85em !important;
@@ -686,6 +702,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         color: var(--og-slide-muted, #9ca3af) !important;
         font-style: normal !important;
         letter-spacing: 0.08em !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
       }
 
       /* Pill Badges */
@@ -701,6 +718,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         text-transform: uppercase !important;
         letter-spacing: 0.12em !important;
         margin-bottom: 20px !important;
+        font-family: var(--og-slide-font-body, sans-serif) !important;
       }
 
       @media print {
