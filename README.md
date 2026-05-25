@@ -7,18 +7,15 @@
   <a href="https://github.com/senapati484/opengamma/pulls"><img alt="Pull Requests" src="https://img.shields.io/github/issues-pr/senapati484/opengamma?style=for-the-badge&labelColor=0d1117&color=9b59b6&logo=github&logoColor=white&v=2" /></a>
 </p>
 
+### _The premium, local-first, open-source alternative to Gamma.app_
+<p align="center">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square" /></a>
+  <a href="#key-features"><img alt="Features" src="https://img.shields.io/badge/features-interactive%20editor%20%2B%20exporter-orange?style=flat-square" /></a>
+  <a href="#keyboard-shortcuts"><img alt="Shortcuts" src="https://img.shields.io/badge/shortcuts-global%20hotkeys-teal?style=flat-square" /></a>
+</p>
+
 <img width="1710" height="1112" alt="ss2" src="https://github.com/user-attachments/assets/a506c62e-8fd2-426a-8d9b-6f7ea8919a3e" />
 <img width="1710" height="1112" alt="ss1" src="https://github.com/user-attachments/assets/910faaf4-e5f9-4416-8fe2-12c5c0e0e943" />
-
----
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/9abbe7ff-c729-4980-b52e-2cb050122753" width="100%" alt="Open Gamma Dashboard" />
-</p>
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/cd1ed6e1-6dad-42a2-a426-3e901f243e4d" width="100%" alt="Open Gamma Slide Editor" />
-</p>
 
 <p align="center">
   <a href="https://sourceforge.net/projects/open-gamma/files/latest/download"><img alt="Download Open Gamma" src="https://a.fsdn.com/con/app/sf-download-button" /></a>
