@@ -1331,6 +1331,11 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
       Reveal.on('ready', () => {
         ensureFontsLoaded();
         adjustAllSlideFontSizes();
+
+        // Inject page size and orientation overrides to ensure Chromium print engine matches user choice
+        const style = document.createElement('style');
+        style.textContent = '@page { size: ${ (options.pageSize || 'A4') === 'Letter' ? 'letter' : 'A4' } ${ (options.orientation || 'landscape') === 'portrait' ? 'portrait' : 'landscape' }; margin: 0; }';
+        document.head.appendChild(style);
       });
     </script>
   </body>
@@ -1688,11 +1693,9 @@ export function registerIpcHandlers(): void {
             pageSize: exportOptions.pageSize || 'A4',
             landscape: exportOptions.orientation !== 'portrait',
             printBackground: true,
+            preferCSSPageSize: true,
             margins: {
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0
+              marginType: 'none' as any
             }
           }
 
