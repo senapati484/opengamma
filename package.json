@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./dist-electron/main/index.js",
-  "author": "senapati484",
+  "author": "senapati484 <sayansenapati2544@gmail.com>",
   "homepage": "https://opengamma.vercel.app",
   "scripts": {
     "format": "prettier --write .",
@@ -98,7 +98,8 @@
         "AppImage",
         "deb"
       ],
-      "icon": "resources/icon.png"
+      "icon": "resources/icon.png",
+      "category": "Office"
     },
     "publish": {
       "provider": "github",
