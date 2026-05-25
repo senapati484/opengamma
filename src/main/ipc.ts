@@ -2206,7 +2206,13 @@ export function registerIpcHandlers(): void {
         total: presentation.slides.length
       })
 
-      // 2. Initialize KokoroTTS
+      const path = require('path')
+      const fs = require('fs')
+
+      // 2. Initialize KokoroTTS with local app cache directory
+      const { env } = await import('@huggingface/transformers')
+      env.cacheDir = path.join(app.getPath('userData'), 'model_cache')
+
       const { KokoroTTS } = await import('kokoro-js')
       const tts = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
         dtype: 'q8',
@@ -2214,8 +2220,6 @@ export function registerIpcHandlers(): void {
       })
 
       // 3. Create persistent voiceovers directory inside userData folder
-      const path = require('path')
-      const fs = require('fs')
       const outputDir = path.join(app.getPath('userData'), 'voiceovers', presentation.id)
       await fs.promises.mkdir(outputDir, { recursive: true })
 

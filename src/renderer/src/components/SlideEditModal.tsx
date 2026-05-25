@@ -560,7 +560,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
             <div className="flex-1 flex items-center justify-center min-h-[300px] border border-white/10 rounded-xl overflow-hidden shadow-2xl relative bg-[#090909]">
               <iframe
                 ref={previewIframeRef}
-                src="/reveal-host.html"
+                src="./reveal-host.html"
                 onLoad={() => setIframeLoaded(true)}
                 className="w-full h-full border-none outline-none bg-transparent"
                 style={{ aspectRatio: '16/9', maxHeight: '100%', maxWidth: '100%' }}

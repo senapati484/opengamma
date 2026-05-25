@@ -321,7 +321,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
       {/* Self-contained Reveal.js Preview Window */}
       <iframe
         ref={iframeRef}
-        src="/reveal-host.html"
+        src="./reveal-host.html"
         onLoad={handleLoad}
         style={{
           aspectRatio: cssAspectRatio,

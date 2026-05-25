@@ -71,6 +71,10 @@
       "src/context/**/*",
       "resources/**/*"
     ],
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**/*",
+      "**/node_modules/onnxruntime-node/**/*"
+    ],
     "mac": {
       "target": [
         "dmg",
