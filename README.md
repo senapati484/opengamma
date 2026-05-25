@@ -14,8 +14,8 @@
   <a href="#keyboard-shortcuts"><img alt="Shortcuts" src="https://img.shields.io/badge/shortcuts-global%20hotkeys-teal?style=flat-square" /></a>
 </p>
 
-<img width="1710" height="1112" alt="ss2" src="https://github.com/user-attachments/assets/a506c62e-8fd2-426a-8d9b-6f7ea8919a3e" />
 <img width="1710" height="1112" alt="ss1" src="https://github.com/user-attachments/assets/910faaf4-e5f9-4416-8fe2-12c5c0e0e943" />
+<img width="1710" height="1112" alt="ss2" src="https://github.com/user-attachments/assets/a506c62e-8fd2-426a-8d9b-6f7ea8919a3e" />
 
 
 <p align="center">
