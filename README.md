@@ -20,6 +20,16 @@
   <img src="https://github.com/user-attachments/assets/cd1ed6e1-6dad-42a2-a426-3e901f243e4d" width="49%" alt="Open Gamma Slide Editor" />
 </p>
 
+<p align="center">
+  <a href="https://sourceforge.net/projects/open-gamma/files/latest/download"><img alt="Download Open Gamma" src="https://a.fsdn.com/con/app/sf-download-button" /></a>
+</p>
+
+<p align="center">
+  <a href="https://sourceforge.net/projects/open-gamma/files/latest/download"><img alt="Download Stats" src="https://img.shields.io/sourceforge/dt/open-gamma.svg" /></a>
+  &nbsp;&nbsp;
+  <a href="https://sourceforge.net/p/open-gamma/"><img alt="SourceForge" src="https://sourceforge.net/sflogo.php?type=17&amp;group_id=4098199" width="120" /></a>
+</p>
+
 > **Open Gamma is the premium, open-source, local-first alternative to [Gamma.app](https://gamma.app/).** Built on a modern Electron, React, and TypeScript desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security and BYOK model flexibility.
 
 > [!IMPORTANT]
@@ -27,6 +37,33 @@
 > ### 🚀 Local AI Slide Generation & Complete Privacy
 >
 > All draft presentations, generated assets, slide history, and system settings are securely stored locally inside a lightweight, fast, local SQLite database. No cloud lock-in, no recurring subscription fees.
+
+---
+
+## 📥 Download v1.0.0
+
+| Platform | Installer File | Size | Link |
+| :--- | :--- | :--- | :--- |
+| **Windows** | `Open Gamma 1.0.0.exe` | 312.2 MB | [Download](https://sourceforge.net/projects/open-gamma/files/v1.0.0/Open%20Gamma%201.0.0.exe/download) |
+| **macOS (Apple Silicon)** | `Open Gamma-1.0.0-arm64.dmg` | 356.6 MB | [Download](https://sourceforge.net/projects/open-gamma/files/v1.0.0/Open%20Gamma-1.0.0-arm64.dmg/download) |
+| **Linux (AppImage)** | `Open Gamma-1.0.0-arm64.AppImage` | 351.1 MB | [Download](https://sourceforge.net/projects/open-gamma/files/v1.0.0/Open%20Gamma-1.0.0-arm64.AppImage/download) |
+
+<details>
+<summary><b>🖥️ Installation Instructions</b></summary>
+
+### Windows
+1. Download the `.exe` installer.
+2. Double-click to run and follow the wizard.
+
+### macOS (Apple Silicon / ARM64)
+1. Download the `.dmg` file.
+2. Open the DMG file and drag **Open Gamma** to your **Applications** folder.
+
+### Linux
+1. Download the `.AppImage` file.
+2. Make it executable: `chmod +x Open\ Gamma-1.0.0-arm64.AppImage`.
+3. Run it: `./Open\ Gamma-1.0.0-arm64.AppImage`.
+</details>
 
 ---
 
