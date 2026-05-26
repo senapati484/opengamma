@@ -126,7 +126,7 @@ function AppInner() {
     onEscape: () => {
       if (isPresenting) {
         setIsPresenting(false)
-      } else if (status.state === 'generating' || status.state === 'researching') {
+      } else if (status.state === 'generating' || status.state === 'researching' || status.state === 'imaging') {
         cancel()
       } else if (editingSlide) {
         setEditingSlide(null)
@@ -201,7 +201,7 @@ function AppInner() {
 
   // Effect: Sync active presentation with streamed slides during generation
   useEffect(() => {
-    if (status.state === 'generating' || status.state === 'researching') {
+    if (status.state === 'generating' || status.state === 'researching' || status.state === 'imaging') {
       setActivePresentation(null)
       setCurrentView('editor')
     }
@@ -391,7 +391,7 @@ function AppInner() {
         {currentView !== 'export-studio' && (
           <LeftPanel
             onGenerate={handleGenerate}
-            isGenerating={status.state === 'generating' || status.state === 'researching'}
+            isGenerating={status.state === 'generating' || status.state === 'researching' || status.state === 'imaging'}
             onCancel={cancel}
             settings={settings}
             onOpenSettings={() => setShowSettings(true)}
@@ -460,6 +460,11 @@ function AppInner() {
                   {status.state === 'generating' && (
                     <div className="text-[9px] font-bold text-[#e8ff57] uppercase tracking-widest animate-pulse">
                       Writing slide {status.slidesGenerated} of {status.totalSlides}
+                    </div>
+                  )}
+                  {status.state === 'imaging' && (
+                    <div className="text-[9px] font-bold text-[#a78bfa] uppercase tracking-widest animate-pulse">
+                      Generating images {status.imagesGenerated ?? 0}/{status.totalImages ?? '...'}
                     </div>
                   )}
                 </div>

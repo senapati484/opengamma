@@ -252,7 +252,35 @@ export async function generatePresentation(
       ;(async () => {
         try {
           if (imagePromises.length > 0) {
-            await Promise.all(imagePromises)
+            // Emit 'imaging' state so the UI shows progress instead of appearing frozen
+            let imagesCompleted = 0
+            const total = imagePromises.length
+            onStatus({
+              state: 'imaging',
+              slidesGenerated: status.slidesGenerated,
+              totalSlides: status.totalSlides,
+              imagesGenerated: 0,
+              totalImages: total
+            })
+
+            // Race each image promise against a 35-second hard timeout
+            const safeImagePromises = imagePromises.map((p) =>
+              Promise.race([
+                p.then(() => {
+                  imagesCompleted++
+                  onStatus({
+                    state: 'imaging',
+                    slidesGenerated: status.slidesGenerated,
+                    totalSlides: status.totalSlides,
+                    imagesGenerated: imagesCompleted,
+                    totalImages: total
+                  })
+                }),
+                new Promise<void>((resolve) => setTimeout(resolve, 35000))
+              ])
+            )
+
+            await Promise.allSettled(safeImagePromises)
           }
           if (config.generateBgMusic) {
             bgMusicBase64 = await fetchMusicBase64(
@@ -267,6 +295,7 @@ export async function generatePresentation(
         } finally {
           onStatus({
             ...status,
+            state: 'done',
             bgMusicUrl: bgMusicBase64
           })
         }
@@ -1024,16 +1053,26 @@ async function generateAndInjectImage(
   if (!section) return
 
   // ── 1. Determine the image generation prompt ──────────────────────────────
-  // Priority: data-prompt on <figure class="og-image-placeholder"> → slide title + bullets
-  const placeholder = section.querySelector('figure.og-image-placeholder')
+  // Priority: imagePrompt on slide -> data-prompt on .og-image-placeholder -> fallback
+  const placeholder = section.querySelector('.og-image-placeholder')
   let generatedPrompt = ''
 
-  if (placeholder) {
+  const imagePrompt = (slide as any).imagePrompt
+  if (imagePrompt && imagePrompt.trim()) {
+    generatedPrompt = imagePrompt.trim()
+  } else if (placeholder) {
     // Use the explicit prompt the LLM wrote — it's always more accurate
     const explicitPrompt = placeholder.getAttribute('data-prompt') || ''
     if (explicitPrompt.trim()) {
       generatedPrompt = explicitPrompt.trim()
     }
+  }
+
+  // Log a warning if imagePrompt is missing for a slide with data-slide-type of "image" or "split"
+  if (!imagePrompt && (slide.slideType === 'image' || slide.slideType === 'split')) {
+    console.warn(
+      `[generator] Warning: imagePrompt is missing for slide index ${slide.index} with slideType "${slide.slideType}"`
+    )
   }
 
   if (!generatedPrompt) {
@@ -1047,12 +1086,11 @@ async function generateAndInjectImage(
             .trim()
         : ''
     if (slideTitle && firstBullet) {
-      generatedPrompt = `Professional visual for: ${slideTitle} — ${firstBullet}. Clean, modern corporate illustration, premium presentation aesthetics, wide landscape, no text.`
+      generatedPrompt = `${slideTitle} — ${firstBullet}`
     } else if (slideTitle) {
-      generatedPrompt = `Minimalist professional graphic for: ${slideTitle}. Premium corporate style, wide landscape, no text overlays.`
+      generatedPrompt = slideTitle
     } else {
-      generatedPrompt =
-        'Abstract modern technology background, geometric shapes, clean minimalist corporate style, wide landscape'
+      generatedPrompt = 'Abstract modern technology background'
     }
   }
 
@@ -1104,12 +1142,50 @@ async function generateAndInjectImage(
     }
   }
 
+  let base64data = ''
+
   try {
     if (!arrayBuffer || arrayBuffer.byteLength === 0) {
-      throw lastError || new Error('Failed to generate image after multiple attempts')
+      console.warn(
+        '[generator] Pollinations image generation failed or timed out. Attempting Unsplash fallback... Error:',
+        lastError?.message || lastError
+      )
+      const keywords = (slide.title || 'abstract technology')
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .split(/\s+/)
+        .filter((w) => w.length > 2)
+        .slice(0, 3)
+        .join(',') || 'abstract';
+      const fallbackUrl = `https://images.unsplash.com/featured/1024x576/?${encodeURIComponent(keywords)}`;
+      try {
+        const fallbackResponse = await fetch(fallbackUrl, { signal: abortSignal });
+        if (fallbackResponse.ok) {
+          arrayBuffer = await fallbackResponse.arrayBuffer();
+        }
+      } catch (fallbackErr: any) {
+        console.warn('[generator] Fallback Unsplash image fetch failed:', fallbackErr.message);
+      }
     }
-    const buffer = Buffer.from(arrayBuffer)
-    const base64data = `data:image/jpeg;base64,${buffer.toString('base64')}`
+
+    if (arrayBuffer && arrayBuffer.byteLength > 0) {
+      const buffer = Buffer.from(arrayBuffer)
+      base64data = `data:image/jpeg;base64,${buffer.toString('base64')}`
+    } else {
+      console.warn('[generator] Both Pollinations and Unsplash failed. Using high-fidelity custom SVG placeholder.');
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 576" width="1024" height="576">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#0d0d0d;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grad)" />
+        <circle cx="512" cy="288" r="180" fill="#e8ff57" opacity="0.03" />
+        <path d="M 0 576 Q 256 384 512 576 T 1024 576" fill="#e8ff57" opacity="0.05" />
+        <text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#ede9e1" opacity="0.15">${slide.title || 'Slide Visual'}</text>
+      </svg>`
+      base64data = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
+    }
 
     if (abortSignal?.aborted) return
 
@@ -1122,7 +1198,6 @@ async function generateAndInjectImage(
       placeholder.removeAttribute('data-prompt')
       placeholder.classList.remove('og-image-placeholder')
       placeholder.classList.add('og-image-figure')
-      section.classList.add('og-full-bleed-split')
     } else {
       // No placeholder: inject as a right-column split layout if slide is 'content' type
       section.classList.add('og-full-bleed-split')

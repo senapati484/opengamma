@@ -7,6 +7,58 @@ import { registerIpcHandlers } from './ipc'
 import { initDb } from './db'
 import { createApplicationMenu } from './menu'
 import { initUpdater } from './updater'
+import * as os from 'os'
+import * as path from 'path'
+
+// ─── PATH Enrichment (packaged app fix) ───────────────────────────────────────
+// Electron packaged apps on macOS/Linux start without the user's shell PATH.
+// This means CLIs installed via Homebrew, npm global, nvm etc. are invisible.
+// We inject known install directories at startup so child processes can find them.
+function enrichProcessPath(): void {
+  const home = os.homedir()
+  const platform = process.platform
+
+  const extraPaths: string[] = []
+
+  if (platform === 'darwin' || platform === 'linux') {
+    extraPaths.push(
+      '/opt/homebrew/bin',          // Homebrew (Apple Silicon)
+      '/opt/homebrew/sbin',
+      '/usr/local/bin',             // Homebrew (Intel) / system
+      '/usr/local/sbin',
+      '/usr/bin',
+      '/bin',
+      '/usr/sbin',
+      '/sbin',
+      path.join(home, '.volta', 'bin'),      // Volta
+      path.join(home, '.npm-global', 'bin'), // npm global (custom prefix)
+      path.join(home, '.yarn', 'bin'),       // Yarn global
+      path.join(home, '.pnpm', 'bin'),       // pnpm global
+      path.join(home, '.local', 'bin'),      // Linux user local bin
+      path.join(home, '.cargo', 'bin'),      // Cargo/Rust
+      path.join(home, 'bin'),
+      '/opt/local/bin',                      // MacPorts
+    )
+  } else if (platform === 'win32') {
+    const appData = process.env.APPDATA || path.join(home, 'AppData', 'Roaming')
+    const localAppData = process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local')
+    extraPaths.push(
+      path.join(appData, 'npm'),
+      path.join(localAppData, 'Programs', 'nodejs'),
+    )
+  }
+
+  const currentPath = process.env.PATH || ''
+  const currentPaths = new Set(currentPath.split(path.delimiter).filter(Boolean))
+
+  const newPaths = extraPaths.filter((p) => !currentPaths.has(p))
+  if (newPaths.length > 0) {
+    process.env.PATH = [...newPaths, ...currentPaths].join(path.delimiter)
+    console.log('[main] Enriched PATH with extra dirs:', newPaths.join(', '))
+  }
+}
+
+enrichProcessPath()
 
 // Register privileged scheme before app is ready
 protocol.registerSchemesAsPrivileged([

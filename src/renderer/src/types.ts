@@ -105,7 +105,7 @@ export interface GenerationConfig {
 
 // ─── StreamStatus ─────────────────────────────────────────────────────────────
 
-export type StreamState = 'idle' | 'researching' | 'generating' | 'done' | 'error'
+export type StreamState = 'idle' | 'researching' | 'generating' | 'imaging' | 'done' | 'error'
 
 export interface StreamStatus {
   /** Current generation lifecycle state */
@@ -114,6 +114,10 @@ export interface StreamStatus {
   slidesGenerated: number
   /** Total slides expected (from GenerationConfig.slideCount) */
   totalSlides: number
+  /** Number of images generated so far (during 'imaging' state) */
+  imagesGenerated?: number
+  /** Total images to generate (during 'imaging' state) */
+  totalImages?: number
   /** Human-readable error detail, present only when state === 'error' */
   errorMessage?: string
   /** Generated background music loop URL passed at completion */

@@ -125,6 +125,10 @@ const LAYOUT_CSS = `
         text-align: left !important;
         box-sizing: border-box !important;
       }
+      .reveal .slides section.og-full-bleed-split.past,
+      .reveal .slides section.og-full-bleed-split.future {
+        display: none !important;
+      }
       section.og-full-bleed-split .og-split-layout {
         flex: 1 1 0% !important;
         min-height: 0 !important;
@@ -147,7 +151,7 @@ const LAYOUT_CSS = `
       .og-text-column {
         display: flex !important;
         flex-direction: column !important;
-        justify-content: center !important;
+        justify-content: safe center !important;
         padding: 60px 60px 60px 80px !important;
         box-sizing: border-box !important;
         text-align: left !important;
@@ -207,6 +211,7 @@ const LAYOUT_CSS = `
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
         border: 1px solid var(--og-slide-border, rgba(255, 255, 255, 0.08)) !important;
         border-radius: 12px !important;
+        max-width: 100% !important;
       }
 
       /* ── Design System Layouts ── */
@@ -678,20 +683,13 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
       ${cssTokens}
       ${LAYOUT_CSS}
       
-      /* Scale down text in slides with images */
-      .reveal section.has-image h1,
-      .reveal section.has-image h2 {
-        font-size: 1.6em !important;
-      }
-      .reveal section.has-image p,
-      .reveal section.has-image li {
-        font-size: 0.6em !important;
-        line-height: 1.25 !important;
-      }
-      .reveal section.has-image img {
-        max-height: 200px !important;
-        object-fit: contain;
-        margin-top: 10px !important;
+      /* NOTE: Auto font-size shrink is handled dynamically by adjustSlideFontSize() in JS */
+      /* Image-containing slides: constrain the image so text has room */
+      .reveal section.has-image:not(.og-full-bleed-split) img {
+        max-height: 300px !important;
+        object-fit: contain !important;
+        margin-top: 8px !important;
+        margin-bottom: 4px !important;
       }
     </style>
   </head>
@@ -746,33 +744,68 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
       function adjustSlideFontSize(section) {
         if (!section) return;
         
-        section.style.fontSize = '';
-
-        const config = Reveal.getConfig();
-        const maxHeight = config.height * 0.85;
-        const maxWidth = config.width * 0.90;
+        const hasImg = section.querySelector('img, figure, .og-image-placeholder, .og-image-figure');
+        if (hasImg) {
+          section.classList.add('has-image');
+        } else {
+          section.classList.remove('has-image');
+        }
+        
+        const isSplit = section.classList && section.classList.contains('og-full-bleed-split');
+        const textCol = isSplit ? section.querySelector('.og-text-column') : null;
+        const targetElement = textCol || section;
+        
+        targetElement.style.fontSize = '';
 
         const prevDisplay = section.style.display;
+        const prevDisplayPriority = section.style.getPropertyPriority('display');
         const prevVisibility = section.style.visibility;
         const prevPosition = section.style.position;
 
-        section.style.display = 'block';
+        section.style.setProperty('display', isSplit ? 'flex' : 'block', 'important');
         section.style.visibility = 'hidden';
         section.style.position = 'absolute';
+
+        let maxH, maxW;
+        const config = Reveal.getConfig();
+        
+        if (isSplit) {
+          maxH = targetElement.clientHeight;
+          maxW = targetElement.clientWidth;
+          if (maxH === 0 || maxW === 0) {
+            if (prevDisplay) {
+              section.style.setProperty('display', prevDisplay, prevDisplayPriority);
+            } else {
+              section.style.removeProperty('display');
+            }
+            section.style.visibility = prevVisibility;
+            section.style.position = prevPosition;
+            return;
+          }
+        } else {
+          // Leave room for images - use 52% of height when image present
+          const hasImg = section.querySelector('img, figure');
+          maxH = hasImg ? config.height * 0.52 : config.height * 0.85;
+          maxW = config.width * 0.90;
+        }
 
         let fontSize = 1.0;
         const minFontSize = 0.45;
         const step = 0.03;
 
         while (
-          (section.scrollHeight > maxHeight || section.scrollWidth > maxWidth) && 
+          (targetElement.scrollHeight > maxH || targetElement.scrollWidth > maxW) && 
           fontSize > minFontSize
         ) {
           fontSize -= step;
-          section.style.fontSize = fontSize + 'em';
+          targetElement.style.fontSize = fontSize + 'em';
         }
 
-        section.style.display = prevDisplay;
+        if (prevDisplay) {
+          section.style.setProperty('display', prevDisplay, prevDisplayPriority);
+        } else {
+          section.style.removeProperty('display');
+        }
         section.style.visibility = prevVisibility;
         section.style.position = prevPosition;
       }
@@ -1038,25 +1071,18 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
       ${presetStyles}
       ${marginStyles}
 
-      /* Scale down text in slides with images */
-      .reveal section.has-image h1,
-      .reveal section.has-image h2 {
-        font-size: 1.6em !important;
-      }
-      .reveal section.has-image p,
-      .reveal section.has-image li {
-        font-size: 0.6em !important;
-        line-height: 1.25 !important;
-      }
-      .reveal section.has-image img {
-        max-height: 200px !important;
-        object-fit: contain;
-        margin-top: 10px !important;
+      /* NOTE: Auto font-size shrink is handled dynamically by adjustSlideFontSize() in JS */
+      /* Image-containing slides: constrain the image so text has room */
+      .reveal section.has-image:not(.og-full-bleed-split) img {
+        max-height: 300px !important;
+        object-fit: contain !important;
+        margin-top: 8px !important;
+        margin-bottom: 4px !important;
       }
 
       /* PDF print scaling and column alignment rules */
       .reveal section img {
-        max-height: 50vh;
+        max-height: 300px;
         max-width: 100%;
         object-fit: contain;
       }
@@ -1276,33 +1302,68 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
       function adjustSlideFontSize(section) {
         if (!section) return;
         
-        section.style.fontSize = '';
-
-        const config = Reveal.getConfig();
-        const maxHeight = config.height * 0.85;
-        const maxWidth = config.width * 0.90;
+        const hasImg = section.querySelector('img, figure, .og-image-placeholder, .og-image-figure');
+        if (hasImg) {
+          section.classList.add('has-image');
+        } else {
+          section.classList.remove('has-image');
+        }
+        
+        const isSplit = section.classList && section.classList.contains('og-full-bleed-split');
+        const textCol = isSplit ? section.querySelector('.og-text-column') : null;
+        const targetElement = textCol || section;
+        
+        targetElement.style.fontSize = '';
 
         const prevDisplay = section.style.display;
+        const prevDisplayPriority = section.style.getPropertyPriority('display');
         const prevVisibility = section.style.visibility;
         const prevPosition = section.style.position;
 
-        section.style.display = 'block';
+        section.style.setProperty('display', isSplit ? 'flex' : 'block', 'important');
         section.style.visibility = 'hidden';
         section.style.position = 'absolute';
+
+        let maxH, maxW;
+        const config = Reveal.getConfig();
+        
+        if (isSplit) {
+          maxH = targetElement.clientHeight;
+          maxW = targetElement.clientWidth;
+          if (maxH === 0 || maxW === 0) {
+            if (prevDisplay) {
+              section.style.setProperty('display', prevDisplay, prevDisplayPriority);
+            } else {
+              section.style.removeProperty('display');
+            }
+            section.style.visibility = prevVisibility;
+            section.style.position = prevPosition;
+            return;
+          }
+        } else {
+          // Leave room for images - use 52% of height when image present
+          const hasImg = section.querySelector('img, figure');
+          maxH = hasImg ? config.height * 0.52 : config.height * 0.85;
+          maxW = config.width * 0.90;
+        }
 
         let fontSize = 1.0;
         const minFontSize = 0.45;
         const step = 0.03;
 
         while (
-          (section.scrollHeight > maxHeight || section.scrollWidth > maxWidth) && 
+          (targetElement.scrollHeight > maxH || targetElement.scrollWidth > maxW) && 
           fontSize > minFontSize
         ) {
           fontSize -= step;
-          section.style.fontSize = fontSize + 'em';
+          targetElement.style.fontSize = fontSize + 'em';
         }
 
-        section.style.display = prevDisplay;
+        if (prevDisplay) {
+          section.style.setProperty('display', prevDisplay, prevDisplayPriority);
+        } else {
+          section.style.removeProperty('display');
+        }
         section.style.visibility = prevVisibility;
         section.style.position = prevPosition;
       }
@@ -1686,8 +1747,21 @@ export function registerIpcHandlers(): void {
 
           await printWindow.loadURL(`file://${tempHtmlPath}?print-pdf`)
 
-          // Give Reveal.js ample time to load libraries from CDN and perform calculations
-          await new Promise((resolve) => setTimeout(resolve, 2000))
+          // Wait for the page to finish loading first
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => resolve(), 10000)
+            printWindow!.webContents.once('did-finish-load', () => {
+              clearTimeout(timeout)
+              resolve()
+            })
+            printWindow!.webContents.once('did-fail-load', (_e: any, errCode: number, errDesc: string) => {
+              clearTimeout(timeout)
+              reject(new Error(`Page failed to load: ${errDesc} (${errCode})`))
+            })
+          })
+
+          // Give Reveal.js and CDN fonts extra time to render
+          await new Promise((resolve) => setTimeout(resolve, 3500))
 
           const pdfOptions = {
             pageSize: exportOptions.pageSize || 'A4',

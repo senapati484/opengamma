@@ -64,23 +64,23 @@ export async function buildSystemPrompt(config: GenerationConfig): Promise<strin
 
   // 3. Replace all slot variables:
   //    - {{SLIDE_COUNT}} → config.slideCount.toString()
-  //    - {{THEME_TOKENS}} → file contents of the theme CSS (with fontImport prepended)
+  //    - {{THEME_TOKENS}} → file contents of the theme CSS
   //    - {{NARRATIVE_TYPE}} → config.narrative
   //    - {{FONT_IMPORT}} → config.theme.fontImport
   const matchedTheme = themes.find((t) => t.id === themeId)
   const fontImportStr = matchedTheme?.fontImport || (config.theme as any)?.fontImport || ''
-  if (fontImportStr) {
-    themeTokens = `${fontImportStr}\n${themeTokens}`
-  }
 
   const slideCountStr = (config.slideCount ?? 8).toString()
   const narrativeStr = config.narrative || 'explainer'
 
-  const finalPrompt = template
+  let finalPrompt = template
     .replace(/\{\{SLIDE_COUNT\}\}/g, slideCountStr)
     .replace(/\{\{THEME_TOKENS\}\}/g, themeTokens)
     .replace(/\{\{NARRATIVE_TYPE\}\}/g, narrativeStr)
     .replace(/\{\{FONT_IMPORT\}\}/g, fontImportStr)
+
+  // Append user request details at the very end
+  finalPrompt += `\n\n---\n## USER REQUEST\nTopic: ${config.prompt}\nSlides: ${config.slideCount}\nNarrative: ${narrativeStr}\n\nBegin output now:`
 
   // 4. Log the final prompt length (tokens are ~4 chars, warn if > 4000)
   const charLength = finalPrompt.length

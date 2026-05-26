@@ -13,6 +13,10 @@ export const GLOBAL_LAYOUT_CSS = `
     text-align: left !important;
     box-sizing: border-box !important;
   }
+  .reveal .slides section.og-full-bleed-split.past,
+  .reveal .slides section.og-full-bleed-split.future {
+    display: none !important;
+  }
   section.og-full-bleed-split .og-split-layout {
     flex: 1 1 0% !important;
     min-height: 0 !important;
@@ -36,7 +40,7 @@ export const GLOBAL_LAYOUT_CSS = `
   .og-text-column {
     display: flex !important;
     flex-direction: column !important;
-    justify-content: center !important;
+    justify-content: safe center !important;
     padding: 60px 60px 60px 80px !important;
     box-sizing: border-box !important;
     text-align: left !important;

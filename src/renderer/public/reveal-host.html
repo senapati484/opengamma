@@ -65,21 +65,13 @@
         background: var(--og-slide-bg, #0d0d0d) !important;
       }
 
-      /* Scale down text inside slides containing generated images to prevent overflow */
-      /* NOTE: og-full-bleed-split slides use the full-bleed CSS below — no max-height needed */
-      .reveal section.has-image:not(.og-full-bleed-split) h1,
-      .reveal section.has-image:not(.og-full-bleed-split) h2 {
-        font-size: 1.6em !important;
-      }
-      .reveal section.has-image:not(.og-full-bleed-split) p,
-      .reveal section.has-image:not(.og-full-bleed-split) li {
-        font-size: 0.6em !important;
-        line-height: 1.25 !important;
-      }
+      /* NOTE: Dynamic font-size auto-shrink is handled by adjustSlideFontSize() in JS */
+      /* Image-containing non-split slides: constrain image height to give text room */
       .reveal section.has-image:not(.og-full-bleed-split) img {
-        max-height: 200px !important;
-        object-fit: contain;
-        margin-top: 10px !important;
+        max-height: 300px !important;
+        object-fit: contain !important;
+        margin-top: 8px !important;
+        margin-bottom: 4px !important;
       }
 
       /* ── Image placeholder (skeleton while generation runs) ── */
@@ -167,6 +159,10 @@
         align-items: stretch !important;
         text-align: left !important;
       }
+      .reveal .slides section.og-full-bleed-split.past,
+      .reveal .slides section.og-full-bleed-split.future {
+        display: none !important;
+      }
       .reveal section.og-full-bleed-split .og-split-layout {
         flex: 1 1 0% !important;
         min-height: 0 !important;
@@ -189,7 +185,7 @@
       .og-text-column {
         display: flex !important;
         flex-direction: column !important;
-        justify-content: center !important;
+        justify-content: safe center !important;
         padding: 60px 60px 60px 80px !important;
         box-sizing: border-box !important;
         text-align: left !important;
@@ -247,6 +243,7 @@
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
         border: 1px solid var(--og-slide-border, rgba(255, 255, 255, 0.08)) !important;
         border-radius: 12px !important;
+        max-width: 100% !important;
       }
 
       /* ── Design System Layouts ── */
@@ -593,32 +590,70 @@
       // ══════════════════════════════════════════════════════════════════════════
       function adjustSlideFontSize(section) {
         if (!section) return
-        // Skip full-bleed split slides — font size is controlled by the split layout
-        if (section.classList && section.classList.contains('og-full-bleed-split')) return
-        section.style.fontSize = ''
-
-        const config = Reveal.getConfig()
-        const maxH = config.height * 0.85
-        const maxW = config.width * 0.9
+        
+        const hasImg = section.querySelector('img, figure, .og-image-placeholder, .og-image-figure')
+        if (hasImg) {
+          section.classList.add('has-image')
+        } else {
+          section.classList.remove('has-image')
+        }
+        
+        const isSplit = section.classList && section.classList.contains('og-full-bleed-split')
+        const textCol = isSplit ? section.querySelector('.og-text-column') : null
+        const targetElement = textCol || section
+        
+        targetElement.style.fontSize = ''
 
         const prevDisplay = section.style.display
+        const prevDisplayPriority = section.style.getPropertyPriority('display')
         const prevVisibility = section.style.visibility
         const prevPosition = section.style.position
 
-        section.style.display = 'block'
+        section.style.setProperty('display', isSplit ? 'flex' : 'block', 'important')
         section.style.visibility = 'hidden'
         section.style.position = 'absolute'
+
+        let maxH, maxW
+        const config = Reveal.getConfig()
+        
+        if (isSplit) {
+          maxH = targetElement.clientHeight
+          maxW = targetElement.clientWidth
+          if (maxH === 0 || maxW === 0) {
+            if (prevDisplay) {
+              section.style.setProperty('display', prevDisplay, prevDisplayPriority)
+            } else {
+              section.style.removeProperty('display')
+            }
+            section.style.visibility = prevVisibility
+            section.style.position = prevPosition
+            return
+          }
+        } else {
+          // For slides with images, leave 40% of the slide height for the image.
+          // For text-only slides, use 85% (standard Reveal.js margin).
+          const hasImg = section.querySelector('img, figure')
+          maxH = hasImg ? config.height * 0.52 : config.height * 0.85
+          maxW = config.width * 0.90
+        }
 
         let fontSize = 1.0
         const MIN = 0.45
         const STEP = 0.03
 
-        while ((section.scrollHeight > maxH || section.scrollWidth > maxW) && fontSize > MIN) {
+        while (
+          (targetElement.scrollHeight > maxH || targetElement.scrollWidth > maxW) &&
+          fontSize > MIN
+        ) {
           fontSize -= STEP
-          section.style.fontSize = fontSize + 'em'
+          targetElement.style.fontSize = fontSize + 'em'
         }
 
-        section.style.display = prevDisplay
+        if (prevDisplay) {
+          section.style.setProperty('display', prevDisplay, prevDisplayPriority)
+        } else {
+          section.style.removeProperty('display')
+        }
         section.style.visibility = prevVisibility
         section.style.position = prevPosition
       }

@@ -27,11 +27,13 @@
     "@anthropic-ai/sdk": "^0.97.1",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@huggingface/transformers": "^3.8.1",
     "better-sqlite3": "^12.10.0",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.8.3",
     "jsdom": "^27.0.1",
     "kokoro-js": "^1.2.1",
+    "onnxruntime-node": "^1.21.0",
     "pptxgenjs": "^4.0.1",
     "reveal.js": "^6.0.1"
   },
@@ -73,12 +75,15 @@
     ],
     "asarUnpack": [
       "**/node_modules/better-sqlite3/**/*",
-      "**/node_modules/onnxruntime-node/**/*"
+      "**/node_modules/onnxruntime-node/**/*",
+      "**/node_modules/kokoro-js/**/*",
+      "**/node_modules/@huggingface/transformers/**/*",
+      "**/node_modules/sharp/**/*"
     ],
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
       ],
       "icon": "resources/icon.icns",
       "category": "public.app-category.productivity",

@@ -117,7 +117,24 @@ export function parseSlideHtml(html: string, index: number): Slide {
         })
     }
 
-    // 6. Get the updated HTML representation excluding the stripped notes aside
+    // 6. Detect og-image-placeholder class and read data-prompt
+    let imagePrompt: string | undefined = undefined
+    if (section) {
+      const placeholderEl = section.querySelector('.og-image-placeholder')
+      if (placeholderEl) {
+        const dataPrompt = placeholderEl.getAttribute('data-prompt')
+        if (dataPrompt && dataPrompt.trim()) {
+          imagePrompt = dataPrompt.trim()
+        } else {
+          const firstBulletText = bullets.length > 0
+            ? bullets[0].replace(/<[^>]*>/g, '').trim()
+            : ''
+          imagePrompt = `${title} — ${firstBulletText}`
+        }
+      }
+    }
+
+    // 7. Get the updated HTML representation excluding the stripped notes aside
     let finalHtml = html
     if (section) {
       finalHtml = section.outerHTML
@@ -132,8 +149,11 @@ export function parseSlideHtml(html: string, index: number): Slide {
       notes,
       slideType,
       index,
-      bullets
-    }
+      bullets,
+      slug: section ? section.getAttribute('data-slug') || '' : '',
+      layout: section ? section.getAttribute('data-layout') || '' : '',
+      imagePrompt
+    } as any
   } catch (error: any) {
     console.error('HTML parse error in parseSlideHtml, returning fallback structure:', error)
     return {
@@ -144,6 +164,6 @@ export function parseSlideHtml(html: string, index: number): Slide {
       slideType: 'content',
       index,
       bullets: []
-    }
+    } as any
   }
 }

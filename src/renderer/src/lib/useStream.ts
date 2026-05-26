@@ -122,6 +122,7 @@ export function useStream(): {
         setStatus(streamStatus)
 
         // Automatically clean up IPC listeners once the stream is finished or errored
+        // NOTE: 'imaging' is an intermediate state - keep listeners active until truly done
         if (streamStatus.state === 'done' || streamStatus.state === 'error') {
           cleanupListeners()
         }
@@ -146,7 +147,8 @@ export function useStream(): {
 
   // Synchronize local slides with active presentation when not generating
   useEffect(() => {
-    if (status.state !== 'generating' && activePresentation) {
+    const isActive = status.state === 'generating' || status.state === 'researching' || status.state === 'imaging'
+    if (!isActive && activePresentation) {
       setSlides(activePresentation.slides)
     }
   }, [activePresentation, status.state])

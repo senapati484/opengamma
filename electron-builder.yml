@@ -2,6 +2,7 @@ appId: com.opengamma.app
 productName: Open Gamma
 directories:
   buildResources: build
+  output: out
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -11,19 +12,37 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+  - '**/node_modules/better-sqlite3/**/*'
+  - '**/node_modules/onnxruntime-node/**/*'
+  - '**/node_modules/kokoro-js/**/*'
+  - '**/node_modules/@huggingface/transformers/**/*'
 win:
   executableName: opengamma
   icon: resources/icon.ico
+  target:
+    - target: nsis
+    - target: portable
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: Open Gamma-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  oneClick: false
+  perMachine: false
 mac:
   icon: resources/icon.icns
   hardenedRuntime: true
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+    - target: zip
+      arch:
+        - arm64
+        - x64
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
@@ -31,17 +50,16 @@ mac:
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
 dmg:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: Open Gamma-${version}-${arch}.${ext}
 linux:
   icon: resources/icon.png
   target:
     - AppImage
-    - snap
     - deb
   maintainer: Open Gamma Team (https://opengamma.vercel.app)
   category: Utility
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: Open Gamma-${version}-${arch}.${ext}
 npmRebuild: false
 publish:
   provider: generic
