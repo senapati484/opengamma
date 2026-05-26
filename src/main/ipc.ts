@@ -1268,6 +1268,36 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
     height = 960
   }
 
+  const isLetter = (options.pageSize || 'A4') === 'Letter'
+  const isPortrait = options.orientation === 'portrait'
+  let pageSizeStr = 'A4 landscape'
+
+  if (isLetter) {
+    if (presentation.aspectRatio === '9:16') {
+      pageSizeStr = '6.1875in 11in'
+    } else if (presentation.aspectRatio === '1:1') {
+      pageSizeStr = '8.5in 8.5in'
+    } else {
+      if (isPortrait) {
+        pageSizeStr = '8.5in 11in' // standard letter portrait
+      } else {
+        pageSizeStr = '11in 6.1875in' // letter landscape matching 16:9 aspect ratio
+      }
+    }
+  } else { // A4
+    if (presentation.aspectRatio === '9:16') {
+      pageSizeStr = '167.06mm 297mm'
+    } else if (presentation.aspectRatio === '1:1') {
+      pageSizeStr = '210mm 210mm'
+    } else {
+      if (isPortrait) {
+        pageSizeStr = '210mm 297mm' // standard A4 portrait
+      } else {
+        pageSizeStr = '297mm 167.06mm' // A4 landscape matching 16:9 aspect ratio
+      }
+    }
+  }
+
   const showNotesConfig = options.includeSpeakerNotes ? "'separate-page'" : 'false'
   const slideNumberConfig = options.showPageNumbers ? "'c/t'" : 'false'
 
@@ -1370,6 +1400,11 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         font-family: var(--og-slide-font-body, sans-serif) !important;
         color: var(--og-slide-text, #bab6ae) !important;
         opacity: 0.9 !important;
+      }
+      .reveal .card ul,
+      .reveal .card ol {
+        padding-left: 24px !important;
+        margin-left: 0 !important;
       }
 
       /* Statistics Display */
@@ -1597,7 +1632,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         const style = document.createElement('style');
         style.textContent = \`
           @page {
-            size: \${ (options.pageSize || 'A4') === 'Letter' ? 'letter' : 'A4' } \${ (options.orientation || 'landscape') === 'portrait' ? 'portrait' : 'landscape' };
+            size: ${pageSizeStr};
             margin: 0;
           }
           
@@ -1608,12 +1643,12 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
           }
 
           /* Ensure backgrounds print correctly depending on preset styles */
-          \${printPresetStyles}
+          ${printPresetStyles}
 
           /* Restore flex layout display for split columns */
           .reveal .slides section.og-full-bleed-split {
             display: flex !important;
-            flex-direction: \${options.orientation === 'portrait' ? 'column' : 'row'} !important;
+            flex-direction: ${options.orientation === 'portrait' ? 'column' : 'row'} !important;
             width: 100% !important;
             height: 100% !important;
             padding: 0 !important;

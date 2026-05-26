@@ -76,6 +76,11 @@ const COMPACT_LAYOUT_CSS = `
   font-size: 0.72em !important;
   line-height: 1.3 !important;
 }
+.reveal .card ul,
+.reveal .card ol {
+  padding-left: 20px !important;
+  margin-left: 0 !important;
+}
 .reveal .stat-block {
   padding: 12px 14px !important;
   border-radius: 8px !important;

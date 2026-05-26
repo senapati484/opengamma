@@ -179,6 +179,11 @@ export const GLOBAL_LAYOUT_CSS = `
     color: var(--og-slide-text, #bab6ae) !important;
     opacity: 0.9 !important;
   }
+  .card ul,
+  .card ol {
+    padding-left: 24px !important;
+    margin-left: 0 !important;
+  }
 
   /* Statistics Display */
   .stat-block {
