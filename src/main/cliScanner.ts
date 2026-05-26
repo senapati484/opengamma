@@ -56,6 +56,8 @@ function getSearchPaths(): string[] {
       path.join(home, '.nvm', 'versions', 'node'),
       // Volta
       path.join(home, '.volta', 'bin'),
+      // OpenCode
+      path.join(home, '.opencode', 'bin'),
       // fnm
       path.join(home, '.fnm'),
       // Cargo (Rust)
