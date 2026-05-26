@@ -10,6 +10,9 @@ import { initUpdater } from './updater'
 import * as os from 'os'
 import * as path from 'path'
 
+// Explicitly set the application name so dev and production use the same userData directory
+app.name = 'Open Gamma'
+
 // ─── PATH Enrichment (packaged app fix) ───────────────────────────────────────
 // Electron packaged apps on macOS/Linux start without the user's shell PATH.
 // This means CLIs installed via Homebrew, npm global, nvm etc. are invisible.

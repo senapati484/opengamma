@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3'
 import { app } from 'electron'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { existsSync, copyFileSync, mkdirSync } from 'fs'
 import type { Presentation } from '../renderer/src/types'
 
 let db: Database.Database | null = null
@@ -17,6 +18,37 @@ export function initDb(): void {
   dbInitAttempted = true
 
   const dbPath = join(app.getPath('userData'), 'opengamma.db')
+  
+  // Copy fallback database from legacy app directories if it exists and the new one doesn't
+  if (!existsSync(dbPath)) {
+    try {
+      const parentDir = dirname(app.getPath('userData'))
+      const fallbacks = [
+        join(parentDir, 'opengamma', 'opengamma.db'),
+        join(parentDir, 'Electron', 'opengamma.db')
+      ]
+      
+      for (const fallbackPath of fallbacks) {
+        if (existsSync(fallbackPath)) {
+          console.log(`[db] Found legacy/dev database at: ${fallbackPath}. Migrating to: ${dbPath}`)
+          mkdirSync(dirname(dbPath), { recursive: true })
+          copyFileSync(fallbackPath, dbPath)
+          
+          // Also copy WAL journal files if they exist to maintain database state
+          if (existsSync(`${fallbackPath}-wal`)) {
+            try { copyFileSync(`${fallbackPath}-wal`, `${dbPath}-wal`) } catch (_err) {}
+          }
+          if (existsSync(`${fallbackPath}-shm`)) {
+            try { copyFileSync(`${fallbackPath}-shm`, `${dbPath}-shm`) } catch (_err) {}
+          }
+          break
+        }
+      }
+    } catch (migrationErr) {
+      console.error('[db] Error migrating fallback database:', migrationErr)
+    }
+  }
+
   console.log(`[db] Initialising SQLite database at: ${dbPath}`)
 
   try {
