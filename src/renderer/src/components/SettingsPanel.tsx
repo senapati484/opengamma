@@ -725,6 +725,28 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                     <span className="text-sm text-neutral-400">Version</span>
                     <span className="text-sm text-white font-mono">{packageJson.version}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-neutral-400">Official Website</span>
+                    <a
+                      href="https://opengamma.vercel.app"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-[#e8ff57] hover:underline"
+                    >
+                      opengamma.vercel.app
+                    </a>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-neutral-400">GitHub Repository</span>
+                    <a
+                      href="https://github.com/senapati484/opengamma"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-[#e8ff57] hover:underline"
+                    >
+                      github.com/senapati484/opengamma
+                    </a>
+                  </div>
                   {appInfo && (
                     <>
                       <div className="flex justify-between">
