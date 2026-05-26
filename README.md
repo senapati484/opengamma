@@ -1,23 +1,18 @@
-<img width="464" height="109" alt="Screenshot 2026-05-26 at 7 50 43 PM" src="https://github.com/user-attachments/assets/ed7fafb8-f77e-4197-bf2c-e55c291e15c8" />
-
-
-
-
 <div align="center">
 
 <br/>
 
-<!-- Logo / Title -->
+<!-- Logo — matching the official OpenGamma brand -->
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/OPEN-GAMMA-ffffff?style=for-the-badge&labelColor=0d0d0d&color=0d0d0d&logoColor=white" />
-  <img alt="Open Gamma" src="https://img.shields.io/badge/OPEN-GAMMA-0d0d0d?style=for-the-badge&labelColor=f5f5f5&color=f5f5f5" />
+  <img src="https://github.com/user-attachments/assets/ed7fafb8-f77e-4197-bf2c-e55c291e15c8" alt="OpenGamma Logo" width="480" />
 </picture>
+
+<br/>
+<br/>
 
 <h3>The open-source, local-first alternative to Gamma.app</h3>
 
-<p>
-  Design beautiful presentations with AI. 100% offline. No subscriptions. Your data, your keys.
-</p>
+<p>Design beautiful AI presentations — 100% offline, no subscriptions, no watermarks, your data and your keys.</p>
 
 <br/>
 
@@ -25,13 +20,13 @@
 [![Forks](https://img.shields.io/github/forks/senapati484/opengamma?style=flat-square&labelColor=0d0d0d&color=2ecc71&logo=github&logoColor=white)](https://github.com/senapati484/opengamma/network/members)
 [![Issues](https://img.shields.io/github/issues/senapati484/opengamma?style=flat-square&labelColor=0d0d0d&color=ff6b6b&logo=github&logoColor=white)](https://github.com/senapati484/opengamma/issues)
 [![PRs](https://img.shields.io/github/issues-pr/senapati484/opengamma?style=flat-square&labelColor=0d0d0d&color=9b59b6&logo=github&logoColor=white)](https://github.com/senapati484/opengamma/pulls)
+[![Downloads](https://img.shields.io/sourceforge/dt/open-gamma?style=flat-square&labelColor=0d0d0d&color=ff6600&logo=sourceforge&logoColor=white&label=downloads)](https://sourceforge.net/projects/open-gamma/files/latest/download)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-informational?style=flat-square)](https://sourceforge.net/projects/open-gamma/files/latest/download)
 
 <br/>
 
 [![Watch Demo](https://img.shields.io/badge/▶%20Watch%20Demo%20Video-YouTube-red?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/O170F-KqtUw?si=Xg-R7onfbVyWbSHB)
-&nbsp;
+&nbsp;&nbsp;
 [![Download](https://img.shields.io/badge/⬇%20Download%20v1.0.0-SourceForge-orange?style=for-the-badge&logo=sourceforge&logoColor=white)](https://sourceforge.net/projects/open-gamma/files/latest/download)
 
 <br/>
@@ -44,7 +39,7 @@
 
 <img width="1710" alt="Open Gamma — Editor View" src="https://github.com/user-attachments/assets/910faaf4-e5f9-4416-8fe2-12c5c0e0e943" />
 
-<br/>
+<br/><br/>
 
 <img width="1710" alt="Open Gamma — Presentation Canvas" src="https://github.com/user-attachments/assets/a506c62e-8fd2-426a-8d9b-6f7ea8919a3e" />
 
@@ -54,11 +49,11 @@
 
 ## What is Open Gamma?
 
-**Open Gamma** is a premium desktop application built as a free, open-source alternative to Gamma.app. It gives you the full power of AI-assisted slide creation — without a cloud subscription, without vendor lock-in, and without your data leaving your machine.
+**Open Gamma** is a premium desktop application and a free, open-source alternative to Gamma.app. It gives you the full power of AI-assisted slide creation — without a cloud subscription, without vendor lock-in, and without your data leaving your machine.
 
-Built on **Electron**, **React**, **TypeScript**, and **Reveal.js**, Open Gamma stores all drafts, presentation history, assets, and settings in a local **SQLite** database. Bring your own API key (BYOK) and connect to any supported LLM provider directly.
+Built on **Electron**, **React**, **TypeScript**, and **Reveal.js**, Open Gamma stores all drafts, presentation history, assets, and settings in a local **SQLite** database. Bring your own API key (BYOK) and connect directly to any supported LLM provider.
 
-> **No cloud lock-in. No recurring fees. Complete data ownership.**
+> **No cloud lock-in. No recurring fees. No watermarks. Complete data ownership.**
 
 ---
 
@@ -66,26 +61,30 @@ Built on **Electron**, **React**, **TypeScript**, and **Reveal.js**, Open Gamma 
 
 | | Feature | Description |
 |---|---|---|
-| 🔮 | **AI Slide Scaffolding** | Paste a prompt or outline and compile full slide decks in real time |
-| 🎨 | **15+ Design Themes** | Switch between _Startup Gradient_, _Noir Gold_, _Terminal Green_, _Void Lime_, and more |
-| 💾 | **Local-First Architecture** | 100% offline SQLite storage — no cloud dependencies ever |
-| 🎙️ | **Kokoro TTS Voiceover** | Generate on-device voice narration via local Kokoro TTS inference |
-| 📄 | **Export Studio** | Export to **PDF**, **PowerPoint (.pptx)**, **PNG**, or **standalone HTML** |
-| 🔑 | **BYOK Model Support** | Connect any LLM provider with your own API key — full key security |
-| ⌨️ | **Global Keyboard Shortcuts** | Designed for speed with intuitive hotkeys throughout the app |
-| 🛡️ | **Zero Telemetry** | No crash dumps, no analytics, no usage data — ever |
+| 🔮 | **AI Slide Scaffolding** | Paste a prompt or structured outline and compile full slide decks in real time |
+| 🎨 | **15+ Design Themes** | Switch between _Startup Gradient_, _Noir Gold_, _Terminal Green_, _Void Lime_, and more with instant HSL rendering |
+| 💾 | **Local-First Architecture** | 100% offline SQLite storage — no cloud dependencies, ever |
+| 🎙️ | **Kokoro TTS Voiceover** | Generate on-device voice narration via local Kokoro TTS model inference |
+| 📄 | **Export Studio** | Export to **PDF**, **PowerPoint (.pptx)**, **PNG images**, or **standalone HTML** |
+| 🔑 | **BYOK Model Support** | Connect any LLM provider with your own API key — full key security, no middleman |
+| ⌨️ | **Global Keyboard Shortcuts** | Designed for speed with intuitive hotkeys throughout the entire app |
+| 🛡️ | **Zero Telemetry** | No crash dumps, no analytics, no usage data collected — ever |
 
 ---
 
 ## Download
 
-> **Current release: v1.0.0**
+> **Current release: v1.0.0** — Available on Windows, macOS, and Linux
 
 | Platform | Architecture | File | Size | Download |
 |:---|:---|:---|:---|:---|
-| 🪟 Windows | x64 (Intel / AMD) | `Open Gamma 1.0.0.exe` | 312.2 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.0/Open%20Gamma%201.0.0.exe/download) |
-| 🍎 macOS | ARM64 (Apple Silicon) | `Open Gamma-1.0.0-arm64.dmg` | 356.6 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.0/Open%20Gamma-1.0.0-arm64.dmg/download) |
-| 🐧 Linux | x64 / ARM64 | `Open Gamma-1.0.0-arm64.AppImage` | 351.1 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.0/Open%20Gamma-1.0.0-arm64.AppImage/download) |
+| 🪟 **Windows** | x64 (Intel / AMD) | `Open Gamma 1.0.0.exe` | 312.2 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.0/Open%20Gamma%201.0.0.exe/download) |
+| 🍎 **macOS** | ARM64 (Apple Silicon) | `Open Gamma-1.0.0-arm64.dmg` | 356.6 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.0/Open%20Gamma-1.0.0-arm64.dmg/download) |
+| 🐧 **Linux** | x64 / ARM64 | `Open Gamma-1.0.0-arm64.AppImage` | 351.1 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.0/Open%20Gamma-1.0.0-arm64.AppImage/download) |
+
+<a href="https://sourceforge.net/projects/open-gamma/files/latest/download">
+  <img alt="Download Open Gamma" src="https://a.fsdn.com/con/app/sf-download-button" width="276" height="48" srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x" />
+</a>
 
 <details>
 <summary><b>Installation Instructions</b></summary>
@@ -220,7 +219,7 @@ Open Gamma is built on a **privacy-first philosophy**:
 - **No Telemetry** — zero analytical data, crash dumps, or usage patterns collected
 - **Offline Storage** — all data stays on your disk inside a local SQLite database
 - **BYOK** — connect directly to your LLM provider of choice with complete API key security
-- **Open Source** — every line of code is auditable
+- **Open Source** — every line of code is publicly auditable
 
 ---
 
@@ -248,11 +247,19 @@ Open Gamma is released under the [Apache License 2.0](LICENSE).
 
 <br/>
 
+<picture>
+  <img src="https://github.com/user-attachments/assets/ed7fafb8-f77e-4197-bf2c-e55c291e15c8" alt="OpenGamma" width="220" />
+</picture>
+
+<br/><br/>
+
 Built with ❤️ by the open-source community
 
 [![GitHub](https://img.shields.io/badge/GitHub-senapati484%2Fopengamma-181717?style=flat-square&logo=github)](https://github.com/senapati484/opengamma)
 &nbsp;
 [![SourceForge](https://img.shields.io/badge/SourceForge-open--gamma-orange?style=flat-square&logo=sourceforge&logoColor=white)](https://sourceforge.net/projects/open-gamma/)
+&nbsp;
+[![Downloads](https://img.shields.io/sourceforge/dt/open-gamma?style=flat-square&color=ff6600&logo=sourceforge&logoColor=white&label=total%20downloads)](https://sourceforge.net/projects/open-gamma/files/latest/download)
 
 <br/>
 
