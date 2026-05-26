@@ -993,20 +993,16 @@ function compileHtml(presentation: Presentation, theme: Theme): string {
           maxH = targetElement.clientHeight;
           maxW = targetElement.clientWidth;
           if (maxH === 0 || maxW === 0) {
-            if (prevDisplay) {
-              section.style.setProperty('display', prevDisplay, prevDisplayPriority);
-            } else {
-              section.style.removeProperty('display');
-            }
-            section.style.visibility = prevVisibility;
-            section.style.position = prevPosition;
-            return;
+            maxH = ${height} * 0.85;
+            maxW = ${width} * 0.45;
           }
         } else {
           // Leave room for images - use 52% of height when image present
           const hasImg = section.querySelector('img, figure');
-          maxH = hasImg ? config.height * 0.52 : config.height * 0.85;
-          maxW = config.width * 0.90;
+          const h = (config && config.height) || ${height};
+          const w = (config && config.width) || ${width};
+          maxH = hasImg ? h * 0.52 : h * 0.85;
+          maxW = w * 0.90;
         }
 
         let fontSize = 1.0;
@@ -1244,6 +1240,52 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
     }
   `
 
+  let printPresetStyles = ''
+  if (options.preset === 'ink-saver') {
+    printPresetStyles = `
+      html, body, .reveal-viewport, .reveal, .reveal .slides, .reveal section, .reveal .slide-background, .reveal .slide-background-content, .reveal .pdf-page {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        background-image: none !important;
+        color: #111111 !important;
+      }
+      .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal p, .reveal li, .reveal td, .reveal th, .reveal span, .reveal div, .reveal strong, .reveal em {
+        color: #111111 !important;
+        background: none !important;
+        -webkit-text-fill-color: #111111 !important;
+        text-shadow: none !important;
+      }
+      .reveal .accent, .reveal strong, .reveal a {
+        color: #0047ff !important;
+        -webkit-text-fill-color: #0047ff !important;
+      }
+      .reveal .cta-block {
+        background: #f3f4f6 !important;
+        color: #111111 !important;
+        border: 1px solid #e5e7eb !important;
+      }
+      .reveal table, .reveal th, .reveal td {
+        border-color: #e5e7eb !important;
+      }
+    `
+  } else {
+    printPresetStyles = `
+      html, body, .reveal-viewport, .reveal, .reveal .slides, .reveal section, .reveal .slide-background, .reveal .slide-background-content, .reveal .pdf-page {
+        background: var(--background-gradient, var(--og-slide-bg, #0d0d0d)) !important;
+        background-color: var(--og-slide-bg, #0d0d0d) !important;
+        background-image: var(--background-gradient, var(--og-slide-bg, none)) !important;
+        color: var(--og-slide-text, #ede9e1) !important;
+      }
+    `
+  }
+  if (options.preset === 'monochromatic') {
+    printPresetStyles += `
+      html, body, .reveal {
+        filter: grayscale(100%) !important;
+      }
+    `
+  }
+
   let width = 1280
   let height = 720
   if (presentation.aspectRatio === '9:16') {
@@ -1431,42 +1473,68 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
       }
 
       @media print {
-        .reveal section img {
-          max-height: 45vh !important;
+        /* Force color & background printing */
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        /* Ensure backgrounds print correctly depending on preset styles */
+        ${printPresetStyles}
+
+        /* Restore flex layout display for split columns */
+        .reveal .slides section.og-full-bleed-split {
+          display: flex !important;
+          flex-direction: ${options.orientation === 'portrait' ? 'column' : 'row'} !important;
+          width: 100% !important;
+          height: 100% !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+
+        /* Ensure grid layout display for stat blocks */
+        .reveal .slides section[data-slide-type="data"],
+        .reveal .slides section:has(.stat-block) {
+          display: grid !important;
+          grid-template-columns: repeat(12, 1fr) !important;
+          grid-auto-rows: auto !important;
+          gap: 10px !important;
+          align-content: center !important;
+          justify-content: center !important;
+        }
+
+        .reveal .slides section.og-full-bleed-split .og-split-layout {
+          display: grid !important;
+          flex: 1 1 0% !important;
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        /* Keep split layouts full bleed */
+        .reveal .slides section.og-full-bleed-split img {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+          object-fit: cover !important;
+          display: block !important;
+        }
+
+        /* Constraint for standard images to prevent page overflow */
+        .reveal section:not(.og-full-bleed-split) img {
+          max-height: 300px !important;
           max-width: 100% !important;
           object-fit: contain !important;
           margin: 10px auto !important;
           display: block !important;
           box-shadow: none !important;
         }
-        .reveal .cols {
-          display: grid !important;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
-          gap: 20px !important;
-          align-items: stretch !important;
-          width: 100% !important;
-        }
-        .reveal .card {
-          padding: 16px !important;
-        }
-        .reveal .stat-block {
-          padding: 14px !important;
-        }
+
         .reveal pre, .reveal code {
           max-height: 35vh !important;
           overflow: hidden !important;
-        }
-        .reveal ul, .reveal ol {
-          margin-top: 12px !important;
-          margin-bottom: 12px !important;
-        }
-        .reveal h1 {
-          margin-top: 15px !important;
-          margin-bottom: 15px !important;
-        }
-        .reveal h2 {
-          margin-top: 12px !important;
-          margin-bottom: 12px !important;
         }
       }
     </style>
@@ -1551,20 +1619,16 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
           maxH = targetElement.clientHeight;
           maxW = targetElement.clientWidth;
           if (maxH === 0 || maxW === 0) {
-            if (prevDisplay) {
-              section.style.setProperty('display', prevDisplay, prevDisplayPriority);
-            } else {
-              section.style.removeProperty('display');
-            }
-            section.style.visibility = prevVisibility;
-            section.style.position = prevPosition;
-            return;
+            maxH = ${height} * 0.85;
+            maxW = ${width} * 0.45;
           }
         } else {
           // Leave room for images - use 52% of height when image present
           const hasImg = section.querySelector('img, figure');
-          maxH = hasImg ? config.height * 0.52 : config.height * 0.85;
-          maxW = config.width * 0.90;
+          const h = (config && config.height) || ${height};
+          const w = (config && config.width) || ${width};
+          maxH = hasImg ? h * 0.52 : h * 0.85;
+          maxW = w * 0.90;
         }
 
         let fontSize = 1.0;
