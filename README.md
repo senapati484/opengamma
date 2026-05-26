@@ -2,17 +2,13 @@
 
 <br/>
 
-<!-- Logo — matching the official OpenGamma brand -->
-<picture>
-  <img src="https://github.com/user-attachments/assets/ed7fafb8-f77e-4197-bf2c-e55c291e15c8" alt="OpenGamma Logo" width="480" />
-</picture>
+<!-- Logo — HTML recreation, works in light & dark GitHub themes -->
+<h1>
+  <span style="color:#1a1a1a;">Open</span><span style="color:#8ab61e;">Gamma</span>
+</h1>
 
-<br/>
-<br/>
-
-<h3>The open-source, local-first alternative to Gamma.app</h3>
-
-<p>Design beautiful AI presentations — 100% offline, no subscriptions, no watermarks, your data and your keys.</p>
+<p><b>The open-source, local-first alternative to Gamma.app</b></p>
+<p>AI presentations with no watermarks, no subscriptions, and no cloud lock-in.</p>
 
 <br/>
 
@@ -20,12 +16,12 @@
 [![Forks](https://img.shields.io/github/forks/senapati484/opengamma?style=flat-square&labelColor=0d0d0d&color=2ecc71&logo=github&logoColor=white)](https://github.com/senapati484/opengamma/network/members)
 [![Issues](https://img.shields.io/github/issues/senapati484/opengamma?style=flat-square&labelColor=0d0d0d&color=ff6b6b&logo=github&logoColor=white)](https://github.com/senapati484/opengamma/issues)
 [![PRs](https://img.shields.io/github/issues-pr/senapati484/opengamma?style=flat-square&labelColor=0d0d0d&color=9b59b6&logo=github&logoColor=white)](https://github.com/senapati484/opengamma/pulls)
-[![Downloads](https://img.shields.io/sourceforge/dt/open-gamma?style=flat-square&labelColor=0d0d0d&color=ff6600&logo=sourceforge&logoColor=white&label=downloads)](https://sourceforge.net/projects/open-gamma/files/latest/download)
+[![Downloads](https://img.shields.io/sourceforge/dt/open-gamma?style=flat-square&labelColor=0d0d0d&color=8ab61e&logo=sourceforge&logoColor=white&label=downloads)](https://sourceforge.net/projects/open-gamma/files/latest/download)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)
 
 <br/>
 
-[![Watch Demo](https://img.shields.io/badge/▶%20Watch%20Demo%20Video-YouTube-red?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/O170F-KqtUw?si=Xg-R7onfbVyWbSHB)
+[![Watch Demo](https://img.shields.io/badge/▶%20Watch%20Demo-YouTube-red?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/O170F-KqtUw?si=Xg-R7onfbVyWbSHB)
 &nbsp;&nbsp;
 [![Download](https://img.shields.io/badge/⬇%20Download%20v1.0.0-SourceForge-orange?style=for-the-badge&logo=sourceforge&logoColor=white)](https://sourceforge.net/projects/open-gamma/files/latest/download)
 
