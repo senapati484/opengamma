@@ -193,7 +193,14 @@ const browserMock: ElectronAPI = {
     return { success: false, error: 'Running outside Electron' }
   },
 
-  onVoiceoverProgress: (callback: (progress: unknown) => void): (() => void) => {
+  onVoiceoverProgress: (
+    callback: (progress: {
+      state: 'generating' | 'done' | 'error'
+      current: number
+      total: number
+      error?: string
+    }) => void
+  ): (() => void) => {
     console.warn(
       '[useElectron] onVoiceoverProgress registered outside Electron with callback:',
       callback
