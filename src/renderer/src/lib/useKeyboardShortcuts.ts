@@ -40,7 +40,9 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers): void {
   // Always keep the ref current so the single listener reads the latest
   // callbacks without needing to be torn down and re-registered.
   const ref = useRef<ShortcutHandlers>(handlers)
-  ref.current = handlers
+  useEffect(() => {
+    ref.current = handlers
+  })
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent): void => {

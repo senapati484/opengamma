@@ -6,7 +6,14 @@ import type { DesignSystemMetadata } from '../types/designSystem'
  * Manages selected design system and provides utility functions
  * to apply design tokens to presentations
  */
-export function useDesignSystem() {
+export function useDesignSystem(): {
+  selectedSystem: DesignSystemMetadata | null
+  isLoadingSystem: boolean
+  selectSystem: (system: DesignSystemMetadata) => Promise<void>
+  clearSystem: () => void
+  generateCssVariables: () => string
+  generatePromptHint: () => string
+} {
   const [selectedSystem, setSelectedSystem] = useState<DesignSystemMetadata | null>(null)
   const [isLoadingSystem, setIsLoadingSystem] = useState(false)
 

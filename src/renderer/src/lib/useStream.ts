@@ -149,8 +149,12 @@ export function useStream(): {
   useEffect(() => {
     const isActive = status.state === 'generating' || status.state === 'researching' || status.state === 'imaging'
     if (!isActive && activePresentation) {
-      setSlides(activePresentation.slides)
+      const timer = setTimeout(() => {
+        setSlides(activePresentation.slides)
+      }, 0)
+      return () => clearTimeout(timer)
     }
+    return
   }, [activePresentation, status.state])
 
   /**
@@ -196,7 +200,9 @@ export function useStream(): {
               }
               slidesContainer.replaceChild(newSection, targetSection)
 
-              const win = revealIframe.contentWindow as any
+              const win = revealIframe.contentWindow as unknown as Window & {
+                Reveal?: { sync: () => void; slide: (index: number) => void }
+              }
               if (win && win.Reveal) {
                 win.Reveal.sync()
                 win.Reveal.slide(slideIndex)

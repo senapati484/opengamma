@@ -113,7 +113,7 @@ const browserMock: ElectronAPI = {
     console.warn('[useElectron] saveSettings called outside Electron with settings:', settings)
   },
 
-  onMenuAction: (_callback: (action: string) => void): (() => void) => {
+  onMenuAction: (): (() => void) => {
     console.warn('[useElectron] onMenuAction registered outside Electron — no-op')
     return noop
   },
@@ -171,7 +171,7 @@ const browserMock: ElectronAPI = {
     return { success: false, message: 'Running outside Electron' }
   },
 
-  openFileDialog: async (options?: any): Promise<{ canceled: boolean; filePaths: string[] }> => {
+  openFileDialog: async (options?: unknown): Promise<{ canceled: boolean; filePaths: string[] }> => {
     console.warn('[useElectron] openFileDialog called outside Electron with options:', options)
     return { canceled: true, filePaths: [] }
   },
@@ -193,7 +193,7 @@ const browserMock: ElectronAPI = {
     return { success: false, error: 'Running outside Electron' }
   },
 
-  onVoiceoverProgress: (callback: (progress: any) => void): (() => void) => {
+  onVoiceoverProgress: (callback: (progress: unknown) => void): (() => void) => {
     console.warn(
       '[useElectron] onVoiceoverProgress registered outside Electron with callback:',
       callback
