@@ -6,21 +6,19 @@
   "author": "senapati484 <sayansenapati2544@gmail.com>",
   "homepage": "https://opengamma.vercel.app",
   "scripts": {
-    "format": "prettier --write .",
-    "lint": "eslint --cache .",
-    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "npm run typecheck:node && npm run typecheck:web",
-    "start": "electron-vite preview",
     "dev": "electron-vite dev",
-    "build": "npm run typecheck && electron-vite build",
+    "start": "electron-vite preview",
+    "compile": "electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json --composite false && tsc --noEmit -p tsconfig.web.json --composite false",
+    "build": "npm run typecheck && npm run compile",
+    "pack:mac": "npm run build && electron-builder --mac",
+    "pack:win": "npm run build && electron-builder --win",
+    "pack:linux": "npm run build && electron-builder --linux",
+    "pack:all": "npm run build && electron-builder --mac --win --linux",
+    "release": "npm run build && electron-builder --publish always",
+    "lint": "eslint --cache .",
+    "format": "prettier --write .",
     "postinstall": "electron-builder install-app-deps",
-    "build:unpack": "npm run build && electron-builder --config electron-builder.yml --dir",
-    "build:win": "npm run build && electron-builder --config electron-builder.yml --win",
-    "build:mac": "npm run build && electron-builder --config electron-builder.yml --mac",
-    "build:linux": "npm run build && electron-builder --config electron-builder.yml --linux",
-    "build:all": "npm run build && electron-builder --config electron-builder.yml --win --mac --linux",
-    "release": "npm run build && electron-builder --config electron-builder.yml --publish always",
     "test:cli": "node -e \"require('./dist-electron/main/cliScanner').scanInstalledCLIs().then(console.log)\""
   },
   "dependencies": {
@@ -62,58 +60,6 @@
     "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",
     "vite": "^7.2.6"
-  },
-  "build": {
-    "appId": "app.opengamma.desktop",
-    "productName": "Open Gamma",
-    "copyright": "Copyright 2025 Open Gamma",
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*",
-      "src/context/**/*",
-      "resources/**/*"
-    ],
-    "asarUnpack": [
-      "**/node_modules/better-sqlite3/**/*",
-      "**/node_modules/onnxruntime-node/**/*",
-      "**/node_modules/kokoro-js/**/*",
-      "**/node_modules/@huggingface/transformers/**/*",
-      "**/node_modules/sharp/**/*"
-    ],
-    "mac": {
-      "target": [
-        { "target": "dmg", "arch": ["arm64", "x64"] },
-        { "target": "zip", "arch": ["arm64", "x64"] }
-      ],
-      "icon": "resources/icon.icns",
-      "category": "public.app-category.productivity",
-      "hardenedRuntime": true,
-      "entitlements": "resources/entitlements.mac.plist",
-      "entitlementsInherit": "resources/entitlements.mac.plist"
-    },
-    "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ],
-      "icon": "resources/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "icon": "resources/icon.png",
-      "category": "Office"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "senapati484",
-      "repo": "opengamma"
-    }
   }
 }
+

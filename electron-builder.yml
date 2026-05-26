@@ -1,27 +1,62 @@
 appId: com.opengamma.app
 productName: Open Gamma
+copyright: Copyright 2025 Open Gamma
+
 directories:
   buildResources: build
   output: out
+
 files:
+  - dist/**/*
+  - dist-electron/**/*
+  - resources/**/*
   - '!**/.vscode/*'
   - '!src/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+
 asarUnpack:
   - resources/**
   - '**/node_modules/better-sqlite3/**/*'
   - '**/node_modules/onnxruntime-node/**/*'
   - '**/node_modules/kokoro-js/**/*'
   - '**/node_modules/@huggingface/transformers/**/*'
+
+npmRebuild: false
+
+# ── macOS ──────────────────────────────────────────────────────────────────
+mac:
+  icon: resources/icon.icns
+  category: public.app-category.productivity
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: false
+  extendInfo:
+    NSCameraUsageDescription: Application requests access to the device's camera.
+    NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
+
+dmg:
+  artifactName: Open Gamma-${version}-${arch}.${ext}
+
+# ── Windows ────────────────────────────────────────────────────────────────
 win:
-  executableName: opengamma
   icon: resources/icon.ico
+  executableName: opengamma
+  signAndEditExecutable: false
   target:
     - target: nsis
     - target: portable
+
 nsis:
   artifactName: Open Gamma-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -29,38 +64,21 @@ nsis:
   createDesktopShortcut: always
   oneClick: false
   perMachine: false
-mac:
-  icon: resources/icon.icns
-  hardenedRuntime: true
-  entitlements: build/entitlements.mac.plist
-  entitlementsInherit: build/entitlements.mac.plist
-  target:
-    - target: dmg
-      arch:
-        - arm64
-        - x64
-    - target: zip
-      arch:
-        - arm64
-        - x64
-  extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  notarize: false
-dmg:
-  artifactName: Open Gamma-${version}-${arch}.${ext}
+
+# ── Linux ──────────────────────────────────────────────────────────────────
 linux:
   icon: resources/icon.png
+  category: Utility
+  maintainer: Open Gamma Team (https://opengamma.vercel.app)
   target:
     - AppImage
     - deb
-  maintainer: Open Gamma Team (https://opengamma.vercel.app)
-  category: Utility
+
 appImage:
   artifactName: Open Gamma-${version}-${arch}.${ext}
-npmRebuild: false
+
+# ── Publishing ─────────────────────────────────────────────────────────────
 publish:
-  provider: generic
-  url: https://opengamma.vercel.app/api/updates
+  provider: github
+  owner: senapati484
+  repo: opengamma
