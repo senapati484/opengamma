@@ -4,13 +4,17 @@ import { join } from 'path'
 import type { Presentation } from '../renderer/src/types'
 
 let db: Database.Database | null = null
+/** Set to true once initDb() has been attempted, so we don't retry on every call. */
+let dbInitAttempted = false
 
 /**
  * Initializes the SQLite database inside the user app data directory.
  * Sets journal mode to WAL for improved performance and creates the presentations schema.
+ * Does NOT throw — failures are logged and the app continues without history.
  */
 export function initDb(): void {
-  if (db) return
+  if (db || dbInitAttempted) return
+  dbInitAttempted = true
 
   const dbPath = join(app.getPath('userData'), 'opengamma.db')
   console.log(`[db] Initialising SQLite database at: ${dbPath}`)
@@ -37,33 +41,34 @@ export function initDb(): void {
     try {
       db.exec('ALTER TABLE presentations ADD COLUMN aspect_ratio TEXT')
       console.log('[db] Database schema migrated successfully: aspect_ratio column verified.')
-    } catch (e) {
-      // Column already exists or table is empty
+    } catch (_e) {
+      // Column already exists — expected on subsequent launches
     }
 
     // Schema Migration: Add bg_music_url column if it does not exist
     try {
       db.exec('ALTER TABLE presentations ADD COLUMN bg_music_url TEXT')
       console.log('[db] Database schema migrated successfully: bg_music_url column verified.')
-    } catch (e) {
-      // Column already exists or table is empty
+    } catch (_e) {
+      // Column already exists — expected on subsequent launches
     }
 
     console.log('[db] SQLite presentations table initialised successfully.')
   } catch (err: unknown) {
-    console.error('[db] Failed to initialise SQLite database:', err)
-    throw err
+    // Non-fatal: native module may be wrong architecture, missing, etc.
+    // The app will still open — history features just won't be available.
+    db = null
+    console.error('[db] Failed to initialise SQLite database (history unavailable):', err)
   }
 }
 
 /**
- * Helper to ensure database is initialized and return its reference safely.
+ * Returns the database reference, or null if it was never successfully opened.
+ * Callers must handle the null case gracefully.
  */
-function getDb(): Database.Database {
-  if (!db) {
-    initDb()
-  }
-  return db!
+function getDb(): Database.Database | null {
+  if (!dbInitAttempted) initDb()
+  return db
 }
 
 /**
@@ -73,6 +78,10 @@ function getDb(): Database.Database {
  */
 export function savePresentation(p: Presentation): void {
   const database = getDb()
+  if (!database) {
+    console.warn('[db] savePresentation skipped — database unavailable.')
+    return
+  }
   const stmt = database.prepare(`
     INSERT OR REPLACE INTO presentations (
       id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio, bg_music_url
@@ -103,6 +112,10 @@ export function savePresentation(p: Presentation): void {
  */
 export function getHistory(limit = 50): Presentation[] {
   const database = getDb()
+  if (!database) {
+    console.warn('[db] getHistory skipped — database unavailable.')
+    return []
+  }
   const stmt = database.prepare(`
     SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio, bg_music_url
     FROM presentations
@@ -141,6 +154,10 @@ export function getHistory(limit = 50): Presentation[] {
  */
 export function deletePresentation(id: string): void {
   const database = getDb()
+  if (!database) {
+    console.warn('[db] deletePresentation skipped — database unavailable.')
+    return
+  }
   const stmt = database.prepare('DELETE FROM presentations WHERE id = ?')
   stmt.run(id)
   console.log(`[db] Presentation deleted — ID: ${id}`)
@@ -154,6 +171,10 @@ export function deletePresentation(id: string): void {
  */
 export function getPresentationById(id: string): Presentation | null {
   const database = getDb()
+  if (!database) {
+    console.warn('[db] getPresentationById skipped — database unavailable.')
+    return null
+  }
   const stmt = database.prepare(`
     SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio, bg_music_url
     FROM presentations

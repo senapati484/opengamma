@@ -24,8 +24,6 @@ asarUnpack:
   - '**/node_modules/kokoro-js/**/*'
   - '**/node_modules/@huggingface/transformers/**/*'
 
-npmRebuild: false
-
 # ── macOS ──────────────────────────────────────────────────────────────────
 mac:
   icon: resources/icon.icns
