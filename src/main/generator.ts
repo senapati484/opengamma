@@ -1193,11 +1193,17 @@ async function generateAndInjectImage(
     const imgHtml = `<img src="${base64data}" alt="${slide.title || 'Slide visual'}" />`
 
     if (placeholder) {
-      // Replace the placeholder <figure> with the real image
+      // Find and preserve the caption bar inside the placeholder if it exists
+      const captionBar = placeholder.querySelector('.og-caption-bar')
+
+      // Replace the placeholder with the real image
       placeholder.innerHTML = imgHtml
+      if (captionBar) {
+        placeholder.appendChild(captionBar)
+      }
+
       placeholder.removeAttribute('data-prompt')
-      placeholder.classList.remove('og-image-placeholder')
-      placeholder.classList.add('og-image-figure')
+      placeholder.setAttribute('class', 'og-image-figure')
     } else {
       // No placeholder: inject as a right-column split layout if slide is 'content' type
       section.classList.add('og-full-bleed-split')
