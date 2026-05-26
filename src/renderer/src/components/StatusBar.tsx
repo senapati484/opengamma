@@ -1,8 +1,23 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAppContext } from '../context/AppContext'
+import { useElectron } from '../lib/useElectron'
 
 export const StatusBar: React.FC = () => {
   const { settings } = useAppContext()
+  const api = useElectron()
+  const [appVersion, setAppVersion] = useState<string>('1.0.1')
+
+  useEffect(() => {
+    const fetchVersion = async (): Promise<void> => {
+      try {
+        const info = await api.getAppInfo()
+        setAppVersion(info.version)
+      } catch {
+        // Safe default fallback of '1.0.1' remains
+      }
+    }
+    fetchVersion()
+  }, [api])
 
   if (!settings) return null
 
@@ -51,7 +66,7 @@ export const StatusBar: React.FC = () => {
       <div className="flex items-center gap-4 h-full">
         <div className="h-3 w-px bg-white/5" />
         <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-[0.2em] leading-none mt-0.5">
-          Open Gamma v1.0.0
+          Open Gamma v{appVersion}
         </span>
       </div>
     </div>

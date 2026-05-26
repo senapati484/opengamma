@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2026-05-26
+
+### Fixed
+
+- **macOS arm64 crash on launch**: Removed `npmRebuild: false` from `electron-builder.yml` so native addons (`better-sqlite3`, `onnxruntime-node`) are correctly recompiled for the arm64 Electron ABI at package time. Previously the app silently failed because x86_64 Intel binaries were bundled into the arm64 app.
+- **Silent crash on DB failure**: `initDb()` no longer throws — failures are logged and the app continues with history features gracefully disabled, preventing a blank-window crash if the native SQLite module cannot load.
+
 ## [1.0.0] - 2026-05-22
+
 
 ### Added
 

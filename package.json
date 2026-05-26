@@ -1,7 +1,7 @@
 {
   "name": "opengamma",
-  "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "version": "1.0.1",
+  "description": "OpenGamma: An open-source, AI-powered presentation tool (Gamma.app alternative). Generate, edit, and export slide decks using Claude and Gemini, rendered live with Reveal.js.",
   "main": "./dist-electron/main/index.js",
   "author": "senapati484 <sayansenapati2544@gmail.com>",
   "homepage": "https://opengamma.vercel.app",
