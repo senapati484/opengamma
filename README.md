@@ -22,6 +22,14 @@
 ---
 
 <p align="center">
+  <a href="https://youtu.be/O170F-KqtUw?si=Xg-R7onfbVyWbSHB" target="_blank">
+    <img src="https://img.shields.io/badge/YouTube-Watch%20Demo%20Video-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Demo Video" />
+  </a>
+</p>
+
+---
+
+<p align="center">
   <a href="https://sourceforge.net/projects/open-gamma/files/latest/download"><img alt="Download Open Gamma" src="https://a.fsdn.com/con/app/sf-download-button" /></a>
 </p>
 
@@ -35,9 +43,11 @@
 
 ## 📖 Overview
 
-**Open Gamma** is a premium, open-source, local-first alternative to **Gamma.app**. Built on a modern **Electron**, **React**, **TypeScript**, and **Reveal.js** desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security and BYOK (Bring Your Own Key) model flexibility.
+**Open Gamma** is a premium, open-source, local-first alternative to **Gamma.app**. Built on a modern **Electron**, **React**, **TypeScript**, and **Reveal.js** desktop architecture, it empowers you to draft, design, refine, and export high-fidelity slides and booklets with local offline security and BYOK (Bring Your Own Key) model flexibility. Check out the [YouTube Demo Video](https://youtu.be/O170F-KqtUw?si=Xg-R7onfbVyWbSHB) to see it in action!
 
 All draft presentations, generated assets, slide history, and system settings are securely stored locally inside a lightweight, fast, local SQLite database. No cloud lock-in, no recurring subscription fees, and complete data ownership.
+
+
 
 ---
 

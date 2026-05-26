@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import type { Presentation, Theme } from '../types'
 import { useElectron } from '../lib/useElectron'
+import { GLOBAL_LAYOUT_CSS } from '../lib/layoutStyles'
 
 export interface PdfEditorViewProps {
   presentation: Presentation
@@ -197,9 +198,8 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
 
       {/* Main Split Interface */}
       <div className="flex-1 flex min-h-0 relative">
-        {/* Left Side Options Panel */}
-        <div className="w-[360px] flex-none bg-[#101010] border-r border-white/5 flex flex-col min-h-0 select-none overflow-y-auto custom-scrollbar no-drag">
-          <div className="p-6 flex flex-col gap-6">
+        <div className="w-[360px] flex-none bg-[#101010] border-r border-white/5 flex flex-col min-h-0 select-none no-drag">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-6">
             {/* Format Segmented Selection Tabs */}
             <div className="flex flex-col gap-2">
               <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
@@ -525,7 +525,7 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
           </div>
 
           {/* Glowing bottom Export Trigger button */}
-          <div className="mt-auto p-6 border-t border-white/5 bg-[#0e0e0e] sticky bottom-0 z-10">
+          <div className="flex-none p-6 border-t border-white/5 bg-[#0e0e0e] z-10">
             <button
               onClick={handleExport}
               className="w-full py-3 rounded-xl bg-[#e8ff57] hover:bg-[#f3ff99] text-black text-xs font-black uppercase tracking-widest shadow-lg shadow-[#e8ff57]/20 active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden group animate-pulse-slow"
@@ -623,330 +623,20 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
             /* Booklet Slides List */
             <div className="max-w-[720px] w-full flex flex-col gap-8 pb-16">
               {presentation.slides.map((slide, index) => {
-                // Custom compiler styling overrides specifically for this preview card iframe!
-                const fontImport = (activeTheme as any).fontImport || ''
-
-                // We compile the scoped HTML specifically for this preview
-                // We enforce Ink Saver white backgrounds or standard theme backgrounds in preview!
-                let previewBg = 'var(--og-slide-bg, #0d0d0d)'
-                let previewText = 'var(--og-slide-text, #ffffff)'
-                let previewAccent = 'var(--og-slide-accent, #38bdf8)'
-                let extraStyleInject = ''
-
-                if (settings.preset === 'ink-saver') {
-                  previewBg = '#ffffff'
-                  previewText = '#111111'
-                  previewAccent = '#0047ff'
-                  // Inject overrides to force dark text and white background inside iframe
-                  extraStyleInject = `
-                    html, body, .slide-wrapper, section {
-                      background: #ffffff !important;
-                      color: #111111 !important;
-                    }
-                    h1, h2, h3, p, li, strong, td, th {
-                      color: #111111 !important;
-                      background: none !important;
-                      -webkit-text-fill-color: #111111 !important;
-                      text-shadow: none !important;
-                    }
-                    .accent, strong {
-                      color: #0047ff !important;
-                    }
-                    .cta-block {
-                      background: #f3f4f6 !important;
-                      color: #111111 !important;
-                      border: 1px solid #e5e7eb !important;
-                    }
-                    table, th, td {
-                      border-color: #e5e7eb !important;
-                    }
-                  `
-                } else if (settings.preset === 'monochromatic') {
-                  // We'll apply grayscale inside the body
-                  extraStyleInject = `
-                    html, body {
-                      filter: grayscale(100%) !important;
-                    }
-                  `
-                }
-
-                // Apply Margins
-                let marginPadding = '60px'
-                if (settings.margins === 'none') marginPadding = '0px'
-                else if (settings.margins === 'small') marginPadding = '30px'
-                else if (settings.margins === 'medium') marginPadding = '60px'
-                else if (settings.margins === 'large') marginPadding = '100px'
-
-                // Apply global typography overrides
-                let typographyStyles = `
-                  pre, code {
-                    font-family: 'JetBrains Mono', monospace !important;
-                  }
-                  strong, .number, .stat {
-                    font-family: 'Space Grotesk', 'Outfit', sans-serif !important;
-                    font-weight: 800 !important;
-                  }
-                `
-                if (settings.headingFont !== 'original') {
-                  typographyStyles += `
-                    h1, h2, h3, .accent {
-                      font-family: '${settings.headingFont}', sans-serif !important;
-                    }
-                  `
-                } else {
-                  typographyStyles += `
-                    h1, h2, h3, .accent {
-                      font-family: var(--og-slide-font-heading, 'Outfit'), sans-serif !important;
-                    }
-                  `
-                }
-                if (settings.bodyFont !== 'original') {
-                  typographyStyles += `
-                    p, li, td, th {
-                      font-family: '${settings.bodyFont}', sans-serif !important;
-                    }
-                  `
-                } else {
-                  typographyStyles += `
-                    p, li, td, th {
-                      font-family: var(--og-slide-font-body, 'Inter'), sans-serif !important;
-                    }
-                  `
-                }
-
-                // Gather extra Google fonts imports if overrides are active
-                let extraFontsImport = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');\n`
-                if (
-                  settings.headingFont !== 'original' &&
-                  settings.headingFont !== 'Inter' &&
-                  settings.headingFont !== 'Outfit' &&
-                  settings.headingFont !== 'JetBrains Mono' &&
-                  settings.headingFont !== 'Space Grotesk' &&
-                  settings.headingFont !== 'Playfair Display'
-                ) {
-                  extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
-                }
-                if (
-                  settings.bodyFont !== 'original' &&
-                  settings.bodyFont !== 'Inter' &&
-                  settings.bodyFont !== 'Outfit' &&
-                  settings.bodyFont !== 'JetBrains Mono' &&
-                  settings.bodyFont !== 'Space Grotesk' &&
-                  settings.bodyFont !== 'Playfair Display'
-                ) {
-                  extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.bodyFont.replace(/\s+/g, '+')}:wght@400;600&display=swap');\n`
-                }
-
-                const srcDoc = `
-                  <!DOCTYPE html>
-                  <html>
-                    <head>
-                      <style>
-                        ${fontImport}
-                        ${extraFontsImport}
-                        ${activeTheme.cssTokens}
-                        html, body {
-                          width: 1280px;
-                          height: 720px;
-                          margin: 0;
-                          padding: 0;
-                          overflow: hidden;
-                          box-sizing: border-box;
-                          background: ${previewBg};
-                          color: ${previewText};
-                        }
-                        .slide-wrapper {
-                          width: 1280px;
-                          height: 720px;
-                          display: flex;
-                      padding: ${marginPadding};
-                          box-sizing: border-box;
-                          text-align: center;
-                        }
-                        h1, h2, h3 {
-                          font-family: var(--og-slide-font-heading, sans-serif);
-                          color: ${previewText};
-                          margin-top: 0;
-                        }
-                        p, li {
-                          font-family: var(--og-slide-font-body, sans-serif);
-                          font-size: 28px;
-                          line-height: 1.5;
-                        }
-                        .accent, strong {
-                          color: ${previewAccent} !important;
-                        }
-                        
-                        /* Creative layout elements style overrides */
-                        .cols {
-                          display: grid !important;
-                          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-                          gap: 30px !important;
-                          align-items: stretch !important;
-                          width: 100% !important;
-                          margin-top: 25px !important;
-                          text-align: left;
-                        }
-                        .col {
-                          display: flex !important;
-                          flex-direction: column !important;
-                          justify-content: flex-start !important;
-                        }
-                        .card {
-                          background: rgba(255, 255, 255, 0.03) !important;
-                          border: 1px solid rgba(255, 255, 255, 0.08) !important;
-                          border-radius: 12px !important;
-                          padding: 24px !important;
-                          box-sizing: border-box !important;
-                          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
-                          text-align: left !important;
-                          width: 100%;
-                        }
-                        .card h3 {
-                          margin-top: 0 !important;
-                          margin-bottom: 12px !important;
-                          font-size: 1.25em !important;
-                        }
-                        .card p {
-                          margin: 0 !important;
-                          font-size: 0.9em !important;
-                          line-height: 1.5 !important;
-                        }
-                        .stat-block {
-                          display: flex !important;
-                          flex-direction: column !important;
-                          align-items: center !important;
-                          text-align: center !important;
-                          padding: 20px !important;
-                          background: rgba(255, 255, 255, 0.02) !important;
-                          border: 1px solid rgba(255, 255, 255, 0.06) !important;
-                          border-radius: 12px !important;
-                          box-sizing: border-box !important;
-                          width: 100%;
-                        }
-                        .stat-number {
-                          font-size: 3.4em !important;
-                          font-weight: 900 !important;
-                          line-height: 1 !important;
-                          color: ${previewAccent} !important;
-                          margin-bottom: 8px !important;
-                          text-shadow: 0 0 15px rgba(232, 255, 87, 0.15) !important;
-                        }
-                        .stat-label {
-                          font-size: 0.8em !important;
-                          font-weight: 700 !important;
-                          color: ${previewText} !important;
-                          opacity: 0.8 !important;
-                          text-transform: uppercase !important;
-                          letter-spacing: 0.1em !important;
-                        }
-                        .quote-block {
-                          border-left: 4px solid ${previewAccent} !important;
-                          padding-left: 24px !important;
-                          text-align: left !important;
-                          margin: 30px auto !important;
-                          max-width: 85% !important;
-                          font-style: italic !important;
-                          box-sizing: border-box !important;
-                        }
-                        .quote-text {
-                          font-size: 1.3em !important;
-                          line-height: 1.4 !important;
-                          font-weight: 500 !important;
-                          margin-bottom: 12px !important;
-                          color: ${previewText} !important;
-                        }
-                        .quote-author {
-                          font-size: 0.85em !important;
-                          font-weight: 700 !important;
-                          text-transform: uppercase !important;
-                          color: var(--og-slide-muted, #9ca3af) !important;
-                          font-style: normal !important;
-                          letter-spacing: 0.08em !important;
-                        }
-                        .badge {
-                          display: inline-block !important;
-                          background: rgba(232, 255, 87, 0.1) !important;
-                          border: 1px solid rgba(232, 255, 87, 0.2) !important;
-                          color: ${previewAccent} !important;
-                          padding: 5px 14px !important;
-                          border-radius: 9999px !important;
-                          font-size: 0.7em !important;
-                          font-weight: 800 !important;
-                          text-transform: uppercase !important;
-                          letter-spacing: 0.12em !important;
-                          margin-bottom: 20px !important;
-                        }
-                        
-                        section {
-                          width: 100%;
-                          height: 100%;
-                          justify-content: center;
-                          align-items: center;
-                        }
-                        ${typographyStyles}
-                        ${extraStyleInject}
-                      </style>
-                    </head>
-                    <body>
-                      <div class="slide-wrapper">
-                        ${slide.html}
-                      </div>
-                    </body>
-                  </html>
-                `
-
                 return (
                   <div
                     key={slide.id}
                     className="flex flex-col gap-2.5 animate-slide-up"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    {/* Aspect Card wrapper */}
-                    <div
-                      className={`w-full relative rounded-xl border border-white/5 shadow-2xl overflow-hidden bg-[#121212] ${cardAspectRatio}`}
-                      style={{
-                        // --pdf-preview-scale maps the 1280-wide iframe into the container.
-                        // The container max-width from the parent scroll area is ~680px effective.
-                        // We use the same fraction the CSS aspect-ratio enforces: containerW/1280.
-                        // For landscape 16:9 (A4): containerW ≈ 680px → 680/1280 ≈ 0.53
-                        // CSS var is read by the iframe's transform: scale()
-                        ['--pdf-preview-scale' as string]: isLandscape ? '0.5312' : '0.375'
-                      }}
-                    >
-                      <iframe
-                        srcDoc={srcDoc}
-                        className="border-none select-none pointer-events-none absolute inset-0 w-full h-full"
-                        style={{
-                          // Render the iframe at 1280×720 internally but scale it down
-                          // to fit the parent container without distortion.
-                          // We use an SVG viewBox trick: set width/height via style so the
-                          // browser scales the content, combined with aspect ratio on parent.
-                          width: '1280px',
-                          height: '720px',
-                          transformOrigin: 'top left',
-                          // The container has class `cardAspectRatio` so its width determines
-                          // the visible area. We scale from 1280 → container width.
-                          transform: 'scale(var(--pdf-preview-scale, 0.5625))'
-                        }}
-                        title={`Preview Booklet Slide ${index + 1}`}
-                      />
-
-                      {/* Dynamic Overlay Elements inside grid */}
-                      <div className="absolute inset-0 border border-white/5 pointer-events-none rounded-xl" />
-
-                      {/* Slide number corner tag */}
-                      {settings.showPageNumbers && (
-                        <span className="absolute bottom-4 right-4 z-10 px-2 py-0.5 rounded bg-black/40 text-neutral-400 font-bold border border-white/5 text-[9px]">
-                          Page {index + 1}
-                        </span>
-                      )}
-
-                      {/* Slide badge index */}
-                      <span className="absolute top-4 left-4 z-10 px-2 py-0.5 rounded bg-[#e8ff57] text-black font-black text-[9px] select-none shadow-md">
-                        Slide {index + 1}
-                      </span>
-                    </div>
+                    <BookletSlidePreview
+                      slide={slide}
+                      index={index}
+                      presentation={presentation}
+                      activeTheme={activeTheme}
+                      settings={settings}
+                      cardAspectRatio={cardAspectRatio}
+                    />
 
                     {/* Supplemental Speaker Notes print page layout (if enabled) */}
                     {settings.includeSpeakerNotes && slide.notes && (
@@ -1073,3 +763,239 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
     </div>
   )
 }
+
+interface BookletSlidePreviewProps {
+  slide: any
+  index: number
+  presentation: Presentation
+  activeTheme: Theme
+  settings: ExportSettings
+  cardAspectRatio: string
+}
+
+const BookletSlidePreview: React.FC<BookletSlidePreviewProps> = ({
+  slide,
+  index,
+  presentation,
+  activeTheme,
+  settings,
+  cardAspectRatio
+}) => {
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    const iframe = iframeRef.current
+    if (!iframe || !isLoaded) return
+    const contentWindow = iframe.contentWindow
+    if (!contentWindow) return
+
+    // 1. Set Aspect Ratio (this configures Reveal.js dimensions)
+    const presentationRatio = presentation.aspectRatio || '16:9'
+    contentWindow.postMessage({ type: 'SET_ASPECT_RATIO', aspectRatio: presentationRatio }, '*')
+
+    // 2. Set Reveal Base Theme (black or white)
+    const revealThemeName = activeTheme.revealTheme || 'white'
+    contentWindow.postMessage({ type: 'SET_REVEAL_THEME', themeName: revealThemeName }, '*')
+
+    // 3. Compile custom styles for this preview
+    const fontImport = (activeTheme as any).fontImport || ''
+    
+    let extraStyleInject = ''
+
+    if (settings.preset === 'ink-saver') {
+      extraStyleInject = `
+        html, body, .reveal, .reveal .slides, .reveal section, .reveal .slide-background, .reveal .slide-background-content {
+          background: #ffffff !important;
+          background-color: #ffffff !important;
+          background-image: none !important;
+          color: #111111 !important;
+        }
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal p, .reveal li, .reveal td, .reveal th, .reveal span, .reveal div, .reveal strong, .reveal em {
+          color: #111111 !important;
+          background: none !important;
+          -webkit-text-fill-color: #111111 !important;
+          text-shadow: none !important;
+        }
+        .reveal .accent, .reveal strong, .reveal a {
+          color: #0047ff !important;
+          -webkit-text-fill-color: #0047ff !important;
+        }
+        .reveal .cta-block {
+          background: #f3f4f6 !important;
+          color: #111111 !important;
+          border: 1px solid #e5e7eb !important;
+        }
+        .reveal table, .reveal th, .reveal td {
+          border-color: #e5e7eb !important;
+        }
+      `
+    } else if (settings.preset === 'monochromatic') {
+      extraStyleInject = `
+        html, body, .reveal {
+          filter: grayscale(100%) !important;
+        }
+      `
+    }
+
+    // Apply Margins
+    let marginPadding = '60px'
+    if (settings.margins === 'none') marginPadding = '40px'
+    else if (settings.margins === 'small') marginPadding = '60px'
+    else if (settings.margins === 'medium') marginPadding = '90px'
+    else if (settings.margins === 'large') marginPadding = '120px'
+
+    const marginStyles = `
+      .reveal .slides > section {
+        padding: ${marginPadding} !important;
+        box-sizing: border-box !important;
+      }
+    `
+
+    // Apply global typography overrides
+    let typographyStyles = `
+      .reveal pre, .reveal code {
+        font-family: 'JetBrains Mono', monospace !important;
+      }
+      .reveal strong, .reveal .number, .reveal .stat {
+        font-family: 'Space Grotesk', 'Outfit', sans-serif !important;
+        font-weight: 800 !important;
+      }
+    `
+    if (settings.headingFont !== 'original') {
+      typographyStyles += `
+        .reveal h1, .reveal h2, .reveal h3, .reveal .accent {
+          font-family: '${settings.headingFont}', sans-serif !important;
+        }
+      `
+    } else {
+      typographyStyles += `
+        .reveal h1, .reveal h2, .reveal h3, .reveal .accent {
+          font-family: var(--og-slide-font-heading, 'Outfit'), sans-serif !important;
+        }
+      `
+    }
+    if (settings.bodyFont !== 'original') {
+      typographyStyles += `
+        .reveal p, .reveal li, .reveal td, .reveal th, .reveal div, .reveal span {
+          font-family: '${settings.bodyFont}', sans-serif !important;
+        }
+      `
+    } else {
+      typographyStyles += `
+        .reveal p, .reveal li, .reveal td, .reveal th, .reveal div, .reveal span {
+          font-family: var(--og-slide-font-body, 'Inter'), sans-serif !important;
+        }
+      `
+    }
+
+    // Gather extra Google fonts imports if overrides are active
+    let extraFontsImport = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');\n`
+    if (
+      settings.headingFont !== 'original' &&
+      settings.headingFont !== 'Inter' &&
+      settings.headingFont !== 'Outfit' &&
+      settings.headingFont !== 'JetBrains Mono' &&
+      settings.headingFont !== 'Space Grotesk' &&
+      settings.headingFont !== 'Playfair Display'
+    ) {
+      extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
+    }
+    if (
+      settings.bodyFont !== 'original' &&
+      settings.bodyFont !== 'Inter' &&
+      settings.bodyFont !== 'Outfit' &&
+      settings.bodyFont !== 'JetBrains Mono' &&
+      settings.bodyFont !== 'Space Grotesk' &&
+      settings.bodyFont !== 'Playfair Display'
+    ) {
+      extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.bodyFont.replace(/\s+/g, '+')}:wght@400;600&display=swap');\n`
+    }
+
+    const cssTokensWithOverrides = `
+      ${fontImport}
+      ${extraFontsImport}
+      ${activeTheme.cssTokens}
+      ${GLOBAL_LAYOUT_CSS}
+      ${marginStyles}
+      ${typographyStyles}
+      ${extraStyleInject}
+    `
+    // Inject custom theme variables
+    try {
+      if ((contentWindow as any).setTheme) {
+        ;(contentWindow as any).setTheme(cssTokensWithOverrides)
+      } else {
+        contentWindow.postMessage({ type: 'SET_THEME', cssTokens: cssTokensWithOverrides }, '*')
+      }
+    } catch {
+      contentWindow.postMessage({ type: 'SET_THEME', cssTokens: cssTokensWithOverrides }, '*')
+    }
+
+    // 4. Inject Slide HTML
+    try {
+      if ((contentWindow as any).clearSlides) {
+        ;(contentWindow as any).clearSlides()
+      } else {
+        contentWindow.postMessage({ type: 'CLEAR_SLIDES' }, '*')
+      }
+    } catch {
+      contentWindow.postMessage({ type: 'CLEAR_SLIDES' }, '*')
+    }
+
+    try {
+      if ((contentWindow as any).addSlide) {
+        ;(contentWindow as any).addSlide(slide.html)
+      } else {
+        contentWindow.postMessage({ type: 'ADD_SLIDE', html: slide.html }, '*')
+      }
+    } catch {
+      contentWindow.postMessage({ type: 'ADD_SLIDE', html: slide.html }, '*')
+    }
+  }, [slide, activeTheme, settings, isLoaded])
+
+  const getThemeBackground = () => {
+    if (settings.preset === 'ink-saver') return '#ffffff'
+    
+    // Try to extract background gradient or color from cssTokens
+    const ogBgMatch = activeTheme.cssTokens.match(/--og-slide-bg:\s*([^;]+);/)
+    if (ogBgMatch && ogBgMatch[1]) {
+      return ogBgMatch[1].trim()
+    }
+    const bgGradientMatch = activeTheme.cssTokens.match(/--background-gradient:\s*([^;]+);/)
+    if (bgGradientMatch && bgGradientMatch[1]) {
+      return bgGradientMatch[1].trim()
+    }
+    return activeTheme.colors.bg
+  }
+
+  return (
+    <div
+      className={`w-full relative rounded-xl border border-white/5 shadow-2xl overflow-hidden ${cardAspectRatio}`}
+      style={{
+        background: getThemeBackground()
+      }}
+    >
+      <iframe
+        ref={iframeRef}
+        src="./reveal-host.html"
+        onLoad={() => setIsLoaded(true)}
+        className="border-none select-none pointer-events-none absolute inset-0 w-full h-full bg-transparent"
+        title={`Preview Booklet Slide ${index + 1}`}
+      />
+
+      {/* Slide number corner tag */}
+      {settings.showPageNumbers && (
+        <span className="absolute bottom-4 right-4 z-10 px-2 py-0.5 rounded bg-black/40 text-neutral-400 font-bold border border-white/5 text-[9px]">
+          Page {index + 1}
+        </span>
+      )}
+
+      {/* Slide badge index */}
+      <span className="absolute top-4 left-4 z-10 px-2 py-0.5 rounded bg-[#e8ff57] text-black font-black text-[9px] select-none shadow-md">
+        Slide {index + 1}
+      </span>
+    </div>
+  )
+}
+

@@ -15,12 +15,12 @@
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
-    "build:unpack": "npm run build && electron-builder --dir",
-    "build:win": "npm run build && electron-builder --win",
-    "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux",
-    "build:all": "npm run build && electron-builder --win --mac --linux",
-    "release": "npm run build && electron-builder --publish always",
+    "build:unpack": "npm run build && electron-builder --config electron-builder.yml --dir",
+    "build:win": "npm run build && electron-builder --config electron-builder.yml --win",
+    "build:mac": "npm run build && electron-builder --config electron-builder.yml --mac",
+    "build:linux": "npm run build && electron-builder --config electron-builder.yml --linux",
+    "build:all": "npm run build && electron-builder --config electron-builder.yml --win --mac --linux",
+    "release": "npm run build && electron-builder --config electron-builder.yml --publish always",
     "test:cli": "node -e \"require('./dist-electron/main/cliScanner').scanInstalledCLIs().then(console.log)\""
   },
   "dependencies": {

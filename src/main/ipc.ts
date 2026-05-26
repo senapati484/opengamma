@@ -39,34 +39,6 @@ const LAYOUT_CSS = `
         background: var(--og-slide-bg, #0d0d0d) !important;
       }
 
-      .reveal section {
-        padding: 20px 30px !important;
-        box-sizing: border-box !important;
-      }
-      .reveal h1 {
-        font-size: 2.0em !important;
-        margin-bottom: 20px !important;
-      }
-      .reveal h2 {
-        font-size: 1.5em !important;
-        margin-bottom: 16px !important;
-      }
-      .reveal h3 {
-        font-size: 1.05em !important;
-        margin-bottom: 10px !important;
-      }
-      .reveal p, .reveal li, .reveal span, .reveal td, .reveal th {
-        font-size: 0.76em !important;
-        line-height: 1.35 !important;
-      }
-      .reveal ul, .reveal ol {
-        margin-top: 8px !important;
-        margin-bottom: 8px !important;
-      }
-      .reveal li {
-        margin-bottom: 5px !important;
-      }
-
       /* ── Image placeholder & figures ── */
       .og-image-placeholder {
         display: flex;
@@ -1228,10 +1200,10 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
 
   // Margin spacing
   let marginPadding = '60px'
-  if (options.margins === 'none') marginPadding = '0px'
-  else if (options.margins === 'small') marginPadding = '30px'
-  else if (options.margins === 'medium') marginPadding = '60px'
-  else if (options.margins === 'large') marginPadding = '100px'
+  if (options.margins === 'none') marginPadding = '40px'
+  else if (options.margins === 'small') marginPadding = '60px'
+  else if (options.margins === 'medium') marginPadding = '90px'
+  else if (options.margins === 'large') marginPadding = '120px'
 
   const marginStyles = `
     .reveal .slides > section {
@@ -1311,6 +1283,16 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
     <!-- Reveal.js Base Theme -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/${revealThemeName}.css" id="reveal-theme" />
     ${dynamicFontLink}
+
+    <script>
+      if (window.location.search.match(/print-pdf/gi)) {
+        var printLink = document.createElement('link');
+        printLink.rel = 'stylesheet';
+        printLink.type = 'text/css';
+        printLink.href = 'https://cdn.jsdelivr.net/npm/reveal.js@5/css/print/pdf.css';
+        document.head.appendChild(printLink);
+      }
+    </script>
 
     <style>
       ${theme.fontImport || ''}
@@ -1471,72 +1453,6 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         margin-bottom: 20px !important;
         font-family: var(--og-slide-font-body, sans-serif) !important;
       }
-
-      @media print {
-        /* Force color & background printing */
-        * {
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-
-        /* Ensure backgrounds print correctly depending on preset styles */
-        ${printPresetStyles}
-
-        /* Restore flex layout display for split columns */
-        .reveal .slides section.og-full-bleed-split {
-          display: flex !important;
-          flex-direction: ${options.orientation === 'portrait' ? 'column' : 'row'} !important;
-          width: 100% !important;
-          height: 100% !important;
-          padding: 0 !important;
-          margin: 0 !important;
-        }
-
-        /* Ensure grid layout display for stat blocks */
-        .reveal .slides section[data-slide-type="data"],
-        .reveal .slides section:has(.stat-block) {
-          display: grid !important;
-          grid-template-columns: repeat(12, 1fr) !important;
-          grid-auto-rows: auto !important;
-          gap: 10px !important;
-          align-content: center !important;
-          justify-content: center !important;
-        }
-
-        .reveal .slides section.og-full-bleed-split .og-split-layout {
-          display: grid !important;
-          flex: 1 1 0% !important;
-          width: 100% !important;
-          height: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-
-        /* Keep split layouts full bleed */
-        .reveal .slides section.og-full-bleed-split img {
-          width: 100% !important;
-          height: 100% !important;
-          max-width: 100% !important;
-          max-height: 100% !important;
-          object-fit: cover !important;
-          display: block !important;
-        }
-
-        /* Constraint for standard images to prevent page overflow */
-        .reveal section:not(.og-full-bleed-split) img {
-          max-height: 300px !important;
-          max-width: 100% !important;
-          object-fit: contain !important;
-          margin: 10px auto !important;
-          display: block !important;
-          box-shadow: none !important;
-        }
-
-        .reveal pre, .reveal code {
-          max-height: 35vh !important;
-          overflow: hidden !important;
-        }
-      }
     </style>
   </head>
   <body>
@@ -1677,9 +1593,78 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         ensureFontsLoaded();
         adjustAllSlideFontSizes();
 
-        // Inject page size and orientation overrides to ensure Chromium print engine matches user choice
+        // Inject page size, orientation and custom styles dynamically for specificity victory
         const style = document.createElement('style');
-        style.textContent = '@page { size: ${ (options.pageSize || 'A4') === 'Letter' ? 'letter' : 'A4' } ${ (options.orientation || 'landscape') === 'portrait' ? 'portrait' : 'landscape' }; margin: 0; }';
+        style.textContent = \`
+          @page {
+            size: \${ (options.pageSize || 'A4') === 'Letter' ? 'letter' : 'A4' } \${ (options.orientation || 'landscape') === 'portrait' ? 'portrait' : 'landscape' };
+            margin: 0;
+          }
+          
+          /* Force color & background printing */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Ensure backgrounds print correctly depending on preset styles */
+          \${printPresetStyles}
+
+          /* Restore flex layout display for split columns */
+          .reveal .slides section.og-full-bleed-split {
+            display: flex !important;
+            flex-direction: \${options.orientation === 'portrait' ? 'column' : 'row'} !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+
+          /* Ensure grid layout display for stat blocks */
+          .reveal .slides section[data-slide-type="data"],
+          .reveal .slides section:has(.stat-block) {
+            display: grid !important;
+            grid-template-columns: repeat(12, 1fr) !important;
+            grid-auto-rows: auto !important;
+            gap: 10px !important;
+            align-content: center !important;
+            justify-content: center !important;
+          }
+
+          .reveal .slides section.og-full-bleed-split .og-split-layout {
+            display: grid !important;
+            flex: 1 1 0% !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Keep split layouts full bleed */
+          .reveal .slides section.og-full-bleed-split img {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            object-fit: cover !important;
+            display: block !important;
+          }
+
+          /* Constraint for standard images to prevent page overflow */
+          .reveal section:not(.og-full-bleed-split) img {
+            max-height: 300px !important;
+            max-width: 100% !important;
+            object-fit: contain !important;
+            margin: 10px auto !important;
+            display: block !important;
+            box-shadow: none !important;
+          }
+
+          .reveal pre, .reveal code {
+            max-height: 35vh !important;
+            overflow: hidden !important;
+          }
+        \`;
         document.head.appendChild(style);
       });
     </script>
@@ -2029,7 +2014,7 @@ export function registerIpcHandlers(): void {
             }
           })
 
-          await printWindow.loadURL(`file://${tempHtmlPath}?print-pdf`)
+          await printWindow.loadFile(tempHtmlPath, { query: { 'print-pdf': 'true' } })
 
           // Wait for the page to finish loading first
           await new Promise<void>((resolve, reject) => {
@@ -2122,7 +2107,7 @@ export function registerIpcHandlers(): void {
             }
           })
 
-          await captureWindow.loadURL(`file://${tempHtmlPath}`)
+          await captureWindow.loadFile(tempHtmlPath)
 
           // Wait for page load and styling layouts
           await new Promise((resolve) => setTimeout(resolve, 2000))

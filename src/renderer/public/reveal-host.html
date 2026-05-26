@@ -9,11 +9,12 @@
     <title>Open Gamma Reveal.js Host</title>
 
     <!-- Reveal.js Core Stylesheets -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+    <link rel="stylesheet" href="./reveal.css" />
+    <link rel="stylesheet" href="./reset.css" />
     <!-- Default Reveal.js Base Theme (black for dark blending) -->
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css"
+      href="./theme/black.css"
       id="reveal-theme"
     />
     <!-- Google Fonts Imports for Custom Typography -->
@@ -30,7 +31,7 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        background-color: #0d0d0d;
+        background-color: transparent;
       }
       .reveal {
         width: 100%;
@@ -527,7 +528,7 @@
     </div>
 
     <!-- Reveal.js Core Library -->
-    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script src="./reveal.js"></script>
 
     <script>
       // ══════════════════════════════════════════════════════════════════════════
@@ -666,6 +667,9 @@
       // ══════════════════════════════════════════════════════════════════════════
       //  3.  REVEAL.JS INIT
       // ══════════════════════════════════════════════════════════════════════════
+      let isRevealReady = false
+      const messageQueue = [];
+
       Reveal.initialize({
         hash: false,
         controls: true,
@@ -680,8 +684,15 @@
       })
 
       Reveal.on('ready', () => {
+        isRevealReady = true
         ensureFontsLoaded()
         adjustAllSlideFontSizes()
+        while (messageQueue.length > 0) {
+          const data = messageQueue.shift()
+          if (typeof processMessage === 'function') {
+            processMessage(data)
+          }
+        }
       })
 
       window.addEventListener('keydown', (e) => {
@@ -921,8 +932,7 @@
       // ══════════════════════════════════════════════════════════════════════════
       //  6.  postMessage RECEIVER  (React ↔ iframe bridge)
       // ══════════════════════════════════════════════════════════════════════════
-      window.addEventListener('message', function (event) {
-        const data = event.data
+      window.processMessage = function (data) {
         if (!data || typeof data !== 'object') return
 
         switch (data.type) {
@@ -1007,7 +1017,7 @@
               if (link)
                 link.setAttribute(
                   'href',
-                  `https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/${data.themeName}.css`
+                  `./theme/${data.themeName}.css`
                 )
             }
             break
@@ -1082,6 +1092,17 @@
               currentAudio.volume = voiceoverMuted ? 0 : voiceoverVolume
             }
             break
+        }
+      }
+
+      window.addEventListener('message', function (event) {
+        const data = event.data
+        if (!data || typeof data !== 'object') return
+
+        if (!isRevealReady) {
+          messageQueue.push(data)
+        } else {
+          window.processMessage(data)
         }
       })
     </script>
