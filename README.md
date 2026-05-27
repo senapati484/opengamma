@@ -79,8 +79,8 @@ Built on **Electron**, **React**, **TypeScript**, and **Reveal.js**, Open Gamma 
 | Platform | Architecture | File | Size | Download |
 |:---|:---|:---|:---|:---|
 | 🪟 **Windows** | x64 (Intel / AMD) | `Open Gamma 1.0.1.exe` | 216.7 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.1/Open%20Gamma%201.0.1.exe/download) |
-| 🍎 **macOS** | ARM64 (Apple Silicon) | `Open Gamma-1.0.1-arm64.dmg` | 246.6 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.1/Open%20Gamma-1.0.1-arm64.dmg/download) |
 | 🍎 **macOS** | x64 (Intel) | `Open Gamma-1.0.1-x64.dmg` | 253.2 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.1/Open%20Gamma-1.0.1-x64.dmg/download) |
+| 🍎 **macOS** | ARM64 (Apple Silicon) | `Open Gamma-1.0.1-arm64.dmg` | 246.6 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.1/Open%20Gamma-1.0.1-arm64.dmg/download) |
 | 🐧 **Linux** | ARM64 (AppImage) | `Open Gamma-1.0.1-arm64.AppImage` | 236.8 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.1/Open%20Gamma-1.0.1-arm64.AppImage/download) |
 
 <a href="https://sourceforge.net/projects/open-gamma/files/latest/download">
