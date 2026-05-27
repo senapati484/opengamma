@@ -4,14 +4,9 @@ const path = require('path');
 
 console.log('[check-binary] Verifying native better-sqlite3 platform compatibility...');
 
-const binaryPath = path.join(
-  __dirname,
-  'node_modules',
-  'better-sqlite3',
-  'build',
-  'Release',
-  'better_sqlite3.node'
-);
+const sqliteDir = path.join(__dirname, 'node_modules', 'better-sqlite3');
+const buildPath = path.join(sqliteDir, 'build');
+const binaryPath = path.join(buildPath, 'Release', 'better_sqlite3.node');
 
 let needsRebuild = false;
 
@@ -30,7 +25,6 @@ if (!fs.existsSync(binaryPath)) {
     const isLinux = buffer[0] === 0x7f && buffer[1] === 0x45 && buffer[2] === 0x4c && buffer[3] === 0x46; // "\x7fELF"
     
     // macOS Mach-O magic bytes can be feedface (32-bit), feedfacf (64-bit), or cafebabe (Fat/Universal binary)
-    // Checking both standard and reverse byte orders
     const isMac = (buffer[0] === 0xfe && buffer[1] === 0xed && buffer[2] === 0xfa) || 
                   (buffer[0] === 0xce && buffer[1] === 0xfa && buffer[2] === 0xed && buffer[3] === 0xfe) ||
                   (buffer[0] === 0xcf && buffer[1] === 0xfa && buffer[2] === 0xed && buffer[3] === 0xfe) ||
@@ -67,6 +61,16 @@ if (!fs.existsSync(binaryPath)) {
 }
 
 if (needsRebuild) {
+  console.log('[check-binary] Force-cleaning native build caches to prevent build tool shortcuts...');
+  try {
+    if (fs.existsSync(buildPath)) {
+      fs.rmSync(buildPath, { recursive: true, force: true });
+      console.log('[check-binary] better-sqlite3/build directory cleared successfully.');
+    }
+  } catch (cleanErr) {
+    console.warn('[check-binary] Failed to clear build folder (continuing anyway):', cleanErr.message);
+  }
+
   console.log('[check-binary] Rebuilding native dependencies for the host Electron environment...');
   try {
     execSync('npm run postinstall', { stdio: 'inherit' });
