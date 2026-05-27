@@ -25,23 +25,27 @@ Font import:    {{FONT_IMPORT}}
 
 <ref label="SLIDE TYPES & SYSTEM LAYOUTS">
 - title: Opening slide. Contains h1 (only 1 in deck), optional p, optional <span class="badge">.
-- content: Standard text. h2, optional p summary, body (ul bullets or div.card elements). Max 5 bullets (or 6 if only bullet list), max 8 words/bullet.
-- split: Two-column grid comparison. h2, exactly two column blocks, each starting with h3. (Left: first h3 + content; Right: second h3 + content). Left/Right h3 headings must be meaningful.
-- data: Dashboards. h2, then multiple div.stat-block elements OR a table (thead + tbody).
-- image: Split visual. h2, <figure class="og-image-placeholder" data-prompt="...">, supporting text. (Prompt must describe: subject, style, mood/lighting, wide landscape).
-- stat: Focal number. h2, one div.stat-block, 1-2 p sentences.
-- quote: Testimonial. h2, div.quote-block (contains p.quote-text and span.quote-author), minimal text.
-- cta: Actionable close. h2 (imperative), p with action, optional ul bullets.
+- content: Standard text. h2, optional p summary, body (ul bullets or div.card elements). Provide highly comprehensive, technically complete copy. Max 5 bullets (or 6 if only bullet list), max 18 words/bullet. Bullets must use bold lead-ins (e.g. `<strong>Lead-in</strong> — Detailed explanation covering technical mechanics, real-world examples, or exact concrete impacts`). Cards must contain a clear `<h3>` title and a thorough, professional paragraph (2-3 sentences, 25-40 words) that describes exact implementation details and concrete examples (e.g. EC2/S3 for IaaS, Heroku/Beanstalk for PaaS, and Workspace/Salesforce for SaaS).
+- split: Two-column grid comparison. h2, exactly two column blocks, each starting with h3. (Left: first h3 + content; Right: second h3 + content). Left/Right h3 headings must be meaningful and columns must contain detailed, informative bullets (3-4 points per column) explaining differences, boundaries, and trade-offs.
+- data: Dashboards. h2, then multiple div.stat-block elements OR a table (thead + tbody) with complete, detailed headers and rows.
+- image: Split visual. h2, <figure class="og-image-placeholder" data-prompt="...">, supporting text. Supporting text must be a comprehensive paragraph (2-3 sentences) detailing the significance of the image. (Prompt must describe: subject, style, mood/lighting, wide landscape).
+- stat: Focal number. h2, one div.stat-block, 1-2 thorough, educational p sentences explaining the metric's implications.
+- quote: Testimonial/Deep Quote. h2, div.quote-block (contains p.quote-text and span.quote-author), with an informative quote explaining a foundational design principle or dynamic trend.
+- cta: Actionable close. h2 (imperative), p with action, optional ul bullets explaining concrete next steps or implementation phases.
 
 DESIGN SYSTEM COMPONENTS:
 
 - Card: <div class="card"><h3>Title</h3><p>Text</p></div>
-- Numbered Card: <div class="card numbered" data-number="1"><h3>Title</h3><p>Text</p></div> (for sequential steps, countermeasures, or timeline milestones)
+- Glassmorphism Card: <div class="card og-glass-card"><h3>Title</h3><p>Text</p></div> (for visually premium, floating highlight containers)
+- Numbered Card: <div class="card numbered" data-number="1"><h3>Title</h3><p>Text</p></div> (for sequential steps or milestones)
 - Stat Block: <div class="stat-block"><span class="stat-number">Value</span><span class="stat-label">Label</span></div> (consecutive blocks auto-grid side-by-side)
 - Badge: <span class="badge">Label</span>
 - Quote: <div class="quote-block"><p class="quote-text">"Quote"</p><span class="quote-author">— Author</span></div>
 - Bottom Component Tray: <div class="og-bottom-tray"><span class="badge">Title</span><div class="cols"><div class="col"><strong>Label</strong> — Description</div>...</div></div> (horizontal detail container spanning the bottom of slides)
 - Inline Column Chart: <div class="og-inline-chart"><div class="og-chart-bar" style="height: 40%;" data-label="2025"></div><div class="og-chart-bar" style="height: 60%;" data-label="2026"></div><div class="og-chart-bar" style="height: 100%;" data-label="2030"></div></div> (for simple inline visual column charts next to text columns)
+- Asymmetric Columns: <div class="og-asymmetric-split"><div>Column 1</div><div>Column 2</div></div> (creates an asymmetric 60/40 visual weight template - append "reverse" class for 40/60 split)
+- Connected Timeline Track: <div class="og-timeline-track"><div class="og-timeline-step"><span class="og-timeline-number">1</span><h3>Title</h3><p>Desc</p></div>...</div> (creates a premium horizontal flowchart/timeline with directional arrows between steps)
+- Premium Focal Stat: <div class="og-focal-stat"><span class="stat-number">Value</span><span class="stat-label">Label</span></div> (for large, single-number callouts with dynamic text-gradient and shadow background glows)
   </ref>
 
 <rhythm label="NARRATIVE PATTERNS ({{NARRATIVE_TYPE}})">
@@ -71,6 +75,7 @@ Narrative Styles:
 - Do not exceed 6 bullets on any slide.
 - Do not use identical data-slide-type for > 2 consecutive slides.
 - Do not use generic split column labels (e.g. "Left Column").
+- Avoid overly brief, one-sentence summaries or sparse card/bullet descriptions. Content must be highly educational, professional, comprehensive, and dense.
 </banned>
 
 ## CANONICAL EXAMPLES

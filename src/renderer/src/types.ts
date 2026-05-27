@@ -82,6 +82,14 @@ export interface Theme {
   fontImport?: string
 }
 
+export interface SlideBlueprint {
+  index: number
+  title: string
+  slideType: 'title' | 'content' | 'split' | 'data' | 'cta' | 'image' | 'stat' | 'quote'
+  concept: string
+  imagePrompt: string
+}
+
 // ─── GenerationConfig ─────────────────────────────────────────────────────────
 
 export interface GenerationConfig {
@@ -101,6 +109,8 @@ export interface GenerationConfig {
   generateVoiceover?: boolean
   /** Whether to fetch background music loop matching theme */
   generateBgMusic?: boolean
+  /** Optional blueprint for generating a single slide in isolation */
+  blueprint?: SlideBlueprint
 }
 
 // ─── StreamStatus ─────────────────────────────────────────────────────────────

@@ -108,12 +108,13 @@ export function useStream(): {
       const unsubscribeSlide = electronAPI.onSlideGenerated((newSlide: Slide) => {
         setSlides((prev) => {
           const index = prev.findIndex((s) => s.id === newSlide.id || s.index === newSlide.index)
+          const copy = [...prev]
           if (index !== -1) {
-            const copy = [...prev]
             copy[index] = newSlide
-            return copy
+          } else {
+            copy.push(newSlide)
           }
-          return [...prev, newSlide]
+          return copy.sort((a, b) => a.index - b.index)
         })
       })
 

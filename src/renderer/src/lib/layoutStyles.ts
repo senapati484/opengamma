@@ -329,4 +329,111 @@ export const GLOBAL_LAYOUT_CSS = `
     color: var(--og-slide-text) !important;
     opacity: 0.6 !important;
   }
+
+  /* ── Premium Modern Design System Extensions ── */
+  
+  /* Glassmorphism Premium Cards */
+  .reveal .card.og-glass-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    backdrop-filter: blur(16px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-left: 6px solid var(--og-slide-accent, #e8ff57) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  }
+  .reveal .card.og-glass-card:hover {
+    transform: translateY(-4px) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35), 0 0 15px rgba(255, 255, 255, 0.03) !important;
+  }
+
+  /* Asymmetric Columns (60/40 Split) */
+  .og-asymmetric-split {
+    display: grid !important;
+    grid-template-columns: 1.2fr 0.8fr !important;
+    gap: 32px !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+  .og-asymmetric-split.reverse {
+    grid-template-columns: 0.8fr 1.2fr !important;
+  }
+
+  /* Connected Timeline Grid */
+  .og-timeline-track {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 24px !important;
+    position: relative !important;
+    margin-top: 30px !important;
+    width: 100% !important;
+  }
+  .og-timeline-step {
+    position: relative !important;
+    padding: 24px !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+    transition: all 0.3s ease !important;
+  }
+  .og-timeline-step::after {
+    content: "→" !important;
+    position: absolute !important;
+    right: -16px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 1.5em !important;
+    color: var(--og-slide-accent, #e8ff57) !important;
+    opacity: 0.5 !important;
+    font-weight: 700 !important;
+  }
+  .og-timeline-step:last-child::after {
+    display: none !important;
+  }
+  .og-timeline-step:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--og-slide-accent, #e8ff57) !important;
+  }
+  .og-timeline-number {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    background: var(--og-slide-accent, #e8ff57) !important;
+    color: #000000 !important;
+    font-weight: 900 !important;
+    font-size: 0.8em !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Premium Focal Stat Displays */
+  .og-focal-stat {
+    text-align: center !important;
+    padding: 32px !important;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
+    margin: 20px auto !important;
+    max-width: 500px !important;
+  }
+  .og-focal-stat .stat-number {
+    font-size: 4.8em !important;
+    letter-spacing: -0.03em !important;
+    background: linear-gradient(135deg, #ffffff 30%, var(--og-slide-accent, #e8ff57) 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    text-shadow: none !important;
+  }
+  
+  /* Fine-tuned border safety rules */
+  .reveal .card ul,
+  .reveal .card ol {
+    padding-left: 24px !important;
+    margin-left: 0 !important;
+  }
 `;

@@ -5,7 +5,7 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { buildSystemPrompt } from './contextLoader'
 import { extractCompleteSlides, parseSlideHtml } from './slideParser'
-import type { Slide, StreamStatus, GenerationConfig, AppSettings } from '../renderer/src/types'
+import type { Slide, StreamStatus, GenerationConfig, AppSettings, SlideBlueprint } from '../renderer/src/types'
 
 /**
  * Helper to build the environment variables for child CLI processes.
@@ -75,6 +75,8 @@ function buildCliArgs(
         geminiPrompt = 'Research the topic and output a structured outline/blueprint plan in Markdown.'
       } else if (purpose === 'music') {
         geminiPrompt = 'Analyze the presentation topic and select the best soundtrack name from the list.'
+      } else if (systemPrompt.includes('SINGLE SLIDE GENERATION MODE')) {
+        geminiPrompt = 'Generate exactly one raw Reveal.js slide section based on the single slide instruction on stdin.'
       } else {
         geminiPrompt = 'Generate raw Reveal.js slide sections based on the system prompt and instructions provided on stdin.'
       }
@@ -170,7 +172,9 @@ export async function generateWithCLI(
     // Create empty workspace dir for Gemini (no files to scan)
     await fs.promises.mkdir(workDir, { recursive: true })
 
-    const userPrompt = config.prompt
+    const userPrompt = config.blueprint
+      ? `Generate EXACTLY ONE raw <section> element for Slide ${config.blueprint.index + 1}: "${config.blueprint.title}"`
+      : config.prompt
     const { args, useStdin } = buildCliArgs(cliId, systemPrompt, userPrompt, tempFile, 'slides')
 
     console.log(`[cliRunner] Spawning ${cliId} at path: ${cliPath} cwd: ${workDir}`)
@@ -338,7 +342,37 @@ export async function runResearchWithCLI(
   const tempFile = join(tmpDir, `og-context-research-${randomUUID()}.md`)
   const workDir = join(tmpDir, `og-gen-research-${randomUUID()}`)
 
-  const systemPrompt = `You are a researcher preparing a presentation blueprint. Your task is to perform deep research and create a detailed structured outline for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Do NOT output any HTML code or Reveal.js tags. Provide structured concepts, target layouts, and key points in pure Markdown.`
+  const slideCount = config.slideCount || 8
+  const targetImageCount = Math.max(1, Math.round(slideCount * 0.3))
+
+  const systemPrompt = `You are a professional presentation researcher and blueprint planner.
+Your task is to create a detailed slide-by-slide table of contents structure and layout plan for a ${slideCount}-slide presentation about: "${config.prompt}".
+Narrative style: "${config.narrative || 'explainer'}".
+
+CRITICAL IMAGE AND LAYOUT RULES:
+1. Visual Diversity & Balanced Density:
+   - Out of exactly ${slideCount} slides, exactly ${targetImageCount} slides (about 30% of the deck, e.g. exactly 3 slides in a 10-slide deck, or 2 slides in a 6-8 slide deck, or 4 slides in a 12-slide deck) MUST use image-oriented layouts to introduce high-fidelity visuals.
+   - Designate these visual slides with layout Type: 'image'.
+   - The remaining ~70% of the slides MUST use text/bullet/data/quote layouts (such as 'content', 'split', 'data', 'stat', 'quote', 'cta', 'title') to keep the presentation clean, premium, and readable. Do NOT put images or image prompts on these normal slides.
+   - Distribute the image slides naturally and randomly across the body slides (exclude Slide 1 title and the final Slide N close/cta).
+
+2. Topic-Relevant Image Prompts:
+   - For the ${targetImageCount} designated visual slides (which MUST have Type: 'image'), you MUST write a highly descriptive prompt in the Image: field for the AI image generator.
+   - The prompt MUST be highly relevant to the specific slide content and presentation topic (e.g. for "Cloud Computing", describe server racks, networking nodes, data streaming, tech overlays, digital security locks, fiber optic cables in modern professional, sleek tech styling).
+   - Never describe animals, cats, cartoon characters, or irrelevant objects. Make them sound extremely professional and modern.
+
+3. Strict Output Format:
+   - Output ONLY structured markdown. Do NOT output any HTML code or Reveal.js tags.
+   - Keep the Concept: field extremely short (exactly 1 short sentence or 3-5 keywords) as we will spin detailed individual deep research agents for each slide later. Focus on structuring a solid high-level narrative.
+   - For each slide, you MUST follow this exact template:
+
+Slide [Number]
+Title: [Slide Title]
+Type: [title | content | split | data | cta | image | stat | quote]
+Concept: [Extremely brief 1-sentence keyword summary of the core slide topic (keep it short, as detailed research will be run later)]
+Image: [Only if layout Type is 'image', provide a descriptive, topic-relevant AI image prompt; otherwise, omit this field entirely]
+
+Begin slide plan now:`
 
   try {
     await fs.promises.writeFile(tempFile, systemPrompt, 'utf-8')
@@ -403,6 +437,100 @@ export async function runResearchWithCLI(
           // Already dead
         }
         resolve(output)
+      })
+    })
+  } finally {
+    await fs.promises.unlink(tempFile).catch(() => {})
+    await fs.promises.rm(workDir, { recursive: true, force: true }).catch(() => {})
+  }
+}
+
+/**
+ * Runs a local AI CLI tool to perform deep technical research for a chunk of slides in parallel.
+ */
+export async function runChunkResearchWithCLI(
+  config: GenerationConfig,
+  chunk: SlideBlueprint[],
+  chunkIndex: number,
+  cliPath: string,
+  cliId: string,
+  abortSignal: AbortSignal,
+  settings?: AppSettings
+): Promise<string> {
+  const rawTmpDir = os.tmpdir()
+  const tmpDir = fs.existsSync(rawTmpDir) ? fs.realpathSync(rawTmpDir) : rawTmpDir
+  const tempFile = join(tmpDir, `og-context-chunk-research-${randomUUID()}.md`)
+  const workDir = join(tmpDir, `og-gen-chunk-research-${randomUUID()}`)
+
+  const systemPrompt = `You are a professional presentation researcher.
+Your task is to perform targeted, deep research and gather comprehensive, highly accurate details for a specific chunk of slides in a presentation.
+
+Presentation Details:
+- Topic: "${config.prompt}"
+- Total Slides: ${config.slideCount}
+- This Chunk Index: ${chunkIndex + 1}
+- Slides in this Chunk:
+${chunk.map(s => `  * Slide ${s.index + 1}: "${s.title}" (Layout Archetype: "${s.slideType}")`).join('\n')}
+
+INSTRUCTIONS:
+1. For EACH slide listed above, perform deep technical research. Provide extensive technical details, mechanics, concrete real-world examples (like AWS, Heroku, Salesforce), boundaries, and exact metrics.
+2. Keep the output extremely structured, clear, and rich in copy.
+3. For each slide, write detailed points (up to 15-20 words per point) and explanatory paragraphs (2-3 sentences).
+4. Output ONLY structured markdown. Do NOT write HTML code, CSS, or Reveal.js tags.
+
+OUTPUT FORMAT (You MUST follow this exact format for each slide in the chunk):
+
+Slide [Number]
+Concept: [Highly detailed descriptive paragraphs and concrete facts/examples for this slide. Write at least 40-60 words of comprehensive, perfect technical copy.]
+
+Begin chunk research now:`
+
+  try {
+    await fs.promises.writeFile(tempFile, systemPrompt, 'utf-8')
+    await fs.promises.mkdir(workDir, { recursive: true })
+
+    const userPrompt = `Please perform deep technical research specifically for the following slides: ${chunk.map(s => `Slide ${s.index + 1}: "${s.title}"`).join(', ')}. Include concrete facts and real-world examples.`
+    const { args, useStdin } = buildCliArgs(cliId, systemPrompt, userPrompt, tempFile, 'research')
+
+    console.log(`[cliRunner-chunk-research] Spawning CLI for chunk ${chunkIndex + 1} (Slides ${chunk[0].index + 1}-${chunk[chunk.length - 1].index + 1}): ${cliId} cwd: ${workDir}`)
+
+    const child = spawn(cliPath, args, {
+      shell: process.platform === 'win32',
+      cwd: workDir,
+      env: buildChildEnv(settings)
+    })
+
+    if (useStdin) {
+      const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${userPrompt}`
+      child.stdin.write(fullPrompt)
+      child.stdin.end()
+    }
+
+    return await new Promise<string>((resolve, reject) => {
+      let output = ''
+
+      child.stdout.on('data', (data: Buffer) => {
+        output += data.toString('utf-8')
+      })
+
+      child.stderr.on('data', () => {
+        // Suppress benign logs
+      })
+
+      child.on('close', () => {
+        resolve(output.trim())
+      })
+
+      child.on('error', (err: Error) => {
+        console.error(`[cliRunner-chunk-research] Spawn error:`, err.message)
+        reject(err)
+      })
+
+      abortSignal.addEventListener('abort', () => {
+        try {
+          child.kill('SIGKILL')
+        } catch {}
+        resolve(output.trim())
       })
     })
   } finally {

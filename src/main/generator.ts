@@ -5,11 +5,12 @@ import type {
   Slide,
   StreamStatus,
   Presentation,
-  AppSettings
+  AppSettings,
+  SlideBlueprint
 } from '../renderer/src/types'
 import { buildSystemPrompt } from './contextLoader'
 import { parseSlideHtml, extractCompleteSlides } from './slideParser'
-import { generateWithCLI, runResearchWithCLI, runMusicQueryWithCLI } from './cliRunner'
+import { generateWithCLI, runResearchWithCLI, runMusicQueryWithCLI, runChunkResearchWithCLI } from './cliRunner'
 import { scanInstalledCLIs } from './cliScanner'
 
 /**
@@ -43,6 +44,209 @@ function isNetworkError(error: any): boolean {
     errMsg.includes('timeout')
   )
 }
+
+/**
+ * A simple zero-dependency class to limit concurrent async executions.
+ */
+class ConcurrencyLimiter {
+  private activeCount = 0
+  private queue: (() => void)[] = []
+  constructor(private limit: number) {}
+  async run<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.activeCount >= this.limit) {
+      await new Promise<void>((resolve) => this.queue.push(resolve))
+    }
+    this.activeCount++
+    try {
+      return await fn()
+    } finally {
+      this.activeCount--
+      const next = this.queue.shift()
+      if (next) next()
+    }
+  }
+}
+
+/**
+ * Builds a robust system prompt for the research outlining phase.
+ */
+function buildResearchSystemPrompt(config: GenerationConfig): string {
+  const slideCount = config.slideCount || 8
+  const targetImageCount = Math.max(1, Math.round(slideCount * 0.3))
+
+  return `You are a professional presentation researcher and blueprint planner.
+Your task is to perform deep research and create a detailed slide-by-slide concepts and layouts plan for a ${slideCount}-slide presentation about: "${config.prompt}".
+Narrative style: "${config.narrative || 'explainer'}".
+
+CRITICAL IMAGE AND LAYOUT RULES:
+1. Visual Diversity & Balanced Density:
+    - Out of exactly ${slideCount} slides, exactly ${targetImageCount} slides (about 30% of the deck, e.g. exactly 3 slides in a 10-slide deck, or 2 slides in a 6-8 slide deck, or 4 slides in a 12-slide deck) MUST use image-oriented layouts to introduce high-fidelity visuals.
+    - Designate these visual slides with layout Type: 'image'.
+    - The remaining ~70% of the slides MUST use text/bullet/data/quote layouts (such as 'content', 'split', 'data', 'stat', 'quote', 'cta', 'title') to keep the presentation clean, premium, and readable. Do NOT put images or image prompts on these normal slides.
+    - Distribute the image slides naturally and randomly across the body slides (exclude Slide 1 title and the final Slide N close/cta).
+ 
+2. Topic-Relevant Image Prompts:
+    - For the ${targetImageCount} designated visual slides (which MUST have Type: 'image'), you MUST write a highly descriptive prompt in the Image: field for the AI image generator.
+    - The prompt MUST be highly relevant to the specific slide content and presentation topic (e.g. for "Cloud Computing", describe server racks, networking nodes, data streaming, tech overlays, digital security locks, fiber optic cables in modern professional, sleek tech styling).
+    - Never describe animals, cats, cartoon characters, or irrelevant objects. Make them sound extremely professional and modern.
+ 
+3. Strict Output Format:
+    - Output ONLY structured markdown. Do NOT output any HTML code or Reveal.js tags.
+    - For each slide, you MUST follow this exact template:
+ 
+Slide [Number]
+Title: [Slide Title]
+Type: [title | content | split | data | cta | image | stat | quote]
+Concept: [Brief description of the core concepts and points to cover]
+Image: [Only if layout Type is 'image', provide a descriptive, topic-relevant AI image prompt; otherwise, omit this field entirely]
+
+Begin slide plan now:`
+}
+
+/**
+ * Resiliently parses a research outline into an array of slide blueprints.
+ */
+function parseResearchBlueprint(outlineText: string, expectedCount: number): SlideBlueprint[] {
+  const blueprints: SlideBlueprint[] = []
+  
+  // Split by headers or slide bullet groups
+  const sections = outlineText.split(/(?:^|\n)(?:Slide\s*\d+|#+\s*Slide\s*\d+|-\s*\*?Slide\s*\d+\*?):?/gi)
+  
+  // Filter out any empty prelude
+  const sectionContents = sections.slice(1)
+  
+  for (let i = 0; i < expectedCount; i++) {
+    const rawContent = sectionContents[i] || ''
+    
+    // Fallbacks
+    let title = ''
+    let slideType: 'title' | 'content' | 'split' | 'data' | 'cta' | 'image' | 'stat' | 'quote' = 'content'
+    let concept = ''
+    let imagePrompt = ''
+    
+    if (rawContent) {
+      // 1. Extract title: look for Title: or first line/header
+      const titleMatch = /Title:\s*\*?([^\n\r]+)/i.exec(rawContent)
+      if (titleMatch) {
+        title = titleMatch[1].replace(/[\*\_]/g, '').trim()
+      } else {
+        const firstLine = rawContent.trim().split('\n')[0] || ''
+        title = firstLine.replace(/[\*\_#]/g, '').trim()
+      }
+      
+      // 2. Extract Type
+      const typeMatch = /(?:Type|Layout|Archetype):\s*\*?(title|content|split|data|cta|image|stat|quote)/i.exec(rawContent)
+      if (typeMatch) {
+        slideType = typeMatch[1].toLowerCase() as any
+      } else {
+        // Guess based on content keywords
+        const lower = rawContent.toLowerCase()
+        if (lower.includes('comparison') || lower.includes('split') || lower.includes('vs')) {
+          slideType = 'split'
+        } else if (lower.includes('dashboard') || lower.includes('table') || lower.includes('chart') || lower.includes('metrics')) {
+          slideType = 'data'
+        } else if (lower.includes('stat') || lower.includes('number') || lower.includes('percent')) {
+          slideType = 'stat'
+        } else if (lower.includes('quote') || lower.includes('testimonial')) {
+          slideType = 'quote'
+        } else if (lower.includes('cta') || lower.includes('action') || lower.includes('closing')) {
+          slideType = 'cta'
+        } else if (lower.includes('image') || lower.includes('photo') || lower.includes('illustration')) {
+          slideType = 'image'
+        } else if (i === 0) {
+          slideType = 'title'
+        }
+      }
+      
+      // 3. Extract Concept / Keywords
+      const conceptMatch = /(?:Concept|Detail|Points):\s*\*?([^\n\r]+)/i.exec(rawContent)
+      if (conceptMatch) {
+        concept = conceptMatch[1].trim()
+      } else {
+        concept = rawContent.replace(/Title:[^\n]+/i, '').replace(/Type:[^\n]+/i, '').trim()
+      }
+      
+      // 4. Extract Image Prompt keywords
+      const imageMatch = /(?:Image|Prompt|Visual):\s*\*?([^\n\r]+)/i.exec(rawContent)
+      if (imageMatch) {
+        imagePrompt = imageMatch[1].trim()
+      }
+    }
+    
+    // Guarantee basic default titles
+    if (!title || title.length < 2) {
+      if (i === 0) title = 'Presentation Title'
+      else if (i === expectedCount - 1) title = 'Next Steps'
+      else title = `Key Concept ${i + 1}`
+    }
+    
+    blueprints.push({
+      index: i,
+      title,
+      slideType,
+      concept: concept || `Core details for slide ${i + 1}`,
+      imagePrompt: imagePrompt || (slideType === 'image' ? `${title} modern professional background` : '')
+    })
+  }
+  
+  return blueprints
+}
+
+/**
+ * Resiliently parses the deep research output for a chunk of slides and assigns
+ * the parsed concept to the corresponding SlideBlueprint.
+ */
+function parseChunkResearchOutput(text: string, chunk: SlideBlueprint[]): void {
+  const matches: { index: number; slideNum: number; length: number }[] = []
+  const regex = /(?:^|\n)(?:Slide\s*(\d+)|#+\s*Slide\s*(\d+)|-\s*\*?Slide\s*(\d+)\*?):?/gi
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(text)) !== null) {
+    const slideNumStr = match[1] || match[2] || match[3]
+    const slideNum = parseInt(slideNumStr, 10)
+    if (!isNaN(slideNum)) {
+      matches.push({
+        index: match.index,
+        slideNum,
+        length: match[0].length
+      })
+    }
+  }
+
+  // Map of slideIndex -> concept content
+  const parsedConcepts = new Map<number, string>()
+
+  for (let i = 0; i < matches.length; i++) {
+    const current = matches[i]
+    const next = matches[i + 1]
+    const start = current.index + current.length
+    const end = next ? next.index : text.length
+    const rawContent = text.slice(start, end).trim()
+
+    // Resiliently extract from "Concept: [content]" or fallback to whole content
+    let concept = ''
+    const conceptMatch = /(?:Concept|Detail|Points|Details):\s*\*?([\s\S]+)/i.exec(rawContent)
+    if (conceptMatch) {
+      concept = conceptMatch[1].trim()
+    } else {
+      concept = rawContent.replace(/^\s*\*?(?:Concept|Detail|Points|Details)?\s*:\s*\*?/gi, '').trim()
+    }
+
+    if (concept) {
+      parsedConcepts.set(current.slideNum - 1, concept)
+    }
+  }
+
+  // Populate blueprints in this chunk
+  for (const blueprint of chunk) {
+    const foundConcept = parsedConcepts.get(blueprint.index)
+    if (foundConcept) {
+      blueprint.concept = foundConcept
+    } else {
+      console.warn(`[generator] Chunk research parser could not find concept for Slide ${blueprint.index + 1}. Keeping outline fallback.`)
+    }
+  }
+}
+
 
 async function streamOpenAiCompatible(
   url: string,
@@ -263,7 +467,7 @@ export async function generatePresentation(
               totalImages: total
             })
 
-            // Race each image promise against a 35-second hard timeout
+            // Race each image promise against a 50-second hard timeout
             const safeImagePromises = imagePromises.map((p) =>
               Promise.race([
                 p.then(() => {
@@ -276,7 +480,7 @@ export async function generatePresentation(
                     totalImages: total
                   })
                 }),
-                new Promise<void>((resolve) => setTimeout(resolve, 35000))
+                new Promise<void>((resolve) => setTimeout(resolve, 50000))
               ])
             )
 
@@ -305,34 +509,45 @@ export async function generatePresentation(
     }
   }
 
-  let slideQueue: Promise<void> = Promise.resolve()
+  const imageLimiter = new ConcurrencyLimiter(6)
+  const triggeredImageIndices = new Set<number>()
 
   const wrappedOnSlide = (slide: Slide) => {
-    onSlide(slide)
-
     // Only image generation runs per-slide during streaming.
     // Voiceover is generated offline via the kokoro-js IPC handler
     // (`generate-voiceovers`) after the full presentation is saved.
-    const assetTask = slideQueue.then(async () => {
-      if (abortSignal.aborted) return
+    if (config.generateImages) {
+      // Check if the slide explicitly contains an image placeholder or is of type 'image'
+      const hasPlaceholder =
+        (slide.html && /class\s*=\s*["'][^"']*og-image-placeholder[^"']*["']/i.test(slide.html)) ||
+        slide.slideType === 'image'
 
-      if (config.generateImages) {
-        // Always run for explicit 'image' type slides (they have og-image-placeholder)
-        // Also run for non-title content slides to enrich them
-        const isImageSlide = slide.slideType === 'image'
-        const isNonTitleSlide = slide.slideType !== 'title' && slide.index > 0
-        if (isImageSlide || isNonTitleSlide) {
+      if (hasPlaceholder) {
+        // Prevent duplicate image generation runs for the same slide index!
+        if (triggeredImageIndices.has(slide.index)) {
+          console.log(`[generator] Image generation already triggered for slide index ${slide.index}. Skipping duplicate trigger.`)
+          return
+        }
+        triggeredImageIndices.add(slide.index)
+
+        // Send the initial placeholder slide to the renderer so it shows the shimmer
+        onSlide(slide)
+
+        const assetTask = imageLimiter.run(async () => {
+          if (abortSignal.aborted) return
           await generateAndInjectImage(slide, config, settings, onSlide, abortSignal).catch(
             (err) => {
               console.error('[generator] Image generation failed:', err)
             }
           )
-        }
+        })
+        imagePromises.push(assetTask)
+        return
       }
-    })
+    }
 
-    slideQueue = assetTask
-    imagePromises.push(assetTask)
+    // For normal slides or if image generation is disabled
+    onSlide(slide)
   }
 
   // ── ROUTE TO EXECUTION MODE ──────────────────────────────────────────────
@@ -373,23 +588,103 @@ export async function generatePresentation(
       return
     }
 
-    // Step 2: Slide Layout Generation
-    const configWithOutline = {
-      ...config,
-      prompt: researchOutline
-        ? `Here is a detailed research blueprint outline for the presentation:\n\n${researchOutline}\n\nUse this research outline to guide the slide generation. Ensure you generate exactly ${config.slideCount} slides with high-fidelity Reveal.js structures matching the blueprint.\n\nOriginal prompt: ${config.prompt}`
-        : config.prompt
+    // Step 2: Slide Layout Generation (Modular Slide-by-Slide)
+    const blueprints = parseResearchBlueprint(researchOutline || config.prompt, config.slideCount)
+    console.log(`[generator] Parsed ${blueprints.length} slide blueprints for modular generation.`)
+
+    // Step 3: Chunk-Based Deep Research
+    const chunks: SlideBlueprint[][] = []
+    const chunkSize = 5
+    for (let i = 0; i < blueprints.length; i += chunkSize) {
+      chunks.push(blueprints.slice(i, i + chunkSize))
     }
 
-    await generateWithCLI(
-      configWithOutline,
-      selected.executablePath,
-      selected.id,
-      wrappedOnSlide,
-      wrappedOnStatus,
-      abortSignal,
-      settings
-    )
+    console.log(`[generator] Grouped slides into ${chunks.length} chunks for deep research (chunk size: ${chunkSize}).`)
+
+    const chunkLimiter = new ConcurrencyLimiter(2)
+    const chunkTasks = chunks.map(async (chunk, chunkIdx) => {
+      if (abortSignal.aborted) return
+      await chunkLimiter.run(async () => {
+        if (abortSignal.aborted) return
+        try {
+          console.log(`[generator] Starting chunk deep research for Chunk ${chunkIdx + 1}/${chunks.length} (Slides ${chunk.map(s => s.index + 1).join(', ')})`)
+          const chunkResearchText = await runChunkResearchWithCLI(
+            config,
+            chunk,
+            chunkIdx,
+            selected.executablePath!,
+            selected.id,
+            abortSignal,
+            settings
+          )
+          console.log(`[generator] Completed chunk deep research for Chunk ${chunkIdx + 1}. Research text length: ${chunkResearchText.length}`)
+          parseChunkResearchOutput(chunkResearchText, chunk)
+        } catch (researchErr) {
+          console.warn(`[generator] Chunk deep research failed for Chunk ${chunkIdx + 1}, using blueprints outline concepts fallback:`, researchErr)
+        }
+      })
+    })
+
+    await Promise.all(chunkTasks)
+
+    if (abortSignal.aborted) {
+      wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+      return
+    }
+
+    // Step 4: Parallel HTML Generation
+    wrappedOnStatus({
+      state: 'generating',
+      slidesGenerated: 0,
+      totalSlides: config.slideCount
+    })
+
+    const slideLimiter = new ConcurrencyLimiter(2)
+    let completedSlides = 0
+
+    const slideTasks = blueprints.map(async (blueprint) => {
+      if (abortSignal.aborted) return
+
+      await slideLimiter.run(async () => {
+        if (abortSignal.aborted) return
+
+        const slideConfig: GenerationConfig = {
+          ...config,
+          blueprint
+        }
+
+        await generateWithCLI(
+          slideConfig,
+          selected.executablePath!,
+          selected.id,
+          (slide) => {
+            slide.index = blueprint.index
+            ;(slide as any).imagePrompt = blueprint.imagePrompt
+            wrappedOnSlide(slide)
+          },
+          () => {}, // Silence sub-process status changes
+          abortSignal,
+          settings
+        ).catch((err) => {
+          console.error(`[generator] Slide ${blueprint.index + 1} generation failed:`, err)
+        })
+
+        completedSlides++
+        wrappedOnStatus({
+          state: 'generating',
+          slidesGenerated: completedSlides,
+          totalSlides: config.slideCount
+        })
+      })
+    })
+
+    await Promise.all(slideTasks)
+
+    wrappedOnStatus({
+      state: 'done',
+      slidesGenerated: blueprints.length,
+      totalSlides: config.slideCount
+    })
     return
   }
 
@@ -412,7 +707,7 @@ export async function generatePresentation(
         throw new Error('AbortError')
       }
 
-      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const researchSystemPrompt = buildResearchSystemPrompt(config)
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${settings.geminiApiKey}`
       const response = await fetch(url, {
         method: 'POST',
@@ -473,7 +768,7 @@ export async function generatePresentation(
         throw new Error('AbortError')
       }
 
-      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const researchSystemPrompt = buildResearchSystemPrompt(config)
       const url = 'https://api.openai.com/v1/chat/completions'
       const response = await fetch(url, {
         method: 'POST',
@@ -533,7 +828,7 @@ export async function generatePresentation(
         throw new Error('AbortError')
       }
 
-      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const researchSystemPrompt = buildResearchSystemPrompt(config)
       const url = 'https://api.deepseek.com/chat/completions'
       const response = await fetch(url, {
         method: 'POST',
@@ -593,7 +888,7 @@ export async function generatePresentation(
         throw new Error('AbortError')
       }
 
-      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const researchSystemPrompt = buildResearchSystemPrompt(config)
       const url = 'https://api.groq.com/openai/v1/chat/completions'
       const response = await fetch(url, {
         method: 'POST',
@@ -651,7 +946,7 @@ export async function generatePresentation(
         throw new Error('AbortError')
       }
       const anthropic = new Anthropic({ apiKey: settings.claudeApiKey })
-      const researchSystemPrompt = `You are a professional presentation researcher and blueprint planner. Create a slide-by-slide concepts and layouts plan for a ${config.slideCount}-slide presentation about: "${config.prompt}". Narrative style: "${config.narrative || 'explainer'}". Output only structured markdown ideas. No HTML, no reveal.js code.`
+      const researchSystemPrompt = buildResearchSystemPrompt(config)
       const researchResponse = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2048,
@@ -881,7 +1176,7 @@ export async function regenerateSlide(
   }
 
   const wrappedOnResult = async (newSlide: Slide) => {
-    if (newSlide.slideType === 'image' || newSlide.html.includes('og-image-placeholder')) {
+    if (newSlide.slideType === 'image' || /class\s*=\s*["'][^"']*og-image-placeholder[^"']*["']/i.test(newSlide.html)) {
       try {
         console.log(`[generator] Slide regeneration produced image slide or placeholder. Generating image...`)
         await generateAndInjectImage(newSlide, pseudoConfig, settings, onResult)
@@ -1040,7 +1335,7 @@ export async function regenerateSlide(
 
 async function generateAndInjectImage(
   slide: Slide,
-  _config: GenerationConfig,
+  config: GenerationConfig,
   _settings: AppSettings,
   onSlide: (slide: Slide) => void,
   abortSignal?: AbortSignal
@@ -1068,8 +1363,8 @@ async function generateAndInjectImage(
     }
   }
 
-  // Log a warning if imagePrompt is missing for a slide with data-slide-type of "image" or "split"
-  if (!imagePrompt && (slide.slideType === 'image' || slide.slideType === 'split')) {
+  // Log a warning if imagePrompt is missing for a slide with data-slide-type of "image"
+  if (!imagePrompt && slide.slideType === 'image') {
     console.warn(
       `[generator] Warning: imagePrompt is missing for slide index ${slide.index} with slideType "${slide.slideType}"`
     )
@@ -1101,8 +1396,8 @@ async function generateAndInjectImage(
 
   let arrayBuffer: ArrayBuffer | null = null
   let lastError: any = null
-  const maxRetries = 3
-  const timeoutMs = 25000 // 25s timeout per attempt
+  const maxRetries = 1
+  const timeoutMs = 12000 // 12s timeout per attempt
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     if (abortSignal?.aborted) break
@@ -1147,23 +1442,110 @@ async function generateAndInjectImage(
   try {
     if (!arrayBuffer || arrayBuffer.byteLength === 0) {
       console.warn(
-        '[generator] Pollinations image generation failed or timed out. Attempting Unsplash fallback... Error:',
+        '[generator] Pollinations image generation failed or timed out. Attempting LoremFlickr fallback... Error:',
         lastError?.message || lastError
       )
-      const keywords = (slide.title || 'abstract technology')
+      // 1. Analyze the main presentation prompt to determine the general domain/theme
+      const promptLower = (config.prompt || '').toLowerCase()
+      let domainKeyword = 'abstract'
+      
+      if (
+        promptLower.includes('cloud') ||
+        promptLower.includes('tech') ||
+        promptLower.includes('computer') ||
+        promptLower.includes('software') ||
+        promptLower.includes('ai') ||
+        promptLower.includes('artificial') ||
+        promptLower.includes('data') ||
+        promptLower.includes('network') ||
+        promptLower.includes('digital') ||
+        promptLower.includes('cyber') ||
+        promptLower.includes('programming') ||
+        promptLower.includes('code') ||
+        promptLower.includes('quantum') ||
+        promptLower.includes('internet') ||
+        promptLower.includes('security')
+      ) {
+        domainKeyword = 'technology'
+      } else if (
+        promptLower.includes('business') ||
+        promptLower.includes('startup') ||
+        promptLower.includes('finance') ||
+        promptLower.includes('market') ||
+        promptLower.includes('sale') ||
+        promptLower.includes('economy') ||
+        promptLower.includes('invest') ||
+        promptLower.includes('corporate') ||
+        promptLower.includes('strategy')
+      ) {
+        domainKeyword = 'business'
+      } else if (
+        promptLower.includes('health') ||
+        promptLower.includes('medical') ||
+        promptLower.includes('bio') ||
+        promptLower.includes('science') ||
+        promptLower.includes('doctor') ||
+        promptLower.includes('clinic') ||
+        promptLower.includes('hosp') ||
+        promptLower.includes('anatomy')
+      ) {
+        domainKeyword = 'science'
+      } else if (
+        promptLower.includes('art') ||
+        promptLower.includes('design') ||
+        promptLower.includes('paint') ||
+        promptLower.includes('music') ||
+        promptLower.includes('creativ') ||
+        promptLower.includes('photo')
+      ) {
+        domainKeyword = 'art'
+      }
+
+      // 2. Get slide-specific words (excluding generic words)
+      const slideWords = (slide.title || '')
         .replace(/[^a-zA-Z0-9\s]/g, '')
         .split(/\s+/)
-        .filter((w) => w.length > 2)
-        .slice(0, 3)
-        .join(',') || 'abstract';
-      const fallbackUrl = `https://images.unsplash.com/featured/1024x576/?${encodeURIComponent(keywords)}`;
+        .map(w => w.trim().toLowerCase())
+        .filter((w) => w.length > 2 && !['key', 'concept', 'slide', 'presentation', 'topic', 'about', 'concept', 'introduction', 'conclusion', 'summary', 'what', 'why', 'how', 'who', 'when', 'where', 'which'].includes(w));
+
+      // 3. Get main topic words from presentation prompt (excluding generic words)
+      const promptWords = (config.prompt || '')
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .split(/\s+/)
+        .map(w => w.trim().toLowerCase())
+        .filter((w) => w.length > 2 && !['presentation', 'slides', 'deck', 'about', 'create', 'make', 'generate', 'what', 'why', 'how', 'who'].includes(w));
+
+      // 4. Merge them and deduplicate
+      const combined = Array.from(new Set([domainKeyword, ...promptWords, ...slideWords])).slice(0, 3);
+
+      const keywords = combined.map(tag => encodeURIComponent(tag)).join(',');
+      const fallbackUrl = `https://loremflickr.com/1024/576/${keywords}/any`;
       try {
-        const fallbackResponse = await fetch(fallbackUrl, { signal: abortSignal });
-        if (fallbackResponse.ok) {
-          arrayBuffer = await fallbackResponse.arrayBuffer();
-        }
+        const fallbackTimeoutMs = 8000;
+        let fallbackTimeoutId: any;
+        const fallbackTimeoutPromise = new Promise<never>((_, reject) => {
+          fallbackTimeoutId = setTimeout(
+            () => reject(new Error(`LoremFlickr fallback timed out after ${fallbackTimeoutMs / 1000} seconds`)),
+            fallbackTimeoutMs
+          )
+        });
+
+        const fallbackNetworkPromise = (async () => {
+          try {
+            const fallbackResponse = await fetch(fallbackUrl, { signal: abortSignal });
+            if (!fallbackResponse.ok) {
+              throw new Error(`LoremFlickr returned status ${fallbackResponse.status}`);
+            }
+            if (abortSignal?.aborted) return new ArrayBuffer(0);
+            return await fallbackResponse.arrayBuffer();
+          } finally {
+            clearTimeout(fallbackTimeoutId);
+          }
+        })();
+
+        arrayBuffer = await Promise.race([fallbackNetworkPromise, fallbackTimeoutPromise]);
       } catch (fallbackErr: any) {
-        console.warn('[generator] Fallback Unsplash image fetch failed:', fallbackErr.message);
+        console.warn('[generator] Fallback LoremFlickr image fetch failed:', fallbackErr.message);
       }
     }
 
@@ -1171,7 +1553,7 @@ async function generateAndInjectImage(
       const buffer = Buffer.from(arrayBuffer)
       base64data = `data:image/jpeg;base64,${buffer.toString('base64')}`
     } else {
-      console.warn('[generator] Both Pollinations and Unsplash failed. Using high-fidelity custom SVG placeholder.');
+      console.warn('[generator] Both Pollinations and LoremFlickr failed. Using high-fidelity custom SVG placeholder.');
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 576" width="1024" height="576">
         <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
