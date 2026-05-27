@@ -6,6 +6,8 @@
   "author": "senapati484 <sayansenapati2544@gmail.com>",
   "homepage": "https://opengamma.vercel.app",
   "scripts": {
+    "predev": "node check-binary.js",
+    "prestart": "node check-binary.js",
     "dev": "electron-vite dev",
     "start": "electron-vite preview",
     "compile": "electron-vite build",
