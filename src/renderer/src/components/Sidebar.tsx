@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import type { Presentation } from '../types'
+import { useAppContext } from '../context/AppContext'
 
 export interface SidebarProps {
   /** Unsorted array of history presentations */
@@ -64,6 +65,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [isRecentExpanded, setIsRecentExpanded] = useState(true)
+  const { platform } = useAppContext()
+  const isMac = platform === 'darwin'
 
   // Sort presentations by creation timestamp (descending)
   const sortedPresentations = [...presentations].sort((a, b) => b.createdAt - a.createdAt)
@@ -95,7 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }`}
     >
       {/* ─── COLUMN 1: THIN ICON STRIP (60px) ─── */}
-      <div className="w-[60px] h-full flex-none flex flex-col items-center justify-between py-4 border-r border-[var(--og-border)] bg-white drag-region">
+      <div className={`w-[60px] h-full flex-none flex flex-col items-center justify-between py-4 border-r border-[var(--og-border)] bg-white${isMac ? ' drag-region' : ''}`}>
         {/* Top: Logo & Main Navigation Icons */}
         <div className="flex flex-col items-center gap-5 w-full no-drag">
           {/* Logo Circle G */}
@@ -269,7 +272,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         {/* Header: Workspace Selector */}
-        <div className="flex flex-col p-4 pb-3 border-b border-[var(--og-border)] drag-region">
+        <div className={`flex flex-col p-4 pb-3 border-b border-[var(--og-border)]${isMac ? ' drag-region' : ''}`}>
           <div className="flex items-center justify-between no-drag bg-white/40 hover:bg-white/80 border border-neutral-200/50 hover:border-neutral-200 p-2 rounded-xl transition-all cursor-pointer">
             <div className="flex flex-col">
               <span className="text-[11px] font-bold text-neutral-800 leading-tight">

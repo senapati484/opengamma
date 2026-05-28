@@ -26,8 +26,10 @@ function AppInner() {
     setPresentations,
     activePresentation,
     setActivePresentation,
-    settings
+    settings,
+    platform
   } = useAppContext()
+  const isMac = platform === 'darwin'
 
   const {
     slides: streamedSlides,
@@ -389,12 +391,14 @@ function AppInner() {
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#0d0d0d] text-neutral-400 font-sans antialiased">
-      {/* Custom Title Bar */}
-      <div className="h-8 w-full flex-none flex items-center justify-center select-none drag-region border-b border-white/5 bg-[#141414]">
-        <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-[0.3em]">
-          Open Gamma
-        </span>
-      </div>
+      {/* Custom Title Bar — macOS only (Windows/Linux have a native titlebar) */}
+      {isMac && (
+        <div className="h-8 w-full flex-none flex items-center justify-center select-none drag-region border-b border-white/5 bg-[#141414]">
+          <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-[0.3em]">
+            Open Gamma
+          </span>
+        </div>
+      )}
 
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left Control Panel */}

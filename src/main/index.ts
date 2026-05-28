@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, Menu, protocol, net } from 'electron'
+import { app, shell, BrowserWindow, protocol, net } from 'electron'
 import { join } from 'path'
 import { pathToFileURL } from 'url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -76,6 +76,8 @@ protocol.registerSchemesAsPrivileged([
 // ─── Window Factory ───────────────────────────────────────────────────────────
 
 function createWindow(): BrowserWindow {
+  const isMac = process.platform === 'darwin'
+
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -83,11 +85,14 @@ function createWindow(): BrowserWindow {
     minHeight: 600,
     show: false,
     title: 'Open Gamma',
-    titleBarStyle: 'hidden',
+    // macOS: hidden titleBar + traffic light buttons positioned inside the app frame.
+    // Windows/Linux: keep the native frame — 'hidden' breaks dragging & window controls there.
+    ...(isMac
+      ? { titleBarStyle: 'hidden' as const, trafficLightPosition: { x: 14, y: 10 } }
+      : { titleBarStyle: 'default' as const }),
     backgroundColor: '#0d0d0d',
-    trafficLightPosition: { x: 14, y: 10 },
-    // Show icon on Windows and Linux; macOS handles this via app bundle
-    ...(process.platform !== 'darwin' ? { icon } : {}),
+    // Show icon on Windows and Linux; macOS derives the icon from the app bundle
+    ...(isMac ? {} : { icon }),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true, // renderer cannot access Node internals
@@ -107,11 +112,13 @@ function createWindow(): BrowserWindow {
     return { action: 'deny' }
   })
 
-  // ── Remove the native menu on Windows / Linux ────────────────────────────────
-  // macOS keeps its menu bar; Windows and Linux look cleaner without it.
-  if (process.platform !== 'darwin') {
-    Menu.setApplicationMenu(null)
-  }
+  // ── Application menu ─────────────────────────────────────────────────────────
+  // macOS: a full application menu is set up later in createApplicationMenu().
+  // Windows / Linux: Electron auto-generates a default menu that includes
+  //   Edit (cut/copy/paste), View (reload/devtools) and Window entries.
+  //   We keep it intact so standard keyboard shortcuts (Ctrl+C, Ctrl+V, F5 etc.)
+  //   work out of the box. Removing it (null) breaks those OS-level shortcuts.
+  // Do NOT call Menu.setApplicationMenu(null) here.
 
   // ── Load the app ─────────────────────────────────────────────────────────────
   // In development electron-vite sets ELECTRON_RENDERER_URL to the Vite HMR
@@ -163,14 +170,18 @@ app.whenReady().then(() => {
   const mainWindow = createWindow()
   initUpdater()
   if (process.platform === 'darwin') {
+    // macOS native About panel (shown via the Apple menu → About Open Gamma)
     app.setAboutPanelOptions({
       applicationName: 'Open Gamma',
       applicationVersion: app.getVersion(),
       copyright: 'Copyright © 2026 OpenGamma Team',
       credits: 'Built with React, Electron & Reveal.js'
     })
+    // Custom application menu with macOS-standard items (File, Edit, View…)
     createApplicationMenu(mainWindow)
   }
+  // Windows & Linux: Electron's auto-generated default menu is kept intact.
+  // It provides standard Edit/View/Window entries with working keyboard shortcuts.
 
   // macOS: re-create the window when the dock icon is clicked and no windows
   // are open (standard macOS behaviour)
