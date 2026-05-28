@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import type { AppSettings, GenerationConfig, Theme, Slide } from '../types'
 import { themes } from '../lib/themes'
+// @ts-ignore - package.json is outside the web tsconfig rootDir, but Vite bundles it successfully at runtime
+import packageJson from '../../../../package.json'
 
 interface LeftPanelProps {
   onGenerate: (config: GenerationConfig) => void
@@ -131,7 +133,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
               {settings?.executionMode === 'local-cli' ? 'Local CLI' : 'API Mode'}
             </span>
           </div>
-          <div className="text-[8px] font-black text-neutral-600 tracking-tighter">v1.0</div>
+          <div className="text-[8px] font-black text-neutral-600 tracking-tighter">v{packageJson.version}</div>
         </div>
       </div>
 
@@ -497,7 +499,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
         </button>
 
         <div className="text-[9px] font-black text-neutral-700 uppercase tracking-tighter pointer-events-none select-none pr-1">
-          Open Gamma v1.0
+          Open Gamma v{packageJson.version}
         </div>
       </div>
     </div>

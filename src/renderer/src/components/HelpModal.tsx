@@ -1,4 +1,6 @@
 import React from 'react'
+// @ts-ignore - package.json is outside the web tsconfig rootDir, but Vite bundles it successfully at runtime
+import packageJson from '../../../../package.json'
 
 export interface HelpModalProps {
   isOpen: boolean
@@ -183,7 +185,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         <div className="p-4 bg-[#0d0d0d] border-t border-white/5 flex items-center justify-between text-[10px] text-neutral-600 font-bold tracking-widest uppercase">
-          <span>Open Gamma v1.0</span>
+          <span>Open Gamma v{packageJson.version}</span>
           <span>
             Press{' '}
             <kbd className="px-1.5 py-0.5 rounded bg-white/5 text-neutral-400 font-mono text-[9px]">
