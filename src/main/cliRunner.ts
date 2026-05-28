@@ -276,8 +276,10 @@ export async function generateWithCLI(
         }
       })
 
+      let stderrAccum = ''
       child.stderr.on('data', (data: Buffer) => {
-        const line = data.toString('utf-8').trim()
+        const text = data.toString('utf-8')
+        const line = text.trim()
         if (line) {
           if (
             line.includes('Ripgrep is not available') ||
@@ -287,6 +289,7 @@ export async function generateWithCLI(
             // Silently ignore ripgrep fallback warning to keep logs clean and avoid user confusion
           } else {
             console.error(`[cliRunner] ${cliId} stderr:`, line)
+            stderrAccum += text
           }
         }
       })
@@ -319,12 +322,13 @@ export async function generateWithCLI(
 
         if (code !== 0 && code !== null && slideIndex === 0) {
           // Only reject if we got no slides at all — partial results are acceptable
-          safeReject(
-            new Error(
-              `CLI process (${cliId}) exited with code ${code} and produced no slides. ` +
-                `Check that the CLI is properly authenticated and configured.`
-            )
-          )
+          let errMsg = `CLI process (${cliId}) exited with code ${code} and produced no slides.`
+          if (stderrAccum.trim()) {
+            const cleanStderr = stderrAccum.trim().substring(0, 500)
+            errMsg += `\nError details:\n${cleanStderr}`
+          }
+          errMsg += `\nPlease check that the CLI is properly authenticated and configured.`
+          safeReject(new Error(errMsg))
         } else {
           onStatus({
             state: 'done',

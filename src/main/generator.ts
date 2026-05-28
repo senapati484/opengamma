@@ -683,6 +683,8 @@ export async function generatePresentation(
 
     const slideLimiter = new ConcurrencyLimiter(2)
     let completedSlides = 0
+    let successfulSlidesCount = 0
+    const errors: { index: number; error: any }[] = []
 
     const slideTasks = blueprints.map(async (blueprint) => {
       if (abortSignal.aborted) return
@@ -695,22 +697,30 @@ export async function generatePresentation(
           blueprint
         }
 
-        await generateWithCLI(
-          slideConfig,
-          selected.executablePath!,
-          selected.id,
-          (slide) => {
-            slide.index = blueprint.index
-            ;(slide as any).imagePrompt = blueprint.imagePrompt
-            wrappedOnSlide(slide)
-          },
-          () => {}, // Silence sub-process status changes
-          abortSignal,
-          settings
-        ).catch((err) => {
+        let isSuccessful = false
+        try {
+          await generateWithCLI(
+            slideConfig,
+            selected.executablePath!,
+            selected.id,
+            (slide) => {
+              slide.index = blueprint.index
+              ;(slide as any).imagePrompt = blueprint.imagePrompt
+              wrappedOnSlide(slide)
+              isSuccessful = true
+            },
+            () => {}, // Silence sub-process status changes
+            abortSignal,
+            settings
+          )
+        } catch (err) {
           console.error(`[generator] Slide ${blueprint.index + 1} generation failed:`, err)
-        })
+          errors.push({ index: blueprint.index, error: err })
+        }
 
+        if (isSuccessful) {
+          successfulSlidesCount++
+        }
         completedSlides++
         wrappedOnStatus({
           state: 'generating',
@@ -722,9 +732,20 @@ export async function generatePresentation(
 
     await Promise.all(slideTasks)
 
+    if (abortSignal.aborted) {
+      wrappedOnStatus({ state: 'idle', slidesGenerated: 0, totalSlides: config.slideCount })
+      return
+    }
+
+    if (successfulSlidesCount === 0) {
+      const firstErr = errors[0]?.error
+      const errorMsg = firstErr instanceof Error ? firstErr.message : String(firstErr || 'Slide generation failed completely')
+      throw new Error(`All slide generations failed.\n\n${errorMsg}`)
+    }
+
     wrappedOnStatus({
       state: 'done',
-      slidesGenerated: blueprints.length,
+      slidesGenerated: successfulSlidesCount,
       totalSlides: config.slideCount
     })
     return

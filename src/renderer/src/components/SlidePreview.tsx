@@ -330,6 +330,51 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
         title="Live Slide Preview"
       />
 
+      {/* Error State Overlay */}
+      {status.state === 'error' && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 bg-black/85 backdrop-blur-md text-white text-center animate-fade-in select-text">
+          <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/25 flex items-center justify-center text-red-500 mb-4 animate-pulse">
+            <svg
+              className="w-7 h-7"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          
+          <h3 className="text-base font-black tracking-wide text-white uppercase mb-2">
+            Slide Generation Failed
+          </h3>
+          
+          <div className="max-w-md w-full bg-neutral-900/80 border border-white/5 rounded-lg p-4 mb-4 text-[11px] text-neutral-300 font-mono text-left overflow-auto max-h-[160px] whitespace-pre-wrap select-text">
+            {status.errorMessage || 'An unexpected error occurred during slide generation.'}
+          </div>
+
+          <p className="text-[11px] text-neutral-400 max-w-sm mb-2 leading-relaxed">
+            {status.errorMessage?.includes('429') || status.errorMessage?.includes('capacity') || status.errorMessage?.includes('RESOURCE_EXHAUSTED') ? (
+              <span>
+                <strong>Rate Limit Exceeded:</strong> The Google Gemini CLI model is currently at maximum capacity. Please try again in a few minutes, or go to Settings to use your own Gemini API Key or Claude API Key.
+              </span>
+            ) : status.errorMessage?.includes('exited with code') ? (
+              <span>
+                The local AI CLI process exited with an error. Please verify your internet connection or check your API keys inside the Settings panel.
+              </span>
+            ) : (
+              <span>
+                Please check your network connection, verify that the CLI is authenticated, or try a smaller slide count.
+              </span>
+            )}
+          </p>
+        </div>
+      )}
+
       {/* Generation Status Badge */}
       {(status.state === 'generating' || status.state === 'researching') && (
         <div className="absolute top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full border bg-white/95 border-neutral-200 text-neutral-700 shadow-lg backdrop-blur-sm transition-all duration-300 animate-fade-in">
