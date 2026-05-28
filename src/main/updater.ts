@@ -37,26 +37,38 @@ function compareVersions(v1: string, v2: string): number {
  */
 function fetchJson(url: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      if (res.statusCode !== 200) {
-        reject(new Error(`Failed to fetch release info: Status ${res.statusCode}`))
-        return
-      }
-
-      let data = ''
-      res.on('data', (chunk) => {
-        data += chunk
-      })
-      res.on('end', () => {
-        try {
-          resolve(JSON.parse(data))
-        } catch {
-          reject(new Error('Failed to parse release response'))
+    const request = (targetUrl: string) => {
+      const protocol = targetUrl.startsWith('https') ? https : http
+      protocol.get(targetUrl, (res) => {
+        // Handle HTTP redirect (301 or 302)
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          const redirectUrl = res.headers.location
+          if (redirectUrl) {
+            request(redirectUrl)
+            return
+          }
         }
-      })
-    }).on('error', (err) => {
-      reject(err)
-    })
+
+        if (res.statusCode !== 200) {
+          reject(new Error(`Failed to fetch release info: Status ${res.statusCode}`))
+          return
+        }
+
+        let data = ''
+        res.on('data', (chunk) => {
+          data += chunk
+        })
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(data))
+          } catch {
+            reject(new Error('Failed to parse release response'))
+          }
+        })
+      }).on('error', reject)
+    }
+
+    request(url)
   })
 }
 
