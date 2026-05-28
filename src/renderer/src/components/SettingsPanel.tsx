@@ -859,12 +859,26 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                   )}
 
                   {updateStatus === 'checking' && (
-                    <div className="pt-4 border-t border-white/5 flex items-center justify-center py-2.5 text-neutral-400 text-xs font-medium gap-2">
-                      <svg className="animate-spin h-4.5 w-4.5 text-neutral-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Checking for updates...</span>
+                    <div className="pt-4 border-t border-white/5 space-y-2.5 animate-fade-in">
+                      <style dangerouslySetInnerHTML={{__html: `
+                        @keyframes scan {
+                          0% { left: -33%; }
+                          100% { left: 100%; }
+                        }
+                        .animate-scan-line {
+                          animation: scan 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+                        }
+                      `}} />
+                      <div className="flex justify-between text-xs">
+                        <span className="text-neutral-400 font-medium">Checking for updates...</span>
+                        <span className="text-[#e8ff57] font-semibold flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 bg-[#e8ff57] rounded-full animate-ping" />
+                          Checking
+                        </span>
+                      </div>
+                      <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden relative">
+                        <div className="absolute top-0 bottom-0 bg-gradient-to-r from-transparent via-[#e8ff57] to-transparent w-1/3 rounded-full animate-scan-line" />
+                      </div>
                     </div>
                   )}
 
