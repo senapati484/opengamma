@@ -111,7 +111,11 @@ Begin slide plan now:`
 /**
  * Resiliently parses a research outline into an array of slide blueprints.
  */
-function parseResearchBlueprint(outlineText: string, expectedCount: number): SlideBlueprint[] {
+function parseResearchBlueprint(
+  outlineText: string,
+  expectedCount: number,
+  prompt: string
+): SlideBlueprint[] {
   const blueprints: SlideBlueprint[] = []
 
   // Split by headers or slide bullet groups
@@ -121,6 +125,68 @@ function parseResearchBlueprint(outlineText: string, expectedCount: number): Sli
 
   // Filter out any empty prelude
   const sectionContents = sections.slice(1)
+
+  // Check if we got an empty outline or fallback prompt and need to generate fallback blueprints
+  if (sectionContents.length === 0) {
+    const cleanPrompt = prompt.replace(/["'\r\n]/g, '').trim()
+    for (let i = 0; i < expectedCount; i++) {
+      let title = ''
+      let slideType: 'title' | 'content' | 'split' | 'data' | 'cta' | 'image' | 'stat' | 'quote' = 'content'
+      let concept = ''
+      let imagePrompt = ''
+
+      if (i === 0) {
+        title = cleanPrompt.substring(0, 50)
+        slideType = 'title'
+        concept = `Introduce the presentation topic: "${cleanPrompt}". Provide a high-level overview and outline the importance of the subject.`
+      } else if (i === expectedCount - 1) {
+        title = 'Conclusion & Next Steps'
+        slideType = 'cta'
+        concept = `Summarize key takeaways for "${cleanPrompt}". Provide concrete next steps and a clear call-to-action.`
+      } else {
+        const topics = [
+          'Core Foundations',
+          'Key Architecture',
+          'Technical Mechanics',
+          'Real-world Benefits',
+          'Data & Metrics',
+          'Industry Standards',
+          'Future Outlook',
+          'Strategic Implementation'
+        ]
+        const topic = topics[(i - 1) % topics.length]
+        title = `${topic} of ${cleanPrompt.substring(0, 30)}`
+
+        // Enforce 1 image for every 5 pages. Index i is 0-based.
+        // E.g., if i is 4, 9, 14, etc. (which corresponds to Slide 5, 10, 15...)
+        if ((i + 1) % 5 === 0) {
+          slideType = 'image'
+          imagePrompt = `${title} visual representation, professional sleek technology layout, high quality`
+          concept = `Explain the visual concept of "${title}". Outline the key visual components and their relation to "${cleanPrompt}".`
+        } else {
+          // Cycle other layout types for variety
+          const otherTypes: ('content' | 'split' | 'data' | 'stat' | 'quote')[] = [
+            'content',
+            'split',
+            'data',
+            'stat',
+            'quote'
+          ]
+          slideType = otherTypes[(i - 1) % otherTypes.length]
+          concept = `Detail and explain the "${title}". Provide detailed descriptions, real-world examples (like AWS, Heroku, or Salesforce), and technical parameters of "${cleanPrompt}".`
+        }
+      }
+
+      blueprints.push({
+        index: i,
+        title,
+        slideType,
+        concept,
+        imagePrompt
+      })
+    }
+    return blueprints
+  }
 
   for (let i = 0; i < expectedCount; i++) {
     const rawContent = sectionContents[i] || ''
@@ -202,9 +268,10 @@ function parseResearchBlueprint(outlineText: string, expectedCount: number): Sli
 
     // Guarantee basic default titles
     if (!title || title.length < 2) {
-      if (i === 0) title = 'Presentation Title'
-      else if (i === expectedCount - 1) title = 'Next Steps'
-      else title = `Key Concept ${i + 1}`
+      const cleanPrompt = prompt.replace(/["'\r\n]/g, '').trim().substring(0, 30)
+      if (i === 0) title = cleanPrompt
+      else if (i === expectedCount - 1) title = 'Conclusion & Next Steps'
+      else title = `Key Aspect ${i + 1} of ${cleanPrompt}`
     }
 
     blueprints.push({
@@ -622,7 +689,7 @@ export async function generatePresentation(
     }
 
     // Step 2: Slide Layout Generation (Modular Slide-by-Slide)
-    const blueprints = parseResearchBlueprint(researchOutline || config.prompt, config.slideCount)
+    const blueprints = parseResearchBlueprint(researchOutline || config.prompt, config.slideCount, config.prompt)
     console.log(`[generator] Parsed ${blueprints.length} slide blueprints for modular generation.`)
 
     // Step 3: Chunk-Based Deep Research

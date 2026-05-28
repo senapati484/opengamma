@@ -82,13 +82,14 @@ export async function buildSystemPrompt(config: GenerationConfig): Promise<strin
   if (config.blueprint) {
     finalPrompt +=
       `\n\n---\n## SINGLE SLIDE GENERATION MODE\n` +
+      `Overall Presentation Topic: "${config.prompt}"\n` +
       `You must generate EXACTLY ONE raw <section> element for Slide ${config.blueprint.index + 1} of ${config.slideCount}.\n` +
       `Slide Title: "${config.blueprint.title}"\n` +
       `Slide Layout Type: "${config.blueprint.slideType}"\n` +
       `Slide Concept & Bullet Details: ${config.blueprint.concept}\n` +
       `Visual/Image keywords to use in placeholder data-prompt (if applicable): ${config.blueprint.imagePrompt}\n\n` +
       `CRITICAL REQUIREMENT:\n` +
-      `- Focus purely on maximizing visual layout styling and rich technical content depth for this specific slide type "${config.blueprint.slideType}".\n` +
+      `- Focus purely on maximizing visual layout styling and rich technical content depth for this specific slide type "${config.blueprint.slideType}" in the context of the overall topic "${config.prompt}".\n` +
       `- Provide extensive, comprehensive, and detailed copy. Do NOT write brief or overly simple sentences. Explain technical mechanics, implementation patterns, and concrete real-world examples (like AWS EC2/S3, Heroku, Salesforce) in full detail.\n` +
       `- Ensure bullet lists use bold lead-ins followed by thorough, educational details (up to 18 words per bullet). Cards must feature a heading and a comprehensive 2-3 sentence paragraph (25-40 words) that fully describes the concept.\n` +
       `- Output ONLY the single <section> tag. No markdown code fences, no trailing prose.\n` +

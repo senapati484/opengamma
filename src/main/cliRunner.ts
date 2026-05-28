@@ -189,7 +189,7 @@ export async function generateWithCLI(
     await fs.promises.mkdir(workDir, { recursive: true })
 
     const userPrompt = config.blueprint
-      ? `Generate EXACTLY ONE raw <section> element for Slide ${config.blueprint.index + 1}: "${config.blueprint.title}"`
+      ? `Generate EXACTLY ONE raw <section> element for Slide ${config.blueprint.index + 1}: "${config.blueprint.title}" for the presentation topic: "${config.prompt}"`
       : config.prompt
     const { args, useStdin } = buildCliArgs(cliId, systemPrompt, userPrompt, tempFile, 'slides')
 
