@@ -26,6 +26,7 @@ asarUnpack:
 
 # ── macOS ──────────────────────────────────────────────────────────────────
 mac:
+  identity: "-"
   icon: resources/icon.icns
   category: public.app-category.productivity
   hardenedRuntime: true
