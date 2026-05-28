@@ -18,7 +18,7 @@ export async function buildSystemPrompt(config: GenerationConfig): Promise<strin
   const appPath = app.getAppPath()
 
   // 1. Read GAMMA_CONTEXT.md from disk (throws descriptive error if not found)
-  const contextPath = join(appPath, 'src/context/GAMMA_CONTEXT.md')
+  const contextPath = join(appPath, 'resources/context/GAMMA_CONTEXT.md')
   let template: string
   try {
     template = await fs.readFile(contextPath, 'utf8')
@@ -29,11 +29,11 @@ export async function buildSystemPrompt(config: GenerationConfig): Promise<strin
     )
   }
 
-  // 2. Load the theme token file from src/context/themes/{config.theme.id}.css
+  // 2. Load the theme token file from resources/context/themes/{config.theme.id}.css
   //    Fallback to startup-gradient theme if not found.
   let themeTokens = ''
   const themeId = config.theme?.id || 'startup-gradient'
-  const themePath = join(appPath, 'src/context/themes', `${themeId}.css`)
+  const themePath = join(appPath, 'resources/context/themes', `${themeId}.css`)
 
   try {
     themeTokens = await fs.readFile(themePath, 'utf8')
@@ -43,7 +43,7 @@ export async function buildSystemPrompt(config: GenerationConfig): Promise<strin
         `Theme tokens file for "${themeId}" not found at "${themePath}". ` +
           `Falling back to "startup-gradient" theme.`
       )
-      const fallbackPath = join(appPath, 'src/context/themes', 'startup-gradient.css')
+      const fallbackPath = join(appPath, 'resources/context/themes', 'startup-gradient.css')
       try {
         themeTokens = await fs.readFile(fallbackPath, 'utf8')
       } catch {
