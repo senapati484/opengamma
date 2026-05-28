@@ -846,7 +846,7 @@ const BookletSlidePreview: React.FC<BookletSlidePreviewProps> = ({
     else if (settings.margins === 'large') marginPadding = '120px'
 
     const marginStyles = `
-      .reveal .slides > section {
+      .reveal .slides section:not(.og-full-bleed-split) {
         padding: ${marginPadding} !important;
         box-sizing: border-box !important;
       }

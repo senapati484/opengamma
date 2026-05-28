@@ -680,7 +680,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
   else if (options.margins === 'large') marginPadding = '120px'
 
   const marginStyles = `
-    .reveal .slides > section {
+    .reveal .slides section:not(.og-full-bleed-split) {
       padding: ${marginPadding} !important;
       box-sizing: border-box !important;
     }
@@ -1102,7 +1102,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
           }
 
           /* Force high-fidelity page margins on slides matching user selected booklet padding and win over local compact styles */
-          .reveal .slides > section:not(.og-full-bleed-split) {
+          .reveal .slides section:not(.og-full-bleed-split) {
             padding: ${marginPadding} !important;
             box-sizing: border-box !important;
           }
