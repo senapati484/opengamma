@@ -39,10 +39,6 @@
 
 <img width="1710" alt="Open Gamma — Editor View" src="https://github.com/user-attachments/assets/910faaf4-e5f9-4416-8fe2-12c5c0e0e943" />
 
-<br/><br/>
-
-<img width="1710" alt="Open Gamma — Presentation Canvas" src="https://github.com/user-attachments/assets/a506c62e-8fd2-426a-8d9b-6f7ea8919a3e" />
-
 <br/>
 
 ---
