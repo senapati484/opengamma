@@ -8,11 +8,23 @@ export default defineConfig({
     build: {
       outDir: 'dist-electron/main',
       rollupOptions: {
-        external: ['onnxruntime-node', '@huggingface/transformers', '@xenova/transformers', 'kokoro-js', 'better-sqlite3']
+        external: [
+          'onnxruntime-node',
+          '@huggingface/transformers',
+          '@xenova/transformers',
+          'kokoro-js',
+          'better-sqlite3'
+        ]
       }
     },
     ssr: {
-      external: ['onnxruntime-node', '@huggingface/transformers', '@xenova/transformers', 'kokoro-js', 'better-sqlite3']
+      external: [
+        'onnxruntime-node',
+        '@huggingface/transformers',
+        '@xenova/transformers',
+        'kokoro-js',
+        'better-sqlite3'
+      ]
     }
   },
   preload: {

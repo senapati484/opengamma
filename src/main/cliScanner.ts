@@ -37,7 +37,7 @@ function getSearchPaths(): string[] {
     '/usr/bin',
     '/bin',
     '/usr/sbin',
-    '/sbin',
+    '/sbin'
   ]
 
   if (platform === 'darwin' || platform === 'linux') {
@@ -66,7 +66,7 @@ function getSearchPaths(): string[] {
       path.join(home, '.local', 'bin'),
       path.join(home, 'bin'),
       // MacPorts
-      '/opt/local/bin',
+      '/opt/local/bin'
     )
   }
 
@@ -77,7 +77,7 @@ function getSearchPaths(): string[] {
       path.join(appData, 'npm'),
       path.join(localAppData, 'Programs', 'nodejs'),
       'C:\\Program Files\\nodejs',
-      'C:\\Program Files (x86)\\nodejs',
+      'C:\\Program Files (x86)\\nodejs'
     )
   }
 
@@ -164,13 +164,13 @@ async function resolveCommandVersion(command: string): Promise<string | null> {
     const output = (stdout || stderr || '').trim()
     const lines = output.split('\n')
     return lines[0]?.trim() || null
-  } catch (e) {
+  } catch {
     try {
       const { stdout, stderr } = await execAsync(`${command} -v`, { timeout: 1000 })
       const output = (stdout || stderr || '').trim()
       const lines = output.split('\n')
       return lines[0]?.trim() || null
-    } catch (err) {
+    } catch {
       return null
     }
   }

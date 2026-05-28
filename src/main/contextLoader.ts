@@ -46,7 +46,7 @@ export async function buildSystemPrompt(config: GenerationConfig): Promise<strin
       const fallbackPath = join(appPath, 'src/context/themes', 'startup-gradient.css')
       try {
         themeTokens = await fs.readFile(fallbackPath, 'utf8')
-      } catch (fallbackError: any) {
+      } catch {
         console.error(
           `Fallback theme "startup-gradient.css" was also not found at "${fallbackPath}". ` +
             `Defaulting to empty theme tokens.`
@@ -80,7 +80,8 @@ export async function buildSystemPrompt(config: GenerationConfig): Promise<strin
     .replace(/\{\{FONT_IMPORT\}\}/g, fontImportStr)
 
   if (config.blueprint) {
-    finalPrompt += `\n\n---\n## SINGLE SLIDE GENERATION MODE\n` +
+    finalPrompt +=
+      `\n\n---\n## SINGLE SLIDE GENERATION MODE\n` +
       `You must generate EXACTLY ONE raw <section> element for Slide ${config.blueprint.index + 1} of ${config.slideCount}.\n` +
       `Slide Title: "${config.blueprint.title}"\n` +
       `Slide Layout Type: "${config.blueprint.slideType}"\n` +

@@ -800,7 +800,7 @@ const BookletSlidePreview: React.FC<BookletSlidePreviewProps> = ({
 
     // 3. Compile custom styles for this preview
     const fontImport = (activeTheme as any).fontImport || ''
-    
+
     let extraStyleInject = ''
 
     if (settings.preset === 'ink-saver') {
@@ -956,7 +956,7 @@ const BookletSlidePreview: React.FC<BookletSlidePreviewProps> = ({
 
   const getThemeBackground = () => {
     if (settings.preset === 'ink-saver') return '#ffffff'
-    
+
     // Try to extract background gradient or color from cssTokens
     const ogBgMatch = activeTheme.cssTokens.match(/--og-slide-bg:\s*([^;]+);/)
     if (ogBgMatch && ogBgMatch[1]) {
@@ -998,4 +998,3 @@ const BookletSlidePreview: React.FC<BookletSlidePreviewProps> = ({
     </div>
   )
 }
-

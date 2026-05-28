@@ -436,4 +436,4 @@ export const GLOBAL_LAYOUT_CSS = `
     padding-left: 24px !important;
     margin-left: 0 !important;
   }
-`;
+`

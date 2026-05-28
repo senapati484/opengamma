@@ -10,7 +10,12 @@ import type {
 } from '../renderer/src/types'
 import { buildSystemPrompt } from './contextLoader'
 import { parseSlideHtml, extractCompleteSlides } from './slideParser'
-import { generateWithCLI, runResearchWithCLI, runMusicQueryWithCLI, runChunkResearchWithCLI } from './cliRunner'
+import {
+  generateWithCLI,
+  runResearchWithCLI,
+  runMusicQueryWithCLI,
+  runChunkResearchWithCLI
+} from './cliRunner'
 import { scanInstalledCLIs } from './cliScanner'
 
 /**
@@ -108,34 +113,40 @@ Begin slide plan now:`
  */
 function parseResearchBlueprint(outlineText: string, expectedCount: number): SlideBlueprint[] {
   const blueprints: SlideBlueprint[] = []
-  
+
   // Split by headers or slide bullet groups
-  const sections = outlineText.split(/(?:^|\n)(?:Slide\s*\d+|#+\s*Slide\s*\d+|-\s*\*?Slide\s*\d+\*?):?/gi)
-  
+  const sections = outlineText.split(
+    /(?:^|\n)(?:Slide\s*\d+|#+\s*Slide\s*\d+|-\s*\*?Slide\s*\d+\*?):?/gi
+  )
+
   // Filter out any empty prelude
   const sectionContents = sections.slice(1)
-  
+
   for (let i = 0; i < expectedCount; i++) {
     const rawContent = sectionContents[i] || ''
-    
+
     // Fallbacks
     let title = ''
-    let slideType: 'title' | 'content' | 'split' | 'data' | 'cta' | 'image' | 'stat' | 'quote' = 'content'
+    let slideType: 'title' | 'content' | 'split' | 'data' | 'cta' | 'image' | 'stat' | 'quote' =
+      'content'
     let concept = ''
     let imagePrompt = ''
-    
+
     if (rawContent) {
       // 1. Extract title: look for Title: or first line/header
       const titleMatch = /Title:\s*\*?([^\n\r]+)/i.exec(rawContent)
       if (titleMatch) {
-        title = titleMatch[1].replace(/[\*\_]/g, '').trim()
+        title = titleMatch[1].replace(/[*_]/g, '').trim()
       } else {
         const firstLine = rawContent.trim().split('\n')[0] || ''
-        title = firstLine.replace(/[\*\_#]/g, '').trim()
+        title = firstLine.replace(/[*_#]/g, '').trim()
       }
-      
+
       // 2. Extract Type
-      const typeMatch = /(?:Type|Layout|Archetype):\s*\*?(title|content|split|data|cta|image|stat|quote)/i.exec(rawContent)
+      const typeMatch =
+        /(?:Type|Layout|Archetype):\s*\*?(title|content|split|data|cta|image|stat|quote)/i.exec(
+          rawContent
+        )
       if (typeMatch) {
         slideType = typeMatch[1].toLowerCase() as any
       } else {
@@ -143,52 +154,69 @@ function parseResearchBlueprint(outlineText: string, expectedCount: number): Sli
         const lower = rawContent.toLowerCase()
         if (lower.includes('comparison') || lower.includes('split') || lower.includes('vs')) {
           slideType = 'split'
-        } else if (lower.includes('dashboard') || lower.includes('table') || lower.includes('chart') || lower.includes('metrics')) {
+        } else if (
+          lower.includes('dashboard') ||
+          lower.includes('table') ||
+          lower.includes('chart') ||
+          lower.includes('metrics')
+        ) {
           slideType = 'data'
-        } else if (lower.includes('stat') || lower.includes('number') || lower.includes('percent')) {
+        } else if (
+          lower.includes('stat') ||
+          lower.includes('number') ||
+          lower.includes('percent')
+        ) {
           slideType = 'stat'
         } else if (lower.includes('quote') || lower.includes('testimonial')) {
           slideType = 'quote'
         } else if (lower.includes('cta') || lower.includes('action') || lower.includes('closing')) {
           slideType = 'cta'
-        } else if (lower.includes('image') || lower.includes('photo') || lower.includes('illustration')) {
+        } else if (
+          lower.includes('image') ||
+          lower.includes('photo') ||
+          lower.includes('illustration')
+        ) {
           slideType = 'image'
         } else if (i === 0) {
           slideType = 'title'
         }
       }
-      
+
       // 3. Extract Concept / Keywords
       const conceptMatch = /(?:Concept|Detail|Points):\s*\*?([^\n\r]+)/i.exec(rawContent)
       if (conceptMatch) {
         concept = conceptMatch[1].trim()
       } else {
-        concept = rawContent.replace(/Title:[^\n]+/i, '').replace(/Type:[^\n]+/i, '').trim()
+        concept = rawContent
+          .replace(/Title:[^\n]+/i, '')
+          .replace(/Type:[^\n]+/i, '')
+          .trim()
       }
-      
+
       // 4. Extract Image Prompt keywords
       const imageMatch = /(?:Image|Prompt|Visual):\s*\*?([^\n\r]+)/i.exec(rawContent)
       if (imageMatch) {
         imagePrompt = imageMatch[1].trim()
       }
     }
-    
+
     // Guarantee basic default titles
     if (!title || title.length < 2) {
       if (i === 0) title = 'Presentation Title'
       else if (i === expectedCount - 1) title = 'Next Steps'
       else title = `Key Concept ${i + 1}`
     }
-    
+
     blueprints.push({
       index: i,
       title,
       slideType,
       concept: concept || `Core details for slide ${i + 1}`,
-      imagePrompt: imagePrompt || (slideType === 'image' ? `${title} modern professional background` : '')
+      imagePrompt:
+        imagePrompt || (slideType === 'image' ? `${title} modern professional background` : '')
     })
   }
-  
+
   return blueprints
 }
 
@@ -228,7 +256,9 @@ function parseChunkResearchOutput(text: string, chunk: SlideBlueprint[]): void {
     if (conceptMatch) {
       concept = conceptMatch[1].trim()
     } else {
-      concept = rawContent.replace(/^\s*\*?(?:Concept|Detail|Points|Details)?\s*:\s*\*?/gi, '').trim()
+      concept = rawContent
+        .replace(/^\s*\*?(?:Concept|Detail|Points|Details)?\s*:\s*\*?/gi, '')
+        .trim()
     }
 
     if (concept) {
@@ -242,11 +272,12 @@ function parseChunkResearchOutput(text: string, chunk: SlideBlueprint[]): void {
     if (foundConcept) {
       blueprint.concept = foundConcept
     } else {
-      console.warn(`[generator] Chunk research parser could not find concept for Slide ${blueprint.index + 1}. Keeping outline fallback.`)
+      console.warn(
+        `[generator] Chunk research parser could not find concept for Slide ${blueprint.index + 1}. Keeping outline fallback.`
+      )
     }
   }
 }
-
 
 async function streamOpenAiCompatible(
   url: string,
@@ -320,7 +351,7 @@ async function streamOpenAiCompatible(
               })
             }
           }
-        } catch (e) {
+        } catch {
           // ignore parsing error
         }
       }
@@ -525,7 +556,9 @@ export async function generatePresentation(
       if (hasPlaceholder) {
         // Prevent duplicate image generation runs for the same slide index!
         if (triggeredImageIndices.has(slide.index)) {
-          console.log(`[generator] Image generation already triggered for slide index ${slide.index}. Skipping duplicate trigger.`)
+          console.log(
+            `[generator] Image generation already triggered for slide index ${slide.index}. Skipping duplicate trigger.`
+          )
           return
         }
         triggeredImageIndices.add(slide.index)
@@ -599,7 +632,9 @@ export async function generatePresentation(
       chunks.push(blueprints.slice(i, i + chunkSize))
     }
 
-    console.log(`[generator] Grouped slides into ${chunks.length} chunks for deep research (chunk size: ${chunkSize}).`)
+    console.log(
+      `[generator] Grouped slides into ${chunks.length} chunks for deep research (chunk size: ${chunkSize}).`
+    )
 
     const chunkLimiter = new ConcurrencyLimiter(2)
     const chunkTasks = chunks.map(async (chunk, chunkIdx) => {
@@ -607,7 +642,9 @@ export async function generatePresentation(
       await chunkLimiter.run(async () => {
         if (abortSignal.aborted) return
         try {
-          console.log(`[generator] Starting chunk deep research for Chunk ${chunkIdx + 1}/${chunks.length} (Slides ${chunk.map(s => s.index + 1).join(', ')})`)
+          console.log(
+            `[generator] Starting chunk deep research for Chunk ${chunkIdx + 1}/${chunks.length} (Slides ${chunk.map((s) => s.index + 1).join(', ')})`
+          )
           const chunkResearchText = await runChunkResearchWithCLI(
             config,
             chunk,
@@ -617,10 +654,15 @@ export async function generatePresentation(
             abortSignal,
             settings
           )
-          console.log(`[generator] Completed chunk deep research for Chunk ${chunkIdx + 1}. Research text length: ${chunkResearchText.length}`)
+          console.log(
+            `[generator] Completed chunk deep research for Chunk ${chunkIdx + 1}. Research text length: ${chunkResearchText.length}`
+          )
           parseChunkResearchOutput(chunkResearchText, chunk)
         } catch (researchErr) {
-          console.warn(`[generator] Chunk deep research failed for Chunk ${chunkIdx + 1}, using blueprints outline concepts fallback:`, researchErr)
+          console.warn(
+            `[generator] Chunk deep research failed for Chunk ${chunkIdx + 1}, using blueprints outline concepts fallback:`,
+            researchErr
+          )
         }
       })
     })
@@ -1176,9 +1218,14 @@ export async function regenerateSlide(
   }
 
   const wrappedOnResult = async (newSlide: Slide) => {
-    if (newSlide.slideType === 'image' || /class\s*=\s*["'][^"']*og-image-placeholder[^"']*["']/i.test(newSlide.html)) {
+    if (
+      newSlide.slideType === 'image' ||
+      /class\s*=\s*["'][^"']*og-image-placeholder[^"']*["']/i.test(newSlide.html)
+    ) {
       try {
-        console.log(`[generator] Slide regeneration produced image slide or placeholder. Generating image...`)
+        console.log(
+          `[generator] Slide regeneration produced image slide or placeholder. Generating image...`
+        )
         await generateAndInjectImage(newSlide, pseudoConfig, settings, onResult)
       } catch (err) {
         console.error('[generator] Image generation failed for regenerated slide:', err)
@@ -1448,7 +1495,7 @@ async function generateAndInjectImage(
       // 1. Analyze the main presentation prompt to determine the general domain/theme
       const promptLower = (config.prompt || '').toLowerCase()
       let domainKeyword = 'abstract'
-      
+
       if (
         promptLower.includes('cloud') ||
         promptLower.includes('tech') ||
@@ -1505,47 +1552,93 @@ async function generateAndInjectImage(
       const slideWords = (slide.title || '')
         .replace(/[^a-zA-Z0-9\s]/g, '')
         .split(/\s+/)
-        .map(w => w.trim().toLowerCase())
-        .filter((w) => w.length > 2 && !['key', 'concept', 'slide', 'presentation', 'topic', 'about', 'concept', 'introduction', 'conclusion', 'summary', 'what', 'why', 'how', 'who', 'when', 'where', 'which'].includes(w));
+        .map((w) => w.trim().toLowerCase())
+        .filter(
+          (w) =>
+            w.length > 2 &&
+            ![
+              'key',
+              'concept',
+              'slide',
+              'presentation',
+              'topic',
+              'about',
+              'concept',
+              'introduction',
+              'conclusion',
+              'summary',
+              'what',
+              'why',
+              'how',
+              'who',
+              'when',
+              'where',
+              'which'
+            ].includes(w)
+        )
 
       // 3. Get main topic words from presentation prompt (excluding generic words)
       const promptWords = (config.prompt || '')
         .replace(/[^a-zA-Z0-9\s]/g, '')
         .split(/\s+/)
-        .map(w => w.trim().toLowerCase())
-        .filter((w) => w.length > 2 && !['presentation', 'slides', 'deck', 'about', 'create', 'make', 'generate', 'what', 'why', 'how', 'who'].includes(w));
+        .map((w) => w.trim().toLowerCase())
+        .filter(
+          (w) =>
+            w.length > 2 &&
+            ![
+              'presentation',
+              'slides',
+              'deck',
+              'about',
+              'create',
+              'make',
+              'generate',
+              'what',
+              'why',
+              'how',
+              'who'
+            ].includes(w)
+        )
 
       // 4. Merge them and deduplicate
-      const combined = Array.from(new Set([domainKeyword, ...promptWords, ...slideWords])).slice(0, 3);
+      const combined = Array.from(new Set([domainKeyword, ...promptWords, ...slideWords])).slice(
+        0,
+        3
+      )
 
-      const keywords = combined.map(tag => encodeURIComponent(tag)).join(',');
-      const fallbackUrl = `https://loremflickr.com/1024/576/${keywords}/any`;
+      const keywords = combined.map((tag) => encodeURIComponent(tag)).join(',')
+      const fallbackUrl = `https://loremflickr.com/1024/576/${keywords}/any`
       try {
-        const fallbackTimeoutMs = 8000;
-        let fallbackTimeoutId: any;
+        const fallbackTimeoutMs = 8000
+        let fallbackTimeoutId: any
         const fallbackTimeoutPromise = new Promise<never>((_, reject) => {
           fallbackTimeoutId = setTimeout(
-            () => reject(new Error(`LoremFlickr fallback timed out after ${fallbackTimeoutMs / 1000} seconds`)),
+            () =>
+              reject(
+                new Error(
+                  `LoremFlickr fallback timed out after ${fallbackTimeoutMs / 1000} seconds`
+                )
+              ),
             fallbackTimeoutMs
           )
-        });
+        })
 
         const fallbackNetworkPromise = (async () => {
           try {
-            const fallbackResponse = await fetch(fallbackUrl, { signal: abortSignal });
+            const fallbackResponse = await fetch(fallbackUrl, { signal: abortSignal })
             if (!fallbackResponse.ok) {
-              throw new Error(`LoremFlickr returned status ${fallbackResponse.status}`);
+              throw new Error(`LoremFlickr returned status ${fallbackResponse.status}`)
             }
-            if (abortSignal?.aborted) return new ArrayBuffer(0);
-            return await fallbackResponse.arrayBuffer();
+            if (abortSignal?.aborted) return new ArrayBuffer(0)
+            return await fallbackResponse.arrayBuffer()
           } finally {
-            clearTimeout(fallbackTimeoutId);
+            clearTimeout(fallbackTimeoutId)
           }
-        })();
+        })()
 
-        arrayBuffer = await Promise.race([fallbackNetworkPromise, fallbackTimeoutPromise]);
+        arrayBuffer = await Promise.race([fallbackNetworkPromise, fallbackTimeoutPromise])
       } catch (fallbackErr: any) {
-        console.warn('[generator] Fallback LoremFlickr image fetch failed:', fallbackErr.message);
+        console.warn('[generator] Fallback LoremFlickr image fetch failed:', fallbackErr.message)
       }
     }
 
@@ -1553,7 +1646,9 @@ async function generateAndInjectImage(
       const buffer = Buffer.from(arrayBuffer)
       base64data = `data:image/jpeg;base64,${buffer.toString('base64')}`
     } else {
-      console.warn('[generator] Both Pollinations and LoremFlickr failed. Using high-fidelity custom SVG placeholder.');
+      console.warn(
+        '[generator] Both Pollinations and LoremFlickr failed. Using high-fidelity custom SVG placeholder.'
+      )
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 576" width="1024" height="576">
         <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">

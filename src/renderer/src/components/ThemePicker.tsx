@@ -51,7 +51,7 @@ const getMiniPreviewStyles = (theme: Theme) => {
   const fontHeading = getThemeFontHeading(theme)
   const fontBody = getThemeFontBody(theme)
 
-  let containerStyle: React.CSSProperties = {
+  const containerStyle: React.CSSProperties = {
     background: bg,
     color: theme.colors.text,
     fontFamily: `"${fontBody}", sans-serif`,
@@ -65,7 +65,7 @@ const getMiniPreviewStyles = (theme: Theme) => {
     position: 'relative'
   }
 
-  let sectionStyle: React.CSSProperties = {
+  const sectionStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
     gap: '6px',
@@ -74,7 +74,7 @@ const getMiniPreviewStyles = (theme: Theme) => {
     justifyContent: 'center'
   }
 
-  let h2Style: React.CSSProperties = {
+  const h2Style: React.CSSProperties = {
     fontFamily: `"${fontHeading}", sans-serif`,
     color: theme.colors.primary,
     fontSize: '16px',
@@ -83,7 +83,7 @@ const getMiniPreviewStyles = (theme: Theme) => {
     lineHeight: '1.2'
   }
 
-  let ulStyle: React.CSSProperties = {
+  const ulStyle: React.CSSProperties = {
     margin: 0,
     paddingLeft: '14px',
     fontSize: '10px',
@@ -94,7 +94,7 @@ const getMiniPreviewStyles = (theme: Theme) => {
     listStyleType: 'disc'
   }
 
-  let liAccentStyle: React.CSSProperties = {
+  const liAccentStyle: React.CSSProperties = {
     color: theme.colors.accent,
     fontWeight: 'bold'
   }

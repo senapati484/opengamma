@@ -11,6 +11,8 @@ import { join } from 'path'
 import * as path from 'path'
 import * as fs from 'fs'
 import { exec } from 'child_process'
+import { promisify } from 'util'
+import crypto from 'crypto'
 import { themes } from '../renderer/src/lib/themes'
 import { GLOBAL_LAYOUT_CSS } from '../renderer/src/lib/layoutStyles'
 
@@ -94,7 +96,7 @@ const LAYOUT_CSS = `
       }
 
       ${GLOBAL_LAYOUT_CSS}
-`;
+`
 
 // ─── Stub imports (filled in later sessions) ──────────────────────────────────
 // These modules will be implemented in their own files; referenced here as
@@ -113,7 +115,6 @@ let _store: any = null
  * This ensures the key is stable per-machine but not hardcoded in source.
  */
 function getDerivedEncryptionKey(): string {
-  const crypto = require('crypto')
   const userDataPath = app.getPath('userData')
   // Create a stable hash of the user data directory
   const hash = crypto.createHash('sha256').update(userDataPath).digest('hex')
@@ -499,6 +500,11 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
   const slidesHtml = presentation.slides
     .map((slide) => {
       let slideContent = slide.html.trim()
+      // Strip the local compact style block if it exists
+      slideContent = slideContent.replace(
+        /<style[^>]*>[\s\S]*?Compact Layout CSS Overrides[\s\S]*?<\/style>/gi,
+        ''
+      )
       if (!slideContent.startsWith('<section')) {
         slideContent = `<section>${slideContent}</section>`
       }
@@ -710,7 +716,12 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
     `
   } else {
     printPresetStyles = `
-      html, body, .reveal-viewport, .reveal, .reveal .slides, .reveal section, .reveal .slide-background, .reveal .slide-background-content, .reveal .pdf-page {
+      html, body, .reveal-viewport, .reveal, .reveal .slides, .reveal section {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+      }
+      .pdf-page, .reveal .slide-background, .reveal .slide-background-content {
         background: var(--background-gradient, var(--og-slide-bg, #0d0d0d)) !important;
         background-color: var(--og-slide-bg, #0d0d0d) !important;
         background-image: var(--background-gradient, var(--og-slide-bg, none)) !important;
@@ -752,7 +763,8 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         pageSizeStr = '11in 6.1875in' // letter landscape matching 16:9 aspect ratio
       }
     }
-  } else { // A4
+  } else {
+    // A4
     if (presentation.aspectRatio === '9:16') {
       pageSizeStr = '167.06mm 297mm'
     } else if (presentation.aspectRatio === '1:1') {
@@ -852,120 +864,6 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
         display: flex !important;
         flex-direction: column !important;
         justify-content: flex-start !important;
-      }
-      
-      /* Premium Card UI */
-      .reveal .card {
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 12px !important;
-        padding: 24px !important;
-        box-sizing: border-box !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
-        text-align: left !important;
-        backdrop-filter: blur(12px) !important;
-      }
-      .reveal .card h3 {
-        margin-top: 0 !important;
-        margin-bottom: 12px !important;
-        font-size: 1.25em !important;
-        font-family: var(--og-slide-font-heading, sans-serif) !important;
-        color: var(--og-slide-text, #ede9e1) !important;
-      }
-      .reveal .card p {
-        margin: 0 !important;
-        font-size: 0.9em !important;
-        line-height: 1.5 !important;
-        font-family: var(--og-slide-font-body, sans-serif) !important;
-        color: var(--og-slide-text, #bab6ae) !important;
-        opacity: 0.9 !important;
-      }
-      .reveal .card ul,
-      .reveal .card ol {
-        padding-left: 24px !important;
-        margin-left: 0 !important;
-      }
-
-      /* Statistics Display */
-      .reveal .stat-block {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        text-align: center !important;
-        padding: 24px !important;
-        background: rgba(255, 255, 255, 0.02) !important;
-        border: 1px solid rgba(255, 255, 255, 0.06) !important;
-        border-radius: 12px !important;
-        box-sizing: border-box !important;
-        backdrop-filter: blur(8px) !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
-      }
-      .reveal .stat-number {
-        font-size: 3.4em !important;
-        font-weight: 900 !important;
-        line-height: 1 !important;
-        color: var(--og-slide-accent, #e8ff57) !important;
-        margin-bottom: 8px !important;
-        text-shadow: 0 0 15px rgba(232, 255, 87, 0.15) !important;
-        font-family: var(--og-slide-font-heading, sans-serif) !important;
-      }
-      .reveal .stat-label {
-        font-size: 0.8em !important;
-        font-weight: 700 !important;
-        color: var(--og-slide-text, #ede9e1) !important;
-        opacity: 0.8 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.1em !important;
-        font-family: var(--og-slide-font-body, sans-serif) !important;
-      }
-
-      /* Testimonials & Pull Quotes */
-      .reveal .quote-block {
-        border-left: 4px solid var(--og-slide-accent, #e8ff57) !important;
-        padding-left: 24px !important;
-        text-align: left !important;
-        margin: 30px auto !important;
-        max-width: 85% !important;
-        font-style: italic !important;
-        box-sizing: border-box !important;
-        background: rgba(255, 255, 255, 0.01) !important;
-        padding-top: 8px !important;
-        padding-bottom: 8px !important;
-        border-top-right-radius: 8px !important;
-        border-bottom-right-radius: 8px !important;
-      }
-      .reveal .quote-text {
-        font-size: 1.3em !important;
-        line-height: 1.4 !important;
-        font-weight: 500 !important;
-        margin-bottom: 12px !important;
-        color: var(--og-slide-text, #ede9e1) !important;
-        font-family: var(--og-slide-font-body, sans-serif) !important;
-      }
-      .reveal .quote-author {
-        font-size: 0.85em !important;
-        font-weight: 700 !important;
-        text-transform: uppercase !important;
-        color: var(--og-slide-muted, #9ca3af) !important;
-        font-style: normal !important;
-        letter-spacing: 0.08em !important;
-        font-family: var(--og-slide-font-body, sans-serif) !important;
-      }
-
-      /* Pill Badges */
-      .reveal .badge {
-        display: inline-block !important;
-        background: rgba(232, 255, 87, 0.1) !important;
-        border: 1px solid rgba(232, 255, 87, 0.2) !important;
-        color: var(--og-slide-accent, #e8ff57) !important;
-        padding: 5px 14px !important;
-        border-radius: 9999px !important;
-        font-size: 0.7em !important;
-        font-weight: 800 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.12em !important;
-        margin-bottom: 20px !important;
-        font-family: var(--og-slide-font-body, sans-serif) !important;
       }
     </style>
   </head>
@@ -1204,7 +1102,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
           }
 
           /* Force high-fidelity page margins on slides matching user selected booklet padding and win over local compact styles */
-          .reveal .slides > section {
+          .reveal .slides > section:not(.og-full-bleed-split) {
             padding: ${marginPadding} !important;
             box-sizing: border-box !important;
           }
@@ -1212,7 +1110,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
           /* Restore premium card spacing and visual breathability over compact previews */
           .reveal .slides section .card {
             padding: 24px !important;
-            border-radius: 12px !important;
+            border-radius: var(--og-slide-radius, 12px) !important;
             margin-bottom: 0 !important;
           }
 
@@ -1220,7 +1118,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
           .reveal .slides section .og-bottom-tray {
             padding: 24px !important;
             margin-top: 32px !important;
-            border-radius: 16px !important;
+            border-radius: var(--og-slide-radius, 16px) !important;
           }
 
           /* Restore premium auto-grid column spacing */
@@ -1232,7 +1130,7 @@ function compilePrintHtml(presentation: Presentation, theme: Theme, options: any
           /* Restore premium focal statistics container spacing */
           .reveal .slides section .stat-block {
             padding: 24px !important;
-            border-radius: 12px !important;
+            border-radius: var(--og-slide-radius, 12px) !important;
           }
 
           /* Restore premium pill badging margin clearances */
@@ -1599,10 +1497,13 @@ export function registerIpcHandlers(): void {
               clearTimeout(timeout)
               resolve()
             })
-            printWindow!.webContents.once('did-fail-load', (_e: any, errCode: number, errDesc: string) => {
-              clearTimeout(timeout)
-              reject(new Error(`Page failed to load: ${errDesc} (${errCode})`))
-            })
+            printWindow!.webContents.once(
+              'did-fail-load',
+              (_e: any, errCode: number, errDesc: string) => {
+                clearTimeout(timeout)
+                reject(new Error(`Page failed to load: ${errDesc} (${errCode})`))
+              }
+            )
           })
 
           // Give Reveal.js and CDN fonts extra time to render
@@ -2089,7 +1990,6 @@ export function registerIpcHandlers(): void {
       await fs.promises.access(cliPath, isWin ? fs.constants.F_OK : fs.constants.X_OK)
 
       // Try to get version info
-      const { promisify } = require('util')
       const execAsync = promisify(exec)
 
       try {
@@ -2100,7 +2000,7 @@ export function registerIpcHandlers(): void {
           message: `${cliName} is accessible`,
           version: version || undefined
         }
-      } catch (_e) {
+      } catch {
         // Version query failed, but binary is still accessible
         return {
           success: true,
@@ -2127,9 +2027,6 @@ export function registerIpcHandlers(): void {
         current: 0,
         total: presentation.slides.length
       })
-
-      const path = require('path')
-      const fs = require('fs')
 
       // 2. Initialize KokoroTTS with local app cache directory
       const { env } = await import('@huggingface/transformers')

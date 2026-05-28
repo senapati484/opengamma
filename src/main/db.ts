@@ -18,7 +18,7 @@ export function initDb(): void {
   dbInitAttempted = true
 
   const dbPath = join(app.getPath('userData'), 'opengamma.db')
-  
+
   // Copy fallback database from legacy app directories if it exists and the new one doesn't
   if (!existsSync(dbPath)) {
     try {
@@ -27,19 +27,27 @@ export function initDb(): void {
         join(parentDir, 'opengamma', 'opengamma.db'),
         join(parentDir, 'Electron', 'opengamma.db')
       ]
-      
+
       for (const fallbackPath of fallbacks) {
         if (existsSync(fallbackPath)) {
           console.log(`[db] Found legacy/dev database at: ${fallbackPath}. Migrating to: ${dbPath}`)
           mkdirSync(dirname(dbPath), { recursive: true })
           copyFileSync(fallbackPath, dbPath)
-          
+
           // Also copy WAL journal files if they exist to maintain database state
           if (existsSync(`${fallbackPath}-wal`)) {
-            try { copyFileSync(`${fallbackPath}-wal`, `${dbPath}-wal`) } catch (_err) {}
+            try {
+              copyFileSync(`${fallbackPath}-wal`, `${dbPath}-wal`)
+            } catch {
+              // Ignore copy failure
+            }
           }
           if (existsSync(`${fallbackPath}-shm`)) {
-            try { copyFileSync(`${fallbackPath}-shm`, `${dbPath}-shm`) } catch (_err) {}
+            try {
+              copyFileSync(`${fallbackPath}-shm`, `${dbPath}-shm`)
+            } catch {
+              // Ignore copy failure
+            }
           }
           break
         }
@@ -73,7 +81,7 @@ export function initDb(): void {
     try {
       db.exec('ALTER TABLE presentations ADD COLUMN aspect_ratio TEXT')
       console.log('[db] Database schema migrated successfully: aspect_ratio column verified.')
-    } catch (_e) {
+    } catch {
       // Column already exists — expected on subsequent launches
     }
 
@@ -81,7 +89,7 @@ export function initDb(): void {
     try {
       db.exec('ALTER TABLE presentations ADD COLUMN bg_music_url TEXT')
       console.log('[db] Database schema migrated successfully: bg_music_url column verified.')
-    } catch (_e) {
+    } catch {
       // Column already exists — expected on subsequent launches
     }
 

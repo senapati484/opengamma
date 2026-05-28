@@ -171,7 +171,9 @@ const browserMock: ElectronAPI = {
     return { success: false, message: 'Running outside Electron' }
   },
 
-  openFileDialog: async (options?: unknown): Promise<{ canceled: boolean; filePaths: string[] }> => {
+  openFileDialog: async (
+    options?: unknown
+  ): Promise<{ canceled: boolean; filePaths: string[] }> => {
     console.warn('[useElectron] openFileDialog called outside Electron with options:', options)
     return { canceled: true, filePaths: [] }
   },
@@ -183,6 +185,39 @@ const browserMock: ElectronAPI = {
 
   restartAndInstall: (): void => {
     console.warn('[useElectron] restartAndInstall called outside Electron — no-op')
+  },
+
+  checkUpdates: async () => {
+    console.warn('[useElectron] checkUpdates called outside Electron — returning mock')
+    return {
+      available: false,
+      latestVersion: '1.0.1',
+      currentVersion: '1.0.1',
+      downloadUrl: '',
+      filename: ''
+    }
+  },
+
+  downloadUpdate: async (downloadUrl: string, filename: string) => {
+    console.warn(
+      `[useElectron] downloadUpdate called outside Electron for URL ${downloadUrl} and filename ${filename} — returning success`
+    )
+    return { success: true, filePath: '/tmp/mock-file' }
+  },
+
+  installUpdate: async (filePath: string) => {
+    console.warn(
+      `[useElectron] installUpdate called outside Electron for path ${filePath} — returning success`
+    )
+    return { success: true }
+  },
+
+  onDownloadProgress: (callback: (percent: number) => void): (() => void) => {
+    console.warn(
+      '[useElectron] onDownloadProgress registered outside Electron with callback:',
+      callback
+    )
+    return noopCleanup()
   },
 
   generateVoiceovers: async (presentation: Presentation) => {

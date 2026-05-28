@@ -327,7 +327,7 @@ const COMPACT_LAYOUT_CSS = `
   font-size: 0.7em !important;
   border-radius: 5px !important;
 }
-`;
+`
 
 export function parseSlideHtml(html: string, index: number): Slide {
   try {
@@ -428,9 +428,8 @@ export function parseSlideHtml(html: string, index: number): Slide {
         if (dataPrompt && dataPrompt.trim()) {
           imagePrompt = dataPrompt.trim()
         } else {
-          const firstBulletText = bullets.length > 0
-            ? bullets[0].replace(/<[^>]*>/g, '').trim()
-            : ''
+          const firstBulletText =
+            bullets.length > 0 ? bullets[0].replace(/<[^>]*>/g, '').trim() : ''
           imagePrompt = `${title} — ${firstBulletText}`
         }
       }

@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from 'react'
 import type { Slide, Theme, StreamStatus } from '../types'
 import { GLOBAL_LAYOUT_CSS } from '../lib/layoutStyles'
 
-
 export interface SlidePreviewProps {
   /** The current array of presentation slides */
   slides: Slide[]
@@ -29,7 +28,6 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   aspectRatio = '16:9',
   activeSlideIndex,
   onActiveSlideChange,
-  bgMusicUrl: _bgMusicUrl,
   audioMap
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -45,9 +43,7 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
   const [isPlaying, setIsPlaying] = useState(false)
   const [autoAdvance, setAutoAdvance] = useState(true)
   const [isVoiceoverMuted, setIsVoiceoverMuted] = useState(false)
-  const [voiceoverVolume, _setVoiceoverVolume] = useState(1.0)
-
-
+  const [voiceoverVolume] = useState(1.0)
 
   // Sync audioMap to Reveal iframe
   useEffect(() => {

@@ -148,7 +148,8 @@ export function useStream(): {
 
   // Synchronize local slides with active presentation when not generating
   useEffect(() => {
-    const isActive = status.state === 'generating' || status.state === 'researching' || status.state === 'imaging'
+    const isActive =
+      status.state === 'generating' || status.state === 'researching' || status.state === 'imaging'
     if (!isActive && activePresentation) {
       const timer = setTimeout(() => {
         setSlides(activePresentation.slides)

@@ -58,7 +58,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDelete,
   onNewPresentation,
   setIsSettingsOpen,
-  isHelpOpen: _,
   setIsHelpOpen,
   onGoToDashboard
 }) => {

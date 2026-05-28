@@ -117,12 +117,19 @@ export function compileSlideHtml(
   if (slideType === 'image') {
     isFullBleed = true
   } else if (slideType === 'content') {
-    const hasImg = bullets.some((b) => b.includes('<img') || b.includes('og-image-placeholder') || b.includes('og-image-figure'))
+    const hasImg = bullets.some(
+      (b) =>
+        b.includes('<img') || b.includes('og-image-placeholder') || b.includes('og-image-figure')
+    )
     if (hasImg) {
       isFullBleed = true
     }
   } else if (slideType === 'title') {
-    const hasImg = bullets.some((b) => b.includes('<img') || b.includes('og-image-placeholder') || b.includes('og-image-figure')) || !!existingImageHtml
+    const hasImg =
+      bullets.some(
+        (b) =>
+          b.includes('<img') || b.includes('og-image-placeholder') || b.includes('og-image-figure')
+      ) || !!existingImageHtml
     if (hasImg) {
       isFullBleed = true
     }
@@ -149,7 +156,10 @@ export function compileSlideHtml(
             : ''
 
       // Find any image
-      const figureBullets = bullets.filter((b) => b.includes('og-image-placeholder') || b.includes('og-image-figure') || b.includes('<img'))
+      const figureBullets = bullets.filter(
+        (b) =>
+          b.includes('og-image-placeholder') || b.includes('og-image-figure') || b.includes('<img')
+      )
       const hasImage = figureBullets.length > 0 || !!existingImageHtml
 
       if (hasImage) {
@@ -181,12 +191,15 @@ export function compileSlideHtml(
       const heading = `<h2${titleStyle}>${title || 'Core Insights'}</h2>`
 
       // Check if any bullet contains an <img> or placeholder — if so, do a 2-column layout
-      const imgBulletIdx = bullets.findIndex((b) => b.includes('<img') || b.includes('og-image-placeholder') || b.includes('og-image-figure'))
+      const imgBulletIdx = bullets.findIndex(
+        (b) =>
+          b.includes('<img') || b.includes('og-image-placeholder') || b.includes('og-image-figure')
+      )
       if (imgBulletIdx !== -1) {
         const imgBullet = bullets[imgBulletIdx]
         const otherBullets = bullets.filter((_, i) => i !== imgBulletIdx)
         const leftHtml = compileItemsToHtml(otherBullets, contentStyle)
-        
+
         let imgHtml = imgBullet
         // Clear max-height overrides if present to let the full-bleed CSS scale it
         imgHtml = imgHtml.includes('max-height')
@@ -343,8 +356,16 @@ export function compileSlideHtml(
       const heading = `<h2${titleStyle}>${title || 'Visual Context'}</h2>`
 
       // Separate any figure placeholder/image from supporting bullets
-      const figureBullets = bullets.filter((b) => b.includes('og-image-placeholder') || b.includes('og-image-figure') || b.includes('<img'))
-      const textBullets = bullets.filter((b) => !b.includes('og-image-placeholder') && !b.includes('og-image-figure') && !b.includes('<img'))
+      const figureBullets = bullets.filter(
+        (b) =>
+          b.includes('og-image-placeholder') || b.includes('og-image-figure') || b.includes('<img')
+      )
+      const textBullets = bullets.filter(
+        (b) =>
+          !b.includes('og-image-placeholder') &&
+          !b.includes('og-image-figure') &&
+          !b.includes('<img')
+      )
 
       const figureHtml =
         existingImageHtml ||

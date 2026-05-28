@@ -109,10 +109,24 @@ interface ElectronAPI {
 
   getAppInfo(): Promise<{ version: string; platform: string; arch: string }>
 
+  // ── Custom SourceForge Updater ──────────────────────────────────────────────
+  checkUpdates(): Promise<{
+    available: boolean
+    latestVersion: string
+    currentVersion: string
+    downloadUrl: string
+    filename: string
+    error?: string
+  }>
+  downloadUpdate(
+    downloadUrl: string,
+    filename: string
+  ): Promise<{ success: boolean; filePath?: string; error?: string }>
+  installUpdate(filePath: string): Promise<{ success: boolean; error?: string }>
+  onDownloadProgress(callback: (percent: number) => void): () => void
+
   // ── Voiceover TTS ────────────────────────────────────────────────────────────
-  generateVoiceovers(
-    presentation: Presentation
-  ): Promise<{
+  generateVoiceovers(presentation: Presentation): Promise<{
     success: boolean
     audioMap?: Record<number, string>
     presentation?: Presentation

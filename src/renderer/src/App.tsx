@@ -126,7 +126,11 @@ function AppInner() {
     onEscape: () => {
       if (isPresenting) {
         setIsPresenting(false)
-      } else if (status.state === 'generating' || status.state === 'researching' || status.state === 'imaging') {
+      } else if (
+        status.state === 'generating' ||
+        status.state === 'researching' ||
+        status.state === 'imaging'
+      ) {
         cancel()
       } else if (editingSlide) {
         setEditingSlide(null)
@@ -154,6 +158,7 @@ function AppInner() {
   // Effect: Auto-save streamed presentation when generation finishes
   const hasSavedRef = useRef(false)
   const currentConfigRef = useRef<GenerationConfig | null>(null)
+  const [currentConfig, setCurrentConfig] = useState<GenerationConfig | null>(null)
 
   useEffect(() => {
     if (status.state === 'done' && streamedSlides.length > 0 && !hasSavedRef.current) {
@@ -201,7 +206,11 @@ function AppInner() {
 
   // Effect: Sync active presentation with streamed slides during generation
   useEffect(() => {
-    if (status.state === 'generating' || status.state === 'researching' || status.state === 'imaging') {
+    if (
+      status.state === 'generating' ||
+      status.state === 'researching' ||
+      status.state === 'imaging'
+    ) {
       setActivePresentation(null)
       setCurrentView('editor')
     }
@@ -247,6 +256,7 @@ function AppInner() {
 
   const handleGenerate = (config: GenerationConfig) => {
     currentConfigRef.current = config
+    setCurrentConfig(config)
     hasSavedRef.current = false
     setActiveSlideIndex(0)
     setActiveTheme(config.theme)
@@ -391,7 +401,11 @@ function AppInner() {
         {currentView !== 'export-studio' && (
           <LeftPanel
             onGenerate={handleGenerate}
-            isGenerating={status.state === 'generating' || status.state === 'researching' || status.state === 'imaging'}
+            isGenerating={
+              status.state === 'generating' ||
+              status.state === 'researching' ||
+              status.state === 'imaging'
+            }
             onCancel={cancel}
             settings={settings}
             onOpenSettings={() => setShowSettings(true)}
@@ -449,7 +463,7 @@ function AppInner() {
                 <div className="flex flex-col items-center">
                   <div className="text-xs font-black text-white uppercase tracking-wider truncate max-w-[300px]">
                     {activePresentation?.title ||
-                      currentConfigRef.current?.prompt?.split('\n')[0] ||
+                      currentConfig?.prompt?.split('\n')[0] ||
                       'Generating Presentation...'}
                   </div>
                   {status.state === 'researching' && (
@@ -548,7 +562,7 @@ function AppInner() {
                       status={status}
                       aspectRatio={
                         activePresentation?.aspectRatio ||
-                        currentConfigRef.current?.aspectRatio ||
+                        currentConfig?.aspectRatio ||
                         '16:9'
                       }
                       activeSlideIndex={activeSlideIndex}

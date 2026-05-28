@@ -77,6 +77,22 @@ export interface ElectronAPI {
   /** Get application metadata */
   getAppInfo: () => Promise<{ version: string; platform: string; arch: string }>
 
+  // ── Custom SourceForge Updater ──────────────────────────────────────────────
+  checkUpdates: () => Promise<{
+    available: boolean
+    latestVersion: string
+    currentVersion: string
+    downloadUrl: string
+    filename: string
+    error?: string
+  }>
+  downloadUpdate: (
+    downloadUrl: string,
+    filename: string
+  ) => Promise<{ success: boolean; filePath?: string; error?: string }>
+  installUpdate: (filePath: string) => Promise<{ success: boolean; error?: string }>
+  onDownloadProgress: (callback: (percent: number) => void) => () => void
+
   // ── Voiceover TTS ────────────────────────────────────────────────────────────
   generateVoiceovers: (
     presentation: Presentation
@@ -179,6 +195,19 @@ const electronAPI: ElectronAPI = {
   },
 
   getAppInfo: () => ipcRenderer.invoke('app:get-info'),
+
+  // ── Custom SourceForge Updater ──────────────────────────────────────────────
+  checkUpdates: () => ipcRenderer.invoke('updater:check'),
+  downloadUpdate: (downloadUrl, filename) =>
+    ipcRenderer.invoke('updater:download', downloadUrl, filename),
+  installUpdate: (filePath) => ipcRenderer.invoke('updater:install', filePath),
+  onDownloadProgress: (callback) => {
+    const handler = (_event: Electron.IpcRendererEvent, percent: number): void => callback(percent)
+    ipcRenderer.on('updater:download-progress', handler)
+    return () => {
+      ipcRenderer.removeListener('updater:download-progress', handler)
+    }
+  },
 
   // ── Voiceover TTS ────────────────────────────────────────────────────────────
   generateVoiceovers: (presentation) => ipcRenderer.invoke('generate-voiceovers', presentation),

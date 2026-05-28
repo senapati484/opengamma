@@ -164,7 +164,10 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
     // Select the initial image mode
     if (currentImgUrl.startsWith('data:image')) {
       setImageSourceMode('upload')
-    } else if (currentImgUrl.includes('unsplash.com/featured') || currentImgUrl.includes('unsplash.com/photo')) {
+    } else if (
+      currentImgUrl.includes('unsplash.com/featured') ||
+      currentImgUrl.includes('unsplash.com/photo')
+    ) {
       setImageSourceMode('unsplash')
       const keywordMatch = currentImgUrl.match(/\/\?(.+)$/)
       if (keywordMatch) {
@@ -206,11 +209,15 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
     if (splitCols.length >= 2) {
       const leftH3 = splitCols[0].querySelector('h3')
       if (leftH3) leftLabel = leftH3.textContent?.trim() || ''
-      leftBulletsList = Array.from(splitCols[0].querySelectorAll('li')).map((li) => li.textContent?.trim() || '')
+      leftBulletsList = Array.from(splitCols[0].querySelectorAll('li')).map(
+        (li) => li.textContent?.trim() || ''
+      )
 
       const rightH3 = splitCols[1].querySelector('h3')
       if (rightH3) rightLabel = rightH3.textContent?.trim() || ''
-      rightBulletsList = Array.from(splitCols[1].querySelectorAll('li')).map((li) => li.textContent?.trim() || '')
+      rightBulletsList = Array.from(splitCols[1].querySelectorAll('li')).map(
+        (li) => li.textContent?.trim() || ''
+      )
     } else {
       const bulletsArray = slide.bullets || []
       const h3Indices = bulletsArray.reduce<number[]>((acc, b, i) => {
@@ -220,8 +227,12 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
       if (h3Indices.length >= 2) {
         leftLabel = bulletsArray[h3Indices[0]].replace(/<[^>]*>/g, '').trim()
         rightLabel = bulletsArray[h3Indices[1]].replace(/<[^>]*>/g, '').trim()
-        leftBulletsList = bulletsArray.slice(h3Indices[0] + 1, h3Indices[1]).map((b) => b.replace(/<[^>]*>/g, '').trim())
-        rightBulletsList = bulletsArray.slice(h3Indices[1] + 1).map((b) => b.replace(/<[^>]*>/g, '').trim())
+        leftBulletsList = bulletsArray
+          .slice(h3Indices[0] + 1, h3Indices[1])
+          .map((b) => b.replace(/<[^>]*>/g, '').trim())
+        rightBulletsList = bulletsArray
+          .slice(h3Indices[1] + 1)
+          .map((b) => b.replace(/<[^>]*>/g, '').trim())
       } else {
         const half = Math.ceil(plainBullets.length / 2)
         leftBulletsList = plainBullets.slice(0, half)
@@ -237,13 +248,17 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
     const table = doc.querySelector('table')
     let rows: string[] = []
     if (table) {
-      const headers = Array.from(table.querySelectorAll('th')).map((th) => th.textContent?.trim() || '')
+      const headers = Array.from(table.querySelectorAll('th')).map(
+        (th) => th.textContent?.trim() || ''
+      )
       if (headers.length > 0) {
         rows.push(headers.join(' | '))
       }
       const trs = table.querySelectorAll('tbody tr')
       trs.forEach((tr) => {
-        const cells = Array.from(tr.querySelectorAll('td')).map((td) => td.textContent?.trim() || '')
+        const cells = Array.from(tr.querySelectorAll('td')).map(
+          (td) => td.textContent?.trim() || ''
+        )
         if (cells.length > 0) {
           rows.push(cells.join(' | '))
         }
@@ -282,7 +297,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
       labelVal = statBlock.querySelector('.stat-label')?.textContent?.trim() || ''
       descVal = statBlock.querySelector('.stat-desc')?.textContent?.trim() || ''
     } else {
-      const statHtml = (slide.bullets || []).find((b) => b.includes('stat-block') || b.includes('card'))
+      const statHtml = (slide.bullets || []).find(
+        (b) => b.includes('stat-block') || b.includes('card')
+      )
       if (statHtml) {
         const tempDoc = parser.parseFromString(statHtml, 'text/html')
         const block = tempDoc.querySelector('.stat-block, .card')
@@ -302,16 +319,26 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
     let qText = ''
     let qAuthor = ''
     if (quoteEl) {
-      qText = quoteEl.querySelector('.quote-text')?.textContent?.trim().replace(/^["']|["']$/g, '') || ''
-      qAuthor = quoteEl.querySelector('.quote-author')?.textContent?.trim().replace(/^—\s*/, '') || ''
+      qText =
+        quoteEl
+          .querySelector('.quote-text')
+          ?.textContent?.trim()
+          .replace(/^["']|["']$/g, '') || ''
+      qAuthor =
+        quoteEl.querySelector('.quote-author')?.textContent?.trim().replace(/^—\s*/, '') || ''
     } else {
       const quoteHtml = (slide.bullets || []).find((b) => b.includes('quote-block'))
       if (quoteHtml) {
         const tempDoc = parser.parseFromString(quoteHtml, 'text/html')
         const block = tempDoc.querySelector('.quote-block')
         if (block) {
-          qText = block.querySelector('.quote-text')?.textContent?.trim().replace(/^["']|["']$/g, '') || ''
-          qAuthor = block.querySelector('.quote-author')?.textContent?.trim().replace(/^—\s*/, '') || ''
+          qText =
+            block
+              .querySelector('.quote-text')
+              ?.textContent?.trim()
+              .replace(/^["']|["']$/g, '') || ''
+          qAuthor =
+            block.querySelector('.quote-author')?.textContent?.trim().replace(/^—\s*/, '') || ''
         }
       }
     }
@@ -338,7 +365,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
   // Sync Unsplash Keyword URL automatically
   useEffect(() => {
     if (imageSourceMode === 'unsplash' && unsplashKeyword) {
-      setImageUrl(`https://images.unsplash.com/featured/1024x576/?${encodeURIComponent(unsplashKeyword)}`)
+      setImageUrl(
+        `https://images.unsplash.com/featured/1024x576/?${encodeURIComponent(unsplashKeyword)}`
+      )
     }
   }, [unsplashKeyword, imageSourceMode])
 
@@ -347,15 +376,24 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
     setLayout(newLayout)
 
     if (newLayout === 'split') {
-      const current = bulletsText.split('\n').map((b) => b.trim()).filter(Boolean)
+      const current = bulletsText
+        .split('\n')
+        .map((b) => b.trim())
+        .filter(Boolean)
       if (current.length > 0 && !splitLeftBullets && !splitRightBullets) {
         const half = Math.ceil(current.length / 2)
         setSplitLeftBullets(current.slice(0, half).join('\n'))
         setSplitRightBullets(current.slice(half).join('\n'))
       }
     } else if (newLayout === 'content') {
-      const left = splitLeftBullets.split('\n').map((b) => b.trim()).filter(Boolean)
-      const right = splitRightBullets.split('\n').map((b) => b.trim()).filter(Boolean)
+      const left = splitLeftBullets
+        .split('\n')
+        .map((b) => b.trim())
+        .filter(Boolean)
+      const right = splitRightBullets
+        .split('\n')
+        .map((b) => b.trim())
+        .filter(Boolean)
       if ((left.length > 0 || right.length > 0) && !bulletsText) {
         setBulletsText([...left, ...right].join('\n'))
       }
@@ -366,7 +404,10 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
       }
     } else if (newLayout === 'quote') {
       if (!quoteText) {
-        const current = bulletsText.split('\n').map((b) => b.trim()).filter(Boolean)
+        const current = bulletsText
+          .split('\n')
+          .map((b) => b.trim())
+          .filter(Boolean)
         setQuoteText(current.length > 0 ? current[0] : title || 'Premium Quote')
         setQuoteAuthor('Source')
       }
@@ -408,7 +449,10 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
 
   // Live sidebar table parser
   const parsedTableData = () => {
-    const lines = tableRows.split('\n').map((l) => l.trim()).filter(Boolean)
+    const lines = tableRows
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean)
     if (lines.length === 0) return { headers: [], rows: [] }
     const headers = lines[0].split('|').map((h) => h.trim())
     const rows = lines.slice(1).map((line) => line.split('|').map((c) => c.trim()))
@@ -453,12 +497,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
           .split('\n')
           .map((b) => b.trim())
           .filter((b) => b.length > 0)
-        return [
-          `<h3>${leftLabel}</h3>`,
-          ...left,
-          `<h3>${rightLabel}</h3>`,
-          ...right
-        ]
+        return [`<h3>${leftLabel}</h3>`, ...left, `<h3>${rightLabel}</h3>`, ...right]
       }
       case 'data': {
         return tableRows
@@ -471,7 +510,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
         if (imageUrl) {
           base.push(`<figure class="og-image-figure"><img src="${imageUrl}" /></figure>`)
         } else {
-          base.push(`<figure class="og-image-placeholder" data-prompt="${imagePrompt || title || 'professional illustration'}"></figure>`)
+          base.push(
+            `<figure class="og-image-placeholder" data-prompt="${imagePrompt || title || 'professional illustration'}"></figure>`
+          )
         }
         const textPart = bulletsText
           .split('\n')
@@ -523,7 +564,8 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
     bgColor: bgColor || undefined,
     textColor: textColor || undefined,
     accentColor: accentColor || undefined,
-    accentText: layout === 'cta' || layout === 'title' ? accentText : (slide?.style?.accentText || undefined),
+    accentText:
+      layout === 'cta' || layout === 'title' ? accentText : slide?.style?.accentText || undefined,
     layout
   }
 
@@ -676,7 +718,11 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                     <div className="grid grid-cols-4 gap-2">
                       {[
                         { key: 'title', label: 'Title', icon: 'M4 6h16M4 12h16M4 18h7' },
-                        { key: 'content', label: 'Bullet', icon: 'M4 6h16M4 10h16M4 14h16M4 18h16' },
+                        {
+                          key: 'content',
+                          label: 'Bullet',
+                          icon: 'M4 6h16M4 10h16M4 14h16M4 18h16'
+                        },
                         {
                           key: 'split',
                           label: 'Split',
@@ -855,24 +901,44 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
 
                         {/* Interactive Split Columns Preview */}
                         <div className="space-y-1.5">
-                          <span className="block text-[9px] font-bold uppercase tracking-wider text-neutral-500">Live Column Preview</span>
+                          <span className="block text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                            Live Column Preview
+                          </span>
                           <div className="grid grid-cols-2 gap-3 p-3 bg-neutral-950 rounded-xl border border-white/5 text-[10px]">
                             <div>
-                              <div className="font-bold text-[#e8ff57] uppercase tracking-wider mb-1 truncate">{splitLeftLabel || 'Left'}</div>
+                              <div className="font-bold text-[#e8ff57] uppercase tracking-wider mb-1 truncate">
+                                {splitLeftLabel || 'Left'}
+                              </div>
                               <ul className="list-disc list-inside space-y-0.5 text-neutral-400 text-[9px]">
-                                {splitLeftBullets.split('\n').filter(Boolean).map((b, i) => (
-                                  <li key={i} className="truncate">{b}</li>
-                                ))}
-                                {splitLeftBullets.split('\n').filter(Boolean).length === 0 && <span className="text-neutral-600">— Empty —</span>}
+                                {splitLeftBullets
+                                  .split('\n')
+                                  .filter(Boolean)
+                                  .map((b, i) => (
+                                    <li key={i} className="truncate">
+                                      {b}
+                                    </li>
+                                  ))}
+                                {splitLeftBullets.split('\n').filter(Boolean).length === 0 && (
+                                  <span className="text-neutral-600">— Empty —</span>
+                                )}
                               </ul>
                             </div>
                             <div>
-                              <div className="font-bold text-neutral-200 uppercase tracking-wider mb-1 truncate opacity-80">{splitRightLabel || 'Right'}</div>
+                              <div className="font-bold text-neutral-200 uppercase tracking-wider mb-1 truncate opacity-80">
+                                {splitRightLabel || 'Right'}
+                              </div>
                               <ul className="list-disc list-inside space-y-0.5 text-neutral-400 text-[9px]">
-                                {splitRightBullets.split('\n').filter(Boolean).map((b, i) => (
-                                  <li key={i} className="truncate">{b}</li>
-                                ))}
-                                {splitRightBullets.split('\n').filter(Boolean).length === 0 && <span className="text-neutral-600">— Empty —</span>}
+                                {splitRightBullets
+                                  .split('\n')
+                                  .filter(Boolean)
+                                  .map((b, i) => (
+                                    <li key={i} className="truncate">
+                                      {b}
+                                    </li>
+                                  ))}
+                                {splitRightBullets.split('\n').filter(Boolean).length === 0 && (
+                                  <span className="text-neutral-600">— Empty —</span>
+                                )}
                               </ul>
                             </div>
                           </div>
@@ -887,7 +953,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                             <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                               Table Data Grid (Pipe "|" Separated)
                             </label>
-                            <span className="text-[9px] text-neutral-500">Header | Col 2 | Col 3</span>
+                            <span className="text-[9px] text-neutral-500">
+                              Header | Col 2 | Col 3
+                            </span>
                           </div>
                           <textarea
                             value={tableRows}
@@ -901,21 +969,36 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                         {/* Interactive Sidebar Live Table Preview */}
                         {tableRows.split('\n').filter(Boolean).length > 0 && (
                           <div className="space-y-1.5">
-                            <span className="block text-[9px] font-bold uppercase tracking-wider text-neutral-500">Live Table Preview</span>
+                            <span className="block text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                              Live Table Preview
+                            </span>
                             <div className="border border-white/5 rounded-xl overflow-hidden bg-neutral-950">
                               <table className="w-full text-[9px] text-neutral-300">
                                 <thead>
                                   <tr className="bg-neutral-900/40 border-b border-white/5">
                                     {tableHeaders.map((h, i) => (
-                                      <th key={i} className="px-3 py-2 text-left font-bold text-neutral-400">{h}</th>
+                                      <th
+                                        key={i}
+                                        className="px-3 py-2 text-left font-bold text-neutral-400"
+                                      >
+                                        {h}
+                                      </th>
                                     ))}
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {tableRowsParsed.map((row, ri) => (
-                                    <tr key={ri} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
+                                    <tr
+                                      key={ri}
+                                      className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]"
+                                    >
                                       {row.map((cell, ci) => (
-                                        <td key={ci} className="px-3 py-1.5 text-left text-neutral-400">{cell}</td>
+                                        <td
+                                          key={ci}
+                                          className="px-3 py-1.5 text-left text-neutral-400"
+                                        >
+                                          {cell}
+                                        </td>
                                       ))}
                                     </tr>
                                   ))}
@@ -926,7 +1009,9 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                         )}
 
                         <div className="p-3 bg-neutral-950 rounded-xl border border-white/5 text-[9px] text-neutral-500 leading-normal">
-                          <strong className="text-neutral-400">Tip:</strong> First line acts as the table headers. Subsequent lines specify rows. Values are divided cleanly by pipes (<span className="text-[#e8ff57]">|</span>).
+                          <strong className="text-neutral-400">Tip:</strong> First line acts as the
+                          table headers. Subsequent lines specify rows. Values are divided cleanly
+                          by pipes (<span className="text-[#e8ff57]">|</span>).
                         </div>
                       </div>
                     )}
@@ -975,11 +1060,21 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
 
                         {/* Interactive Stat Widget Preview */}
                         <div className="space-y-1.5">
-                          <span className="block text-[9px] font-bold uppercase tracking-wider text-neutral-500">Live Stat Preview</span>
+                          <span className="block text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                            Live Stat Preview
+                          </span>
                           <div className="p-4 bg-neutral-950 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center space-y-1">
-                            <div className="text-[28px] font-extrabold text-[#e8ff57] tracking-tight">{statNumber || '—'}</div>
-                            <div className="text-[11px] font-bold text-neutral-200">{statLabel || 'Metric'}</div>
-                            {statDesc && <div className="text-[9px] text-neutral-500 italic mt-0.5">{statDesc}</div>}
+                            <div className="text-[28px] font-extrabold text-[#e8ff57] tracking-tight">
+                              {statNumber || '—'}
+                            </div>
+                            <div className="text-[11px] font-bold text-neutral-200">
+                              {statLabel || 'Metric'}
+                            </div>
+                            {statDesc && (
+                              <div className="text-[9px] text-neutral-500 italic mt-0.5">
+                                {statDesc}
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -1027,12 +1122,16 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
 
                         {/* Interactive Quote Preview */}
                         <div className="space-y-1.5">
-                          <span className="block text-[9px] font-bold uppercase tracking-wider text-neutral-500">Live Quote Preview</span>
+                          <span className="block text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                            Live Quote Preview
+                          </span>
                           <div className="p-4 bg-neutral-950 rounded-xl border border-white/5 relative space-y-1.5">
                             <div className="text-xs italic text-neutral-300 font-serif leading-relaxed">
                               "{quoteText || 'An impactful quote here.'}"
                             </div>
-                            <div className="text-[9px] font-bold text-[#e8ff57] text-right">— {quoteAuthor || 'Source'}</div>
+                            <div className="text-[9px] font-bold text-[#e8ff57] text-right">
+                              — {quoteAuthor || 'Source'}
+                            </div>
                           </div>
                         </div>
 
@@ -1160,7 +1259,12 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                             htmlFor="image-file-upload"
                             className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-neutral-900 hover:bg-neutral-800 border border-white/10 rounded-xl text-[9px] font-bold text-neutral-300 hover:text-white transition-all cursor-pointer select-none"
                           >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -1202,7 +1306,12 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                             className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black/90 text-neutral-300 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border border-white/10"
                             title="Remove graphic"
                           >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -1236,16 +1345,46 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
                           }`}
                         >
                           {align === 'left' ? (
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h10M4 18h14" />
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2.5"
+                                d="M4 6h16M4 12h10M4 18h14"
+                              />
                             </svg>
                           ) : align === 'center' ? (
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M7 12h10M5 18h14" />
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2.5"
+                                d="M4 6h16M7 12h10M5 18h14"
+                              />
                             </svg>
                           ) : (
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M10 12h10M6 18h14" />
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2.5"
+                                d="M4 6h16M10 12h10M6 18h14"
+                              />
                             </svg>
                           )}
                         </button>

@@ -5,7 +5,13 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { buildSystemPrompt } from './contextLoader'
 import { extractCompleteSlides, parseSlideHtml } from './slideParser'
-import type { Slide, StreamStatus, GenerationConfig, AppSettings, SlideBlueprint } from '../renderer/src/types'
+import type {
+  Slide,
+  StreamStatus,
+  GenerationConfig,
+  AppSettings,
+  SlideBlueprint
+} from '../renderer/src/types'
 
 /**
  * Helper to build the environment variables for child CLI processes.
@@ -59,7 +65,7 @@ function buildCliArgs(
   const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${userPrompt}`
 
   switch (cliId) {
-    case 'gemini-cli':
+    case 'gemini-cli': {
       // gemini -p "<prompt>" --approval-mode plan -o text --skip-trust
       //
       // --approval-mode plan  = read-only mode, no file writes or tool execution
@@ -72,27 +78,24 @@ function buildCliArgs(
       // We pipe the long prompt via stdin to avoid macOS/CLI argument limit/parsing issues.
       let geminiPrompt = ''
       if (purpose === 'research') {
-        geminiPrompt = 'Research the topic and output a structured outline/blueprint plan in Markdown.'
+        geminiPrompt =
+          'Research the topic and output a structured outline/blueprint plan in Markdown.'
       } else if (purpose === 'music') {
-        geminiPrompt = 'Analyze the presentation topic and select the best soundtrack name from the list.'
+        geminiPrompt =
+          'Analyze the presentation topic and select the best soundtrack name from the list.'
       } else if (systemPrompt.includes('SINGLE SLIDE GENERATION MODE')) {
-        geminiPrompt = 'Generate exactly one raw Reveal.js slide section based on the single slide instruction on stdin.'
+        geminiPrompt =
+          'Generate exactly one raw Reveal.js slide section based on the single slide instruction on stdin.'
       } else {
-        geminiPrompt = 'Generate raw Reveal.js slide sections based on the system prompt and instructions provided on stdin.'
+        geminiPrompt =
+          'Generate raw Reveal.js slide sections based on the system prompt and instructions provided on stdin.'
       }
 
       return {
-        args: [
-          '-p',
-          geminiPrompt,
-          '--approval-mode',
-          'plan',
-          '-o',
-          'text',
-          '--skip-trust'
-        ],
+        args: ['-p', geminiPrompt, '--approval-mode', 'plan', '-o', 'text', '--skip-trust'],
         useStdin: true
       }
+    }
 
     case 'claude-code':
       // claude --print --system-prompt-file <file> "<prompt>"
@@ -207,6 +210,7 @@ export async function generateWithCLI(
      */
     function cleanBuffer(raw: string): string {
       // Remove ANSI color/cursor escape sequences
+      // eslint-disable-next-line no-control-regex
       let cleaned = raw.replace(/\x1B\[[0-9;]*[mGKHF]/g, '')
       // Remove markdown code fences (```html, ```xml, ```, ~~~, etc.)
       cleaned = cleaned.replace(/^```[a-z]*\s*\n?/gim, '')
@@ -417,7 +421,7 @@ Begin slide plan now:`
         }
       })
 
-      child.on('close', (_code: number | null) => {
+      child.on('close', () => {
         if (abortSignal.aborted) {
           resolve(output)
           return
@@ -470,7 +474,7 @@ Presentation Details:
 - Total Slides: ${config.slideCount}
 - This Chunk Index: ${chunkIndex + 1}
 - Slides in this Chunk:
-${chunk.map(s => `  * Slide ${s.index + 1}: "${s.title}" (Layout Archetype: "${s.slideType}")`).join('\n')}
+${chunk.map((s) => `  * Slide ${s.index + 1}: "${s.title}" (Layout Archetype: "${s.slideType}")`).join('\n')}
 
 INSTRUCTIONS:
 1. For EACH slide listed above, perform deep technical research. Provide extensive technical details, mechanics, concrete real-world examples (like AWS, Heroku, Salesforce), boundaries, and exact metrics.
@@ -489,10 +493,12 @@ Begin chunk research now:`
     await fs.promises.writeFile(tempFile, systemPrompt, 'utf-8')
     await fs.promises.mkdir(workDir, { recursive: true })
 
-    const userPrompt = `Please perform deep technical research specifically for the following slides: ${chunk.map(s => `Slide ${s.index + 1}: "${s.title}"`).join(', ')}. Include concrete facts and real-world examples.`
+    const userPrompt = `Please perform deep technical research specifically for the following slides: ${chunk.map((s) => `Slide ${s.index + 1}: "${s.title}"`).join(', ')}. Include concrete facts and real-world examples.`
     const { args, useStdin } = buildCliArgs(cliId, systemPrompt, userPrompt, tempFile, 'research')
 
-    console.log(`[cliRunner-chunk-research] Spawning CLI for chunk ${chunkIndex + 1} (Slides ${chunk[0].index + 1}-${chunk[chunk.length - 1].index + 1}): ${cliId} cwd: ${workDir}`)
+    console.log(
+      `[cliRunner-chunk-research] Spawning CLI for chunk ${chunkIndex + 1} (Slides ${chunk[0].index + 1}-${chunk[chunk.length - 1].index + 1}): ${cliId} cwd: ${workDir}`
+    )
 
     const child = spawn(cliPath, args, {
       shell: process.platform === 'win32',
@@ -529,7 +535,9 @@ Begin chunk research now:`
       abortSignal.addEventListener('abort', () => {
         try {
           child.kill('SIGKILL')
-        } catch {}
+        } catch {
+          // Already dead
+        }
         resolve(output.trim())
       })
     })
@@ -598,7 +606,7 @@ export async function runMusicQueryWithCLI(
         }
       })
 
-      child.on('close', (_code: number | null) => {
+      child.on('close', () => {
         if (abortSignal?.aborted) {
           resolve(output)
           return

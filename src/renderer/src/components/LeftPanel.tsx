@@ -24,8 +24,6 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
   onOpenSettings,
   onOpenHelp,
   onImport,
-  activeSlide: _activeSlide,
-  onUpdateActiveSlideBullets: _onUpdateActiveSlideBullets,
   activeTheme,
   onUpdateTheme
 }) => {
@@ -45,7 +43,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
     try {
       const saved = localStorage.getItem('og-auto-generate-images')
       return saved === 'true'
-    } catch (e) {
+    } catch {
       return false
     }
   })
@@ -54,14 +52,10 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
     try {
       const saved = localStorage.getItem('og-auto-generate-voiceover')
       return saved === 'true'
-    } catch (e) {
+    } catch {
       return false
     }
   })
-
-
-
-
 
   useEffect(() => {
     localStorage.setItem('og-auto-generate-images', String(autoGenerateImages))
@@ -70,8 +64,6 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
   useEffect(() => {
     localStorage.setItem('og-auto-generate-voiceover', String(autoGenerateVoiceover))
   }, [autoGenerateVoiceover])
-
-
 
   // Close theme dropdown on outside click
   useEffect(() => {

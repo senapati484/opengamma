@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react'
 import type { Slide, Theme } from '../types'
 import { GLOBAL_LAYOUT_CSS } from '../lib/layoutStyles'
 
-
 export interface SlideThumbnailsProps {
   /** Ordered list of slides in the presentation */
   slides: Slide[]

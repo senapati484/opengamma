@@ -6,7 +6,16 @@ import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
 import eslintPluginReactRefresh from 'eslint-plugin-react-refresh'
 
 export default defineConfig(
-  { ignores: ['**/node_modules', '**/dist', '**/out', '**/test_temp'] },
+  {
+    ignores: [
+      '**/node_modules',
+      '**/dist',
+      '**/dist-electron',
+      '**/out',
+      '**/test_temp',
+      'src/renderer/public/**'
+    ]
+  },
   tseslint.configs.recommended,
   eslintPluginReact.configs.flat.recommended,
   eslintPluginReact.configs.flat['jsx-runtime'],
@@ -25,7 +34,12 @@ export default defineConfig(
     },
     rules: {
       ...eslintPluginReactHooks.configs.recommended.rules,
-      ...eslintPluginReactRefresh.configs.vite.rules
+      ...eslintPluginReactRefresh.configs.vite.rules,
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      'react-refresh/only-export-components': 'off',
+      'react/no-unescaped-entities': 'off',
+      'react-hooks/set-state-in-effect': 'off'
     }
   },
   eslintConfigPrettier

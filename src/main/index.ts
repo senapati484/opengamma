@@ -25,30 +25,27 @@ function enrichProcessPath(): void {
 
   if (platform === 'darwin' || platform === 'linux') {
     extraPaths.push(
-      '/opt/homebrew/bin',          // Homebrew (Apple Silicon)
+      '/opt/homebrew/bin', // Homebrew (Apple Silicon)
       '/opt/homebrew/sbin',
-      '/usr/local/bin',             // Homebrew (Intel) / system
+      '/usr/local/bin', // Homebrew (Intel) / system
       '/usr/local/sbin',
       '/usr/bin',
       '/bin',
       '/usr/sbin',
       '/sbin',
-      path.join(home, '.volta', 'bin'),      // Volta
+      path.join(home, '.volta', 'bin'), // Volta
       path.join(home, '.npm-global', 'bin'), // npm global (custom prefix)
-      path.join(home, '.yarn', 'bin'),       // Yarn global
-      path.join(home, '.pnpm', 'bin'),       // pnpm global
-      path.join(home, '.local', 'bin'),      // Linux user local bin
-      path.join(home, '.cargo', 'bin'),      // Cargo/Rust
+      path.join(home, '.yarn', 'bin'), // Yarn global
+      path.join(home, '.pnpm', 'bin'), // pnpm global
+      path.join(home, '.local', 'bin'), // Linux user local bin
+      path.join(home, '.cargo', 'bin'), // Cargo/Rust
       path.join(home, 'bin'),
-      '/opt/local/bin',                      // MacPorts
+      '/opt/local/bin' // MacPorts
     )
   } else if (platform === 'win32') {
     const appData = process.env.APPDATA || path.join(home, 'AppData', 'Roaming')
     const localAppData = process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local')
-    extraPaths.push(
-      path.join(appData, 'npm'),
-      path.join(localAppData, 'Programs', 'nodejs'),
-    )
+    extraPaths.push(path.join(appData, 'npm'), path.join(localAppData, 'Programs', 'nodejs'))
   }
 
   const currentPath = process.env.PATH || ''

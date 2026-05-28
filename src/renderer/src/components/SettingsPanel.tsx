@@ -70,6 +70,94 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     arch: string
   } | null>(null)
 
+  // Custom updater state hooks
+  const [updateStatus, setUpdateStatus] = useState<
+    'idle' | 'checking' | 'latest' | 'available' | 'downloading' | 'downloaded' | 'error'
+  >('idle')
+  const [downloadProgress, setDownloadProgress] = useState(0)
+  const [updateInfo, setUpdateInfo] = useState<{
+    available: boolean
+    latestVersion: string
+    currentVersion: string
+    downloadUrl: string
+    filename: string
+    error?: string
+  } | null>(null)
+  const [downloadedFilePath, setDownloadedFilePath] = useState<string | null>(null)
+  const [updaterErrorMsg, setUpdaterErrorMsg] = useState<string | null>(null)
+
+  // Custom update checking and download/install handlers
+  const handleCheckUpdates = async () => {
+    setUpdateStatus('checking')
+    setUpdaterErrorMsg(null)
+    try {
+      const result = await window.electronAPI.checkUpdates()
+      if (result.error) {
+        setUpdateStatus('error')
+        setUpdaterErrorMsg(result.error)
+        setTimeout(() => setUpdateStatus('idle'), 4000)
+        return
+      }
+
+      setUpdateInfo(result)
+      if (result.available) {
+        setUpdateStatus('available')
+      } else {
+        setUpdateStatus('latest')
+        setTimeout(() => setUpdateStatus('idle'), 4000)
+      }
+    } catch (err: any) {
+      setUpdateStatus('error')
+      setUpdaterErrorMsg(err.message || 'Unknown network error')
+      setTimeout(() => setUpdateStatus('idle'), 4000)
+    }
+  }
+
+  const handleDownloadUpdate = async () => {
+    if (!updateInfo || !updateInfo.downloadUrl) return
+    setUpdateStatus('downloading')
+    setDownloadProgress(0)
+
+    // Subscribe to download progress
+    const unsubscribeProgress = window.electronAPI.onDownloadProgress((percent) => {
+      setDownloadProgress(percent)
+    })
+
+    try {
+      const result = await window.electronAPI.downloadUpdate(
+        updateInfo.downloadUrl,
+        updateInfo.filename
+      )
+      unsubscribeProgress()
+
+      if (result.success && result.filePath) {
+        setDownloadedFilePath(result.filePath)
+        setUpdateStatus('downloaded')
+      } else {
+        setUpdateStatus('error')
+        setUpdaterErrorMsg(result.error || 'Download failed')
+      }
+    } catch (err: any) {
+      unsubscribeProgress()
+      setUpdateStatus('error')
+      setUpdaterErrorMsg(err.message || 'Download error')
+    }
+  }
+
+  const handleInstallUpdate = async () => {
+    if (!downloadedFilePath) return
+    try {
+      const result = await window.electronAPI.installUpdate(downloadedFilePath)
+      if (!result.success) {
+        setUpdateStatus('error')
+        setUpdaterErrorMsg(result.error || 'Failed to trigger installation')
+      }
+    } catch (err: any) {
+      setUpdateStatus('error')
+      setUpdaterErrorMsg(err.message || 'Installation trigger error')
+    }
+  }
+
   useEffect(() => {
     if (isOpen) {
       const loadData = async () => {
@@ -100,9 +188,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
         const clis = await window.electronAPI.scanCLIs()
         setDetectedCLIs(clis)
 
-        // @ts-ignore - missing on interface but implemented in IPC for this fix
+        // @ts-ignore: getAppInfo is a dynamically registered IPC channel
         if (window.electronAPI.getAppInfo) {
-          // @ts-ignore
+          // @ts-ignore: getAppInfo returns host platform metadata
           const info = await window.electronAPI.getAppInfo()
           setAppInfo(info)
         }
@@ -142,7 +230,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     setIsTestingKey(true)
     setTestStatus(null)
     try {
-      // @ts-ignore
+      // @ts-ignore: testApiKey is dynamically bound on electronAPI
       const result = await window.electronAPI.testApiKey(tempApiKey)
       setTestStatus(result)
     } catch (err: any) {
@@ -759,11 +847,92 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                       </div>
                     </>
                   )}
-                  <div className="pt-4 border-t border-white/5">
-                    <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all">
-                      Check for updates
-                    </button>
-                  </div>
+                  {updateStatus === 'idle' && (
+                    <div className="pt-4 border-t border-white/5">
+                      <button
+                        onClick={handleCheckUpdates}
+                        className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
+                      >
+                        Check for updates
+                      </button>
+                    </div>
+                  )}
+
+                  {updateStatus === 'checking' && (
+                    <div className="pt-4 border-t border-white/5 flex items-center justify-center py-2.5 text-neutral-400 text-xs font-medium gap-2">
+                      <svg className="animate-spin h-4.5 w-4.5 text-neutral-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Checking for updates...</span>
+                    </div>
+                  )}
+
+                  {updateStatus === 'latest' && (
+                    <div className="pt-4 border-t border-white/5 text-center py-2.5 px-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-semibold animate-fade-in">
+                      ✓ Up to date (v{appInfo?.version || packageJson.version})
+                    </div>
+                  )}
+
+                  {updateStatus === 'error' && (
+                    <div className="pt-4 border-t border-white/5 text-center py-2 px-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs font-semibold animate-fade-in space-y-1">
+                      <div>✕ Error checking updates</div>
+                      {updaterErrorMsg && <div className="text-[10px] opacity-75 font-mono truncate">{updaterErrorMsg}</div>}
+                    </div>
+                  )}
+
+                  {updateStatus === 'available' && (
+                    <div className="pt-4 border-t border-white/5 space-y-3 animate-fade-in">
+                      <div className="text-center py-2 px-3 bg-[#e8ff57]/10 border border-[#e8ff57]/20 text-[#e8ff57] rounded-xl text-xs font-semibold">
+                        New version v{updateInfo?.latestVersion} is available!
+                      </div>
+                      <div className="flex gap-2.5">
+                        <button
+                          onClick={handleDownloadUpdate}
+                          className="flex-1 py-2.5 bg-[#e8ff57] hover:bg-[#d4eb48] text-black rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
+                        >
+                          Download & Install
+                        </button>
+                        <a
+                          href="https://sourceforge.net/projects/open-gamma/files/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center"
+                        >
+                          Files
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {updateStatus === 'downloading' && (
+                    <div className="pt-4 border-t border-white/5 space-y-2 animate-fade-in">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span className="text-neutral-400">Downloading v{updateInfo?.latestVersion}...</span>
+                        <span className="text-[#e8ff57] font-mono font-bold">{downloadProgress}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#e8ff57] to-[#d4eb48] transition-all duration-300 rounded-full"
+                          style={{ width: `${downloadProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {updateStatus === 'downloaded' && (
+                    <div className="pt-4 border-t border-white/5 space-y-3 animate-fade-in">
+                      <div className="text-center py-2 px-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-semibold">
+                        ✓ Download complete!
+                      </div>
+                      <button
+                        onClick={handleInstallUpdate}
+                        className="w-full py-2.5 bg-[#e8ff57] hover:bg-[#d4eb48] text-black rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
+                      >
+                        Install & Relaunch
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-center text-[11px] text-neutral-600">
