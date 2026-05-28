@@ -27,7 +27,7 @@ const CACHE_TTL_MS = 60 * 1000
  * This is necessary because packaged Electron apps on macOS/Linux run with a
  * stripped PATH that does not include Homebrew, npm global, or nvm paths.
  */
-function getSearchPaths(): string[] {
+export function getSearchPaths(): string[] {
   const home = os.homedir()
   const platform = os.platform()
 

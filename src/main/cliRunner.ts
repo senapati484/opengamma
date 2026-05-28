@@ -5,6 +5,7 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { buildSystemPrompt } from './contextLoader'
 import { extractCompleteSlides, parseSlideHtml } from './slideParser'
+import { getSearchPaths } from './cliScanner'
 import type {
   Slide,
   StreamStatus,
@@ -22,6 +23,18 @@ function buildChildEnv(settings?: AppSettings): Record<string, string> {
   env.NO_COLOR = '1'
   env.FORCE_COLOR = '0'
   env.GEMINI_CLI_TRUST_WORKSPACE = 'true'
+
+  // Augment PATH so that spawned CLI processes can locate Node.js, git, etc. in packaged app
+  const searchPaths = getSearchPaths()
+  const delimiter = os.platform() === 'win32' ? ';' : ':'
+  const existingPath = env.PATH || ''
+  const pathList = existingPath.split(delimiter).filter(Boolean)
+  for (const p of searchPaths) {
+    if (!pathList.includes(p)) {
+      pathList.push(p)
+    }
+  }
+  env.PATH = pathList.join(delimiter)
 
   if (settings?.geminiApiKey) {
     env.GEMINI_API_KEY = settings.geminiApiKey
@@ -221,6 +234,27 @@ export async function generateWithCLI(
     }
 
     return await new Promise<void>((resolve, reject) => {
+      const timeoutMs = 60000
+      const timeoutId = setTimeout(() => {
+        console.warn(`[cliRunner] Command timed out after ${timeoutMs}ms: ${cliId}`)
+        try {
+          child.kill('SIGKILL')
+        } catch {
+          // Already dead
+        }
+        reject(new Error(`Slide generation timed out after ${timeoutMs / 1000} seconds`))
+      }, timeoutMs)
+
+      const safeResolve = () => {
+        clearTimeout(timeoutId)
+        resolve()
+      }
+
+      const safeReject = (err: Error) => {
+        clearTimeout(timeoutId)
+        reject(err)
+      }
+
       child.stdout.on('data', (data: Buffer) => {
         const chunk = data.toString('utf-8')
         buffer += chunk
@@ -259,7 +293,7 @@ export async function generateWithCLI(
 
       child.on('close', (code: number | null) => {
         if (abortSignal.aborted) {
-          resolve()
+          safeResolve()
           return
         }
 
@@ -285,7 +319,7 @@ export async function generateWithCLI(
 
         if (code !== 0 && code !== null && slideIndex === 0) {
           // Only reject if we got no slides at all — partial results are acceptable
-          reject(
+          safeReject(
             new Error(
               `CLI process (${cliId}) exited with code ${code} and produced no slides. ` +
                 `Check that the CLI is properly authenticated and configured.`
@@ -297,13 +331,13 @@ export async function generateWithCLI(
             slidesGenerated: slideIndex,
             totalSlides: config.slideCount
           })
-          resolve()
+          safeResolve()
         }
       })
 
       child.on('error', (err: Error) => {
         console.error(`[cliRunner] Failed to spawn ${cliId}:`, err.message)
-        reject(err)
+        safeReject(err)
       })
 
       abortSignal.addEventListener('abort', () => {
@@ -321,7 +355,7 @@ export async function generateWithCLI(
         } catch {
           // Process may already be dead
         }
-        resolve()
+        safeResolve()
       })
     })
   } finally {
@@ -399,8 +433,28 @@ Begin slide plan now:`
       child.stdin.end()
     }
 
-    return await new Promise<string>((resolve, reject) => {
+     return await new Promise<string>((resolve, reject) => {
       let output = ''
+      const timeoutMs = 60000
+      const timeoutId = setTimeout(() => {
+        console.warn(`[cliRunner-research] Research CLI timed out after ${timeoutMs}ms: ${cliId}`)
+        try {
+          child.kill('SIGKILL')
+        } catch {
+          // Already dead
+        }
+        reject(new Error(`Research CLI timed out after ${timeoutMs / 1000} seconds`))
+      }, timeoutMs)
+
+      const safeResolve = (val: string) => {
+        clearTimeout(timeoutId)
+        resolve(val)
+      }
+
+      const safeReject = (err: Error) => {
+        clearTimeout(timeoutId)
+        reject(err)
+      }
 
       child.stdout.on('data', (data: Buffer) => {
         output += data.toString('utf-8')
@@ -423,15 +477,15 @@ Begin slide plan now:`
 
       child.on('close', () => {
         if (abortSignal.aborted) {
-          resolve(output)
+          safeResolve(output)
           return
         }
-        resolve(output)
+        safeResolve(output)
       })
 
       child.on('error', (err: Error) => {
         console.error(`[cliRunner-research] Spawn error:`, err.message)
-        reject(err)
+        safeReject(err)
       })
 
       abortSignal.addEventListener('abort', () => {
@@ -440,7 +494,7 @@ Begin slide plan now:`
         } catch {
           // Already dead
         }
-        resolve(output)
+        safeResolve(output)
       })
     })
   } finally {
@@ -514,6 +568,26 @@ Begin chunk research now:`
 
     return await new Promise<string>((resolve, reject) => {
       let output = ''
+      const timeoutMs = 60000
+      const timeoutId = setTimeout(() => {
+        console.warn(`[cliRunner-chunk-research] Chunk research CLI timed out after ${timeoutMs}ms: ${cliId}`)
+        try {
+          child.kill('SIGKILL')
+        } catch {
+          // Already dead
+        }
+        reject(new Error(`Chunk research CLI timed out after ${timeoutMs / 1000} seconds`))
+      }, timeoutMs)
+
+      const safeResolve = (val: string) => {
+        clearTimeout(timeoutId)
+        resolve(val)
+      }
+
+      const safeReject = (err: Error) => {
+        clearTimeout(timeoutId)
+        reject(err)
+      }
 
       child.stdout.on('data', (data: Buffer) => {
         output += data.toString('utf-8')
@@ -524,12 +598,12 @@ Begin chunk research now:`
       })
 
       child.on('close', () => {
-        resolve(output.trim())
+        safeResolve(output.trim())
       })
 
       child.on('error', (err: Error) => {
         console.error(`[cliRunner-chunk-research] Spawn error:`, err.message)
-        reject(err)
+        safeReject(err)
       })
 
       abortSignal.addEventListener('abort', () => {
@@ -538,7 +612,7 @@ Begin chunk research now:`
         } catch {
           // Already dead
         }
-        resolve(output.trim())
+        safeResolve(output.trim())
       })
     })
   } finally {
@@ -586,6 +660,26 @@ export async function runMusicQueryWithCLI(
 
     return await new Promise<string>((resolve, reject) => {
       let output = ''
+      const timeoutMs = 30000
+      const timeoutId = setTimeout(() => {
+        console.warn(`[cliRunner-music] Music query CLI timed out after ${timeoutMs}ms`)
+        try {
+          child.kill('SIGKILL')
+        } catch {
+          // Already dead
+        }
+        reject(new Error(`Music query CLI timed out after ${timeoutMs / 1000} seconds`))
+      }, timeoutMs)
+
+      const safeResolve = (val: string) => {
+        clearTimeout(timeoutId)
+        resolve(val)
+      }
+
+      const safeReject = (err: Error) => {
+        clearTimeout(timeoutId)
+        reject(err)
+      }
 
       child.stdout.on('data', (data: Buffer) => {
         output += data.toString('utf-8')
@@ -608,15 +702,15 @@ export async function runMusicQueryWithCLI(
 
       child.on('close', () => {
         if (abortSignal?.aborted) {
-          resolve(output)
+          safeResolve(output)
           return
         }
-        resolve(output)
+        safeResolve(output)
       })
 
       child.on('error', (err: Error) => {
         console.error(`[cliRunner-music] Spawn error:`, err.message)
-        reject(err)
+        safeReject(err)
       })
 
       abortSignal?.addEventListener('abort', () => {
@@ -625,7 +719,7 @@ export async function runMusicQueryWithCLI(
         } catch {
           // Already dead
         }
-        resolve(output)
+        safeResolve(output)
       })
     })
   } finally {
