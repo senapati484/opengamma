@@ -148,9 +148,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 text-xs"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-0.5 rounded transition-colors"
+              title="Clear search"
+              aria-label="Clear search"
             >
-              ✕
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           )}
         </div>
@@ -164,7 +168,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <h2 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
               Quick-Start Templates
             </h2>
-            <span className="text-[10px] text-neutral-500">
+            <span className="text-[10px] text-neutral-400">
               One-click instant draft generation
             </span>
           </div>
@@ -182,7 +186,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       {tpl.badge}
                     </span>
                     <svg
-                      className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors transform group-hover:translate-x-0.5"
+                      className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white transition-colors transform group-hover:translate-x-0.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -198,15 +202,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   <h3 className="text-xs font-bold text-white group-hover:text-[#e8ff57] transition-colors">
                     {tpl.title}
                   </h3>
-                  <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed">
+                  <p className="text-[11px] text-neutral-300 line-clamp-2 leading-relaxed">
                     {tpl.subtitle}
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-neutral-500 font-mono">
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-neutral-400 font-mono">
                   <span>8 slides</span>
-                  <span className="text-neutral-400 group-hover:text-white font-bold transition-colors">
-                    Build deck →
+                  <span className="text-neutral-300 group-hover:text-white font-bold transition-colors flex items-center gap-1">
+                    <span>Build deck</span>
+                    <svg className="w-3 h-3 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
                   </span>
                 </div>
               </div>

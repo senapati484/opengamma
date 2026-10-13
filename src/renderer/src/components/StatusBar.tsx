@@ -5,7 +5,7 @@ import { useElectron } from '../lib/useElectron'
 export const StatusBar: React.FC = () => {
   const { settings } = useAppContext()
   const api = useElectron()
-  const [appVersion, setAppVersion] = useState<string>('1.0.1')
+  const [appVersion, setAppVersion] = useState<string>('1.0.2')
 
   useEffect(() => {
     const fetchVersion = async (): Promise<void> => {
@@ -13,7 +13,7 @@ export const StatusBar: React.FC = () => {
         const info = await api.getAppInfo()
         setAppVersion(info.version)
       } catch {
-        // Safe default fallback of '1.0.1' remains
+        // Safe default fallback of '1.0.2' remains
       }
     }
     fetchVersion()
@@ -54,7 +54,7 @@ export const StatusBar: React.FC = () => {
           <span className="text-[10px] font-semibold text-neutral-300 uppercase tracking-wider leading-none">
             {modeText}
           </span>
-          <span className="text-neutral-600 font-black text-[10px]">
+          <span className="text-neutral-500 font-black text-[10px]">
             /
           </span>
           <span className="text-[10px] font-bold text-[#e8ff57] uppercase tracking-wider leading-none">

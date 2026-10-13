@@ -315,30 +315,42 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
 
             <button
               onClick={() => setActiveTab('execution')}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'execution' ? 'bg-white/5 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${activeTab === 'execution' ? 'bg-white/10 text-white shadow-sm' : 'text-neutral-400 hover:text-white hover:bg-white/5'}`}
             >
-              <span className="text-lg">⚙</span> Execution & Model
+              <svg className="w-4 h-4 text-neutral-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              <span>Execution & Model</span>
             </button>
 
             <button
               onClick={() => setActiveTab('design')}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'design' ? 'bg-white/5 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${activeTab === 'design' ? 'bg-white/10 text-white shadow-sm' : 'text-neutral-400 hover:text-white hover:bg-white/5'}`}
             >
-              <span className="text-lg">🎨</span> Design Systems
+              <svg className="w-4 h-4 text-neutral-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4 4 4 0 014-4c.72 0 1.39.2 1.96.54l6.1-6.1a2 2 0 112.83 2.83l-6.1 6.1c.34.57.54 1.24.54 1.96a4 4 0 01-4 4z" />
+              </svg>
+              <span>Design Systems</span>
             </button>
 
             <button
               onClick={() => setActiveTab('export')}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'export' ? 'bg-white/5 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${activeTab === 'export' ? 'bg-white/10 text-white shadow-sm' : 'text-neutral-400 hover:text-white hover:bg-white/5'}`}
             >
-              <span className="text-lg">⬇</span> Export & Defaults
+              <svg className="w-4 h-4 text-neutral-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Export & Defaults</span>
             </button>
 
             <button
               onClick={() => setActiveTab('about')}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'about' ? 'bg-white/5 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${activeTab === 'about' ? 'bg-white/10 text-white shadow-sm' : 'text-neutral-400 hover:text-white hover:bg-white/5'}`}
             >
-              <span className="text-lg">ℹ</span> About
+              <svg className="w-4 h-4 text-neutral-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>About</span>
             </button>
           </div>
 
@@ -509,11 +521,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                           </div>
                           {testStatus && (
                             <div
-                              className={`text-xs flex items-center gap-2 ${testStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                              className={`text-xs flex items-center gap-1.5 ${testStatus.valid ? 'text-emerald-400' : 'text-rose-400'}`}
                             >
-                              {testStatus.valid
-                                ? '✓ Connection successful'
-                                : `✕ ${testStatus.error || 'Invalid key'}`}
+                              {testStatus.valid ? (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>Connection successful</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  <span>{testStatus.error || 'Invalid key'}</span>
+                                </>
+                              )}
                             </div>
                           )}
                           <a
@@ -554,11 +578,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                           </div>
                           {geminiTestStatus && (
                             <div
-                              className={`text-xs flex items-center gap-2 ${geminiTestStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                              className={`text-xs flex items-center gap-1.5 ${geminiTestStatus.valid ? 'text-emerald-400' : 'text-rose-400'}`}
                             >
-                              {geminiTestStatus.valid
-                                ? '✓ Connection successful'
-                                : `✕ ${geminiTestStatus.error || 'Invalid key'}`}
+                              {geminiTestStatus.valid ? (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>Connection successful</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  <span>{geminiTestStatus.error || 'Invalid key'}</span>
+                                </>
+                              )}
                             </div>
                           )}
                           <a
@@ -599,11 +635,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                           </div>
                           {openaiTestStatus && (
                             <div
-                              className={`text-xs flex items-center gap-2 ${openaiTestStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                              className={`text-xs flex items-center gap-1.5 ${openaiTestStatus.valid ? 'text-emerald-400' : 'text-rose-400'}`}
                             >
-                              {openaiTestStatus.valid
-                                ? '✓ Connection successful'
-                                : `✕ ${openaiTestStatus.error || 'Invalid key'}`}
+                              {openaiTestStatus.valid ? (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>Connection successful</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  <span>{openaiTestStatus.error || 'Invalid key'}</span>
+                                </>
+                              )}
                             </div>
                           )}
                           <a
@@ -644,11 +692,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                           </div>
                           {deepseekTestStatus && (
                             <div
-                              className={`text-xs flex items-center gap-2 ${deepseekTestStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                              className={`text-xs flex items-center gap-1.5 ${deepseekTestStatus.valid ? 'text-emerald-400' : 'text-rose-400'}`}
                             >
-                              {deepseekTestStatus.valid
-                                ? '✓ Connection successful'
-                                : `✕ ${deepseekTestStatus.error || 'Invalid key'}`}
+                              {deepseekTestStatus.valid ? (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>Connection successful</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  <span>{deepseekTestStatus.error || 'Invalid key'}</span>
+                                </>
+                              )}
                             </div>
                           )}
                           <a
@@ -689,11 +749,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                           </div>
                           {groqTestStatus && (
                             <div
-                              className={`text-xs flex items-center gap-2 ${groqTestStatus.valid ? 'text-green-500' : 'text-red-500'}`}
+                              className={`text-xs flex items-center gap-1.5 ${groqTestStatus.valid ? 'text-emerald-400' : 'text-rose-400'}`}
                             >
-                              {groqTestStatus.valid
-                                ? '✓ Connection successful'
-                                : `✕ ${groqTestStatus.error || 'Invalid key'}`}
+                              {groqTestStatus.valid ? (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>Connection successful</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  <span>{groqTestStatus.error || 'Invalid key'}</span>
+                                </>
+                              )}
                             </div>
                           )}
                           <a
@@ -883,14 +955,22 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                   )}
 
                   {updateStatus === 'latest' && (
-                    <div className="pt-4 border-t border-white/5 text-center py-2.5 px-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-semibold animate-fade-in">
-                      ✓ Up to date (v{appInfo?.version || packageJson.version})
+                    <div className="pt-4 border-t border-white/5 text-center py-2.5 px-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-semibold animate-fade-in flex items-center justify-center gap-1.5">
+                      <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Up to date (v{appInfo?.version || packageJson.version})</span>
                     </div>
                   )}
 
                   {updateStatus === 'error' && (
                     <div className="pt-4 border-t border-white/5 text-center py-2 px-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs font-semibold animate-fade-in space-y-1">
-                      <div>✕ Error checking updates</div>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <svg className="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>Error checking updates</span>
+                      </div>
                       {updaterErrorMsg && <div className="text-[10px] opacity-75 font-mono truncate">{updaterErrorMsg}</div>}
                     </div>
                   )}
@@ -936,8 +1016,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
 
                   {updateStatus === 'downloaded' && (
                     <div className="pt-4 border-t border-white/5 space-y-3 animate-fade-in">
-                      <div className="text-center py-2 px-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-semibold">
-                        ✓ Download complete!
+                      <div className="text-center py-2 px-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
+                        <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Download complete!</span>
                       </div>
                       <button
                         onClick={handleInstallUpdate}

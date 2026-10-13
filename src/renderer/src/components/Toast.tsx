@@ -105,32 +105,32 @@ export const Toast: React.FC<ToastProps> = ({
   const getStyleClasses = () => {
     switch (type) {
       case 'success':
-        return 'border-emerald-200 shadow-emerald-500/5 text-emerald-800'
+        return 'border-emerald-500/30 shadow-emerald-500/5'
       case 'error':
-        return 'border-rose-200 shadow-rose-500/5 text-rose-800'
+        return 'border-rose-500/30 shadow-rose-500/5'
       case 'warning':
-        return 'border-amber-200 shadow-amber-500/5 text-amber-800'
+        return 'border-amber-500/30 shadow-amber-500/5'
       case 'info':
       default:
-        return 'border-sky-200 shadow-sky-500/5 text-sky-800'
+        return 'border-white/10 shadow-white/5'
     }
   }
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-[100] flex items-start gap-4 px-5 py-4 rounded-2xl border bg-white/95 backdrop-blur-md shadow-2xl animate-fade-in select-none max-w-sm transition-all duration-300 ${getStyleClasses()}`}
+      className={`fixed bottom-6 right-6 z-[100] flex items-start gap-3.5 px-4 py-3.5 rounded-2xl border bg-[#161616]/95 backdrop-blur-md shadow-2xl animate-fade-in select-none max-w-sm transition-all duration-300 ${getStyleClasses()}`}
     >
       {renderIcon()}
 
       <div className="flex-grow flex flex-col gap-1 min-w-[200px]">
-        <span className="text-xs font-semibold leading-relaxed text-neutral-800">{message}</span>
+        <span className="text-xs font-medium leading-relaxed text-neutral-100">{message}</span>
         {action && (
           <button
             onClick={(e) => {
               e.stopPropagation()
               action.onClick()
             }}
-            className="text-[10px] font-extrabold text-violet-600 hover:text-violet-700 transition-colors uppercase tracking-wider text-left mt-1.5 active:scale-95 duration-100 cursor-pointer"
+            className="text-[10px] font-bold text-[#e8ff57] hover:text-[#d4eb48] transition-colors uppercase tracking-wider text-left mt-1 active:scale-95 duration-100 cursor-pointer"
           >
             {action.label}
           </button>
@@ -139,10 +139,12 @@ export const Toast: React.FC<ToastProps> = ({
 
       <button
         onClick={onClose}
-        className="text-neutral-400 hover:text-neutral-600 p-0.5 rounded-md hover:bg-neutral-100 transition-all duration-200 active:scale-90 cursor-pointer shrink-0"
+        className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all duration-200 active:scale-90 cursor-pointer shrink-0"
+        title="Dismiss notification"
+        aria-label="Dismiss notification"
       >
         <svg
-          className="w-4.5 h-4.5"
+          className="w-4 h-4"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

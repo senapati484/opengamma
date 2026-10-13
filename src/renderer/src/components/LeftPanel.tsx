@@ -186,10 +186,13 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => setTitle('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 text-xs p-0.5"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-0.5 rounded transition-colors"
                     title="Clear title"
+                    aria-label="Clear title"
                   >
-                    ✕
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 )}
               </div>
@@ -326,7 +329,9 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                                 />
                               </div>
                               {isSelected && (
-                                <span className="text-[#e8ff57] text-xs font-black">✓</span>
+                                <svg className="w-3.5 h-3.5 text-[#e8ff57]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                </svg>
                               )}
                             </div>
                           </div>

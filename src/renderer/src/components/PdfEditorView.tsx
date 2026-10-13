@@ -561,8 +561,10 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
       {exportSuccess && (
         <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in select-none">
           <div className="bg-[#141414] border border-white/10 rounded-2xl p-8 max-w-[460px] w-full flex flex-col items-center shadow-2xl text-center">
-            <div className="w-12 h-12 rounded-full bg-[#e8ff57]/10 border border-[#e8ff57]/30 text-[#e8ff57] text-xl flex items-center justify-center mb-4 font-bold">
-              ✓
+            <div className="w-12 h-12 rounded-full bg-[#e8ff57]/10 border border-[#e8ff57]/30 text-[#e8ff57] flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(232,255,87,0.15)]">
+              <svg className="w-6 h-6 text-[#e8ff57]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+              </svg>
             </div>
 
             <h3 className="text-base font-bold text-white mb-1.5">
@@ -603,8 +605,10 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
       {exportError && (
         <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in select-none">
           <div className="bg-[#141414] border border-white/10 rounded-2xl p-8 max-w-[420px] w-full flex flex-col items-center shadow-2xl text-center">
-            <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xl flex items-center justify-center mb-4">
-              ✕
+            <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+              <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </div>
 
             <h3 className="text-base font-bold text-white mb-2">

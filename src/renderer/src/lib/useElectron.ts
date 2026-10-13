@@ -130,7 +130,7 @@ const browserMock: ElectronAPI = {
 
   getAppInfo: async () => {
     console.warn('[useElectron] getAppInfo called outside Electron — returning mock')
-    return { version: '1.0.1', platform: 'browser', arch: 'arm64' }
+    return { version: '1.0.2', platform: 'browser', arch: 'arm64' }
   },
 
   testApiKey: async (apiKey: string): Promise<{ valid: boolean; message: string }> => {
@@ -191,8 +191,8 @@ const browserMock: ElectronAPI = {
     console.warn('[useElectron] checkUpdates called outside Electron — returning mock')
     return {
       available: false,
-      latestVersion: '1.0.1',
-      currentVersion: '1.0.1',
+      latestVersion: '1.0.2',
+      currentVersion: '1.0.2',
       downloadUrl: '',
       filename: ''
     }

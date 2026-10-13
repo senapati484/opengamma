@@ -27,7 +27,7 @@
 
 [![Watch Demo](https://img.shields.io/badge/▶%20Watch%20Demo%20Video-YouTube-red?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/O170F-KqtUw?si=Xg-R7onfbVyWbSHB)
 &nbsp;&nbsp;
-[![Download](https://img.shields.io/badge/⬇%20Download%20v1.0.1-SourceForge-orange?style=for-the-badge&logo=sourceforge&logoColor=white)](https://sourceforge.net/projects/open-gamma/files/latest/download)
+[![Download](https://img.shields.io/badge/⬇%20Download%20v1.0.2-SourceForge-orange?style=for-the-badge&logo=sourceforge&logoColor=white)](https://sourceforge.net/projects/open-gamma/files/latest/download)
 
 <br/>
 
@@ -70,14 +70,14 @@ Built on **Electron**, **React**, **TypeScript**, and **Reveal.js**, Open Gamma 
 
 ## Download
 
-> **Current release: v1.0.1** — Available on Windows, macOS, and Linux
+> **Current release: v1.0.2** — Available on Windows, macOS, and Linux
 
 | Platform | Architecture | File | Size | Download |
 |:---|:---|:---|:---|:---|
-| 🪟 **Windows** | x64 (Intel / AMD) | `Open Gamma 1.0.1.exe` | 216.7 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.1/Open%20Gamma%201.0.1.exe/download) |
-| 🍎 **macOS** | x64 (Intel) | `Open Gamma-1.0.1-x64.dmg` | 253.2 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.1/Open%20Gamma-1.0.1-x64.dmg/download) |
-| 🍎 **macOS** | ARM64 (Apple Silicon) | `Open Gamma-1.0.1-arm64.dmg` | 246.6 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.1/Open%20Gamma-1.0.1-arm64.dmg/download) |
-| 🐧 **Linux** | ARM64 (AppImage) | `Open Gamma-1.0.1-arm64.AppImage` | 236.8 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.1/Open%20Gamma-1.0.1-arm64.AppImage/download) |
+| 🪟 **Windows** | x64 (Intel / AMD) | `Open Gamma 1.0.2.exe` | 216.7 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.2/Open%20Gamma%201.0.2.exe/download) |
+| 🍎 **macOS** | x64 (Intel) | `Open Gamma-1.0.2-x64.dmg` | 253.2 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.2/Open%20Gamma-1.0.2-x64.dmg/download) |
+| 🍎 **macOS** | ARM64 (Apple Silicon) | `Open Gamma-1.0.2-arm64.dmg` | 246.6 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.2/Open%20Gamma-1.0.2-arm64.dmg/download) |
+| 🐧 **Linux** | ARM64 (AppImage) | `Open Gamma-1.0.2-arm64.AppImage` | 236.8 MB | [**Download**](https://sourceforge.net/projects/open-gamma/files/v1.0.2/Open%20Gamma-1.0.2-arm64.AppImage/download) |
 
 <a href="https://sourceforge.net/projects/open-gamma/files/latest/download">
   <img alt="Download Open Gamma" src="https://a.fsdn.com/con/app/sf-download-button" width="276" height="48" srcset="https://a.fsdn.com/con/app/sf-download-button?button_size=2x 2x" />
@@ -90,26 +90,26 @@ Built on **Electron**, **React**, **TypeScript**, and **Reveal.js**, Open Gamma 
 
 ### 🪟 Windows
 
-1. Download `Open Gamma 1.0.1.exe`
+1. Download `Open Gamma 1.0.2.exe`
 2. Double-click the installer and follow the setup wizard
 3. Launch from your Start menu
 
 ### 🍎 macOS
 
-1. Download `Open Gamma-1.0.1-arm64.dmg` (for Apple Silicon) or `Open Gamma-1.0.1-x64.dmg` (for Intel)
+1. Download `Open Gamma-1.0.2-arm64.dmg` (for Apple Silicon) or `Open Gamma-1.0.2-x64.dmg` (for Intel)
 2. Mount the DMG and drag **Open Gamma** into your **Applications** folder
 3. Launch from Applications or Spotlight
 
 ### 🐧 Linux
 
-1. Download `Open Gamma-1.0.1-arm64.AppImage`
+1. Download `Open Gamma-1.0.2-arm64.AppImage`
 2. Make it executable:
    ```bash
-   chmod +x "Open Gamma-1.0.1-arm64.AppImage"
+   chmod +x "Open Gamma-1.0.2-arm64.AppImage"
    ```
 3. Run it:
    ```bash
-   ./"Open Gamma-1.0.1-arm64.AppImage"
+   ./"Open Gamma-1.0.2-arm64.AppImage"
    ```
 
 </details>

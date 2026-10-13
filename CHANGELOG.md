@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.2] - 2026-10-13
+
+### Added
+
+- **Native Vector PDF Generation Engine**: Complete overhaul of presentation export using PDFKit vector primitives, crisp vector layout geometry, and custom layout engines (`title`, `cards`, `split`, `quote`, `timeline`, `blank`).
+- **Dynamic Content Card Balancing**: Automatic height equalization for multi-card layouts ensuring visual harmony across all slide densities.
+- **Pure Vector Card Canvas Preview**: Ultra-responsive live slide preview without heavy or fragile `iframe` sandboxes.
+- **Obsidian Dark-Mode UI/UX Fine-Tuning**: App-wide design polish matching WCAG AAA contrast standards, unified SVG iconography, tight typographic rhythm, and responsive touch/keyboard navigation.
+
 ## [1.0.1] - 2026-05-26
 
 ### Fixed

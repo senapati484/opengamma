@@ -18,35 +18,35 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
   const steps = [
     {
-      num: '01',
+      step: 'Step 1',
       title: 'Choose a Design System',
-      desc: 'Select a premium theme with carefully tuned color palettes, dynamic gradients, and modern typography tokens.'
+      desc: 'Select a curated theme with tuned color palettes, dynamic geometric styling, and modern typography tokens.'
     },
     {
-      num: '02',
+      step: 'Step 2',
       title: 'Describe Your Vision',
-      desc: 'Enter a presentation outline or simply type a short topic. Let the AI generator draft a complete multi-slide structure.'
+      desc: 'Enter an outline or short prompt. OpenGamma drafts a structured, balanced presentation deck.'
     },
     {
-      num: '03',
-      title: 'Visual Booklet Editor',
-      desc: 'Click any slide thumbnail to customize layouts (title, content, split grid, data metrics, CTA), adjust individual font sizes, select heading/body typography, alignment, or override colors.'
+      step: 'Step 3',
+      title: 'Visual Layout Editor',
+      desc: 'Select any slide to adjust layout templates (title, cards, split, quote, timeline, blank), edit copy, or regenerate slides.'
     },
     {
-      num: '04',
-      title: 'Multi-Format Export',
-      desc: 'Head to the Export Studio to fine-tune layout alignments, print styling, and export into standard print-ready PDF, editable PowerPoint (.pptx), PNGs, or responsive HTML.'
+      step: 'Step 4',
+      title: 'Vector PDF & Multi-Format Export',
+      desc: 'Export directly to crisp vector-rendered PDF with native geometry, PowerPoint (.pptx), or standalone HTML.'
     }
   ]
 
   const shortcuts = [
     { keys: ['⌘ / Ctrl', 'Enter'], action: 'Generate presentation / submit outline' },
-    { keys: ['⌘ / Ctrl', 'E'], action: 'Open export panel' },
+    { keys: ['⌘ / Ctrl', 'E'], action: 'Export presentation to PDF / PPTX' },
     { keys: ['⌘ / Ctrl', 'S'], action: 'Save current slide editing changes' },
     { keys: ['⌘ / Ctrl', ','], action: 'Open application settings panel' },
     { keys: ['Escape'], action: 'Close modal / cancel active generation' },
-    { keys: ['←', '→'], action: 'Navigate slide history (when not editing text)' },
-    { keys: ['⌘ / Ctrl', 'Z'], action: 'Undo last slide edit (when not editing text)' }
+    { keys: ['Left', 'Right'], action: 'Navigate slide history' },
+    { keys: ['⌘ / Ctrl', 'Z'], action: 'Undo last slide edit' }
   ]
 
   return (
@@ -77,8 +77,8 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               <h2 className="text-sm font-black text-white uppercase tracking-wider">
                 Help & Keyboard Shortcuts
               </h2>
-              <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
-                Learn how to maximize your presentation workflow in Open Gamma
+              <p className="text-[10px] text-neutral-400 font-medium mt-0.5">
+                Learn how to maximize your presentation workflow in OpenGamma
               </p>
             </div>
           </div>
@@ -112,17 +112,17 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               {steps.map((step, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all flex gap-3 group"
+                  className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all flex flex-col gap-2 group"
                 >
-                  <span className="text-xs font-black text-[#e8ff57] opacity-60 group-hover:opacity-100 transition-opacity mt-0.5 select-none">
-                    {step.num}
-                  </span>
-                  <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-bold text-[#e8ff57] bg-[#e8ff57]/10 px-2 py-0.5 rounded-full border border-[#e8ff57]/20 select-none">
+                      {step.step}
+                    </span>
                     <h4 className="text-xs font-bold text-white tracking-wide">{step.title}</h4>
-                    <p className="text-[11px] text-neutral-300 leading-relaxed font-normal">
-                      {step.desc}
-                    </p>
                   </div>
+                  <p className="text-[11px] text-neutral-300 leading-relaxed font-normal">
+                    {step.desc}
+                  </p>
                 </div>
               ))}
             </div>
@@ -136,7 +136,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             </h3>
 
             <div className="border border-white/5 rounded-xl overflow-hidden bg-white/[0.02]">
-              <div className="grid grid-cols-3 p-3 bg-white/5 border-b border-white/5 text-[9px] font-black text-neutral-500 uppercase tracking-widest">
+              <div className="grid grid-cols-3 p-3 bg-white/5 border-b border-white/5 text-[9px] font-black text-neutral-400 uppercase tracking-widest">
                 <div className="col-span-1">Action</div>
                 <div className="col-span-2 text-right">Shortcut Keys</div>
               </div>
@@ -168,14 +168,16 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           {/* Section 3: Open Source Note */}
           <div className="p-4 rounded-xl bg-[#e8ff57]/5 border border-[#e8ff57]/10 flex items-start gap-3.5">
             <div className="w-5 h-5 rounded bg-[#e8ff57]/10 flex items-center justify-center border border-[#e8ff57]/20 flex-shrink-0 mt-0.5">
-              <span className="text-[10px] font-black text-[#e8ff57] select-none">!</span>
+              <svg className="w-3.5 h-3.5 text-[#e8ff57]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
             <div className="space-y-1">
               <h4 className="text-xs font-bold text-white tracking-wide">
                 Local-First & Open Source Alternative
               </h4>
-              <p className="text-[10px] text-neutral-400 leading-relaxed font-medium">
-                Open Gamma runs completely locally with SQLite and built-in CSS/Reveal.js tools.
+              <p className="text-[11px] text-neutral-300 leading-relaxed font-medium">
+                OpenGamma runs completely locally with SQLite and native vector PDF rendering.
                 Your data remains fully secure on your hard drive, allowing zero-latency custom
                 modifications and private presentations without expensive cloud subscription gates.
               </p>
@@ -184,11 +186,11 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#0d0d0d] border-t border-white/5 flex items-center justify-between text-[10px] text-neutral-600 font-bold tracking-widest uppercase">
-          <span>Open Gamma v{packageJson.version}</span>
+        <div className="p-4 bg-[#0d0d0d] border-t border-white/5 flex items-center justify-between text-[10px] text-neutral-400 font-bold tracking-widest uppercase">
+          <span>OpenGamma v{packageJson.version}</span>
           <span>
             Press{' '}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/5 text-neutral-400 font-mono text-[9px]">
+            <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-neutral-300 font-mono text-[9px]">
               ESC
             </kbd>{' '}
             to Close

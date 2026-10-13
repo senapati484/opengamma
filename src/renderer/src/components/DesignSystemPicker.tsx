@@ -63,18 +63,10 @@ export const DesignSystemPicker: React.FC<DesignSystemPickerProps> = ({
               onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
               className={`whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-medium transition-all flex-shrink-0 border ${
                 selectedCategory === cat
-                  ? 'bg-[#e8ff57]/10 text-[#e8ff57] border-[#e8ff57]/30'
-                  : 'bg-white/5 text-neutral-400 border-white/5 hover:text-white hover:bg-white/10'
+                  ? 'bg-[#e8ff57]/10 text-[#e8ff57] border-[#e8ff57]/30 font-semibold shadow-sm'
+                  : 'bg-white/5 text-neutral-300 border-white/5 hover:text-white hover:bg-white/10'
               }`}
             >
-              {cat === 'ecommerce' && '🛍️ '}
-              {cat === 'tech' && '⚙️ '}
-              {cat === 'cosmetics' && '💄 '}
-              {cat === 'travel' && '✈️ '}
-              {cat === 'airline' && '🛫 '}
-              {cat === 'media' && '📰 '}
-              {cat === 'lifestyle' && '🎨 '}
-              {cat === 'other' && '⭐ '}
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </button>
           ))}
