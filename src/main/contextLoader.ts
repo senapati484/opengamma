@@ -15,7 +15,7 @@ import { themes } from '../renderer/src/lib/themes'
  * @throws An error if GAMMA_CONTEXT.md is missing.
  */
 export async function buildSystemPrompt(config: GenerationConfig): Promise<string> {
-  const appPath = app.getAppPath()
+  const appPath = typeof app?.getAppPath === 'function' ? app.getAppPath() : process.cwd()
 
   // 1. Read GAMMA_CONTEXT.md from disk (throws descriptive error if not found)
   const contextPath = join(appPath, 'resources/context/GAMMA_CONTEXT.md')

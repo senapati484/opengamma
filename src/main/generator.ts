@@ -741,6 +741,35 @@ export async function generatePresentation(
       return
     }
 
+/**
+ * Generates a clean, valid fallback slide directly from a blueprint if CLI fails.
+ */
+function createBlueprintFallbackSlide(blueprint: SlideBlueprint, config: GenerationConfig): Slide {
+  const contentBullets = blueprint.concept
+    ? blueprint.concept
+        .split(/(?<=[.!?])\s+/)
+        .filter(Boolean)
+        .map((s) => `<li><strong>${s.split(':')[0] || 'Key Point'}:</strong> ${s.trim()}</li>`)
+        .join('\n')
+    : `<li>Comprehensive analysis and key strategic takeaways for ${config.prompt}.</li>`
+
+  const html = `<section data-slide-type="${blueprint.slideType}" data-slug="slide-${blueprint.index + 1}">
+  <span class="badge">${blueprint.slideType.toUpperCase()}</span>
+  <h2>${blueprint.title}</h2>
+  <div class="cards-grid">
+    <div class="card">
+      <ul>
+        ${contentBullets}
+      </ul>
+    </div>
+  </div>
+</section>`
+
+  const slide = parseSlideHtml(html, blueprint.index)
+  ;(slide as any).imagePrompt = blueprint.imagePrompt
+  return slide
+}
+
     // Step 4: Parallel HTML Generation
     wrappedOnStatus({
       state: 'generating',
@@ -765,7 +794,9 @@ export async function generatePresentation(
         }
 
         let isSuccessful = false
-        try {
+
+        const runSlideGen = async (): Promise<boolean> => {
+          let ok = false
           await generateWithCLI(
             slideConfig,
             selected.executablePath!,
@@ -774,15 +805,40 @@ export async function generatePresentation(
               slide.index = blueprint.index
               ;(slide as any).imagePrompt = blueprint.imagePrompt
               wrappedOnSlide(slide)
-              isSuccessful = true
+              ok = true
             },
             () => {}, // Silence sub-process status changes
             abortSignal,
             settings
           )
+          return ok
+        }
+
+        try {
+          isSuccessful = await runSlideGen()
         } catch (err) {
-          console.error(`[generator] Slide ${blueprint.index + 1} generation failed:`, err)
-          errors.push({ index: blueprint.index, error: err })
+          console.warn(`[generator] Slide ${blueprint.index + 1} initial generation attempt failed:`, err)
+          if (!abortSignal.aborted) {
+            try {
+              console.log(`[generator] Retrying Slide ${blueprint.index + 1}...`)
+              isSuccessful = await runSlideGen()
+            } catch (retryErr) {
+              console.error(`[generator] Slide ${blueprint.index + 1} retry failed:`, retryErr)
+              errors.push({ index: blueprint.index, error: retryErr })
+            }
+          }
+        }
+
+        // If CLI generation failed but task is not aborted, provide a graceful blueprint fallback
+        if (!isSuccessful && !abortSignal.aborted) {
+          try {
+            console.log(`[generator] Creating fallback slide for Slide ${blueprint.index + 1}: ${blueprint.title}`)
+            const fallbackSlide = createBlueprintFallbackSlide(blueprint, config)
+            wrappedOnSlide(fallbackSlide)
+            isSuccessful = true
+          } catch (fbErr) {
+            console.error(`[generator] Fallback generation failed for Slide ${blueprint.index + 1}:`, fbErr)
+          }
         }
 
         if (isSuccessful) {

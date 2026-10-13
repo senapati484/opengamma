@@ -1,4 +1,4 @@
-import { spawn } from 'child_process'
+import { spawn, type ChildProcess } from 'child_process'
 import * as os from 'os'
 import * as fs from 'fs'
 import { join } from 'path'
@@ -13,6 +13,22 @@ import type {
   AppSettings,
   SlideBlueprint
 } from '../renderer/src/types'
+
+/**
+ * Safely and forcefully kills a spawned CLI process and its entire process group
+ * on Unix/macOS to ensure no orphaned wrapper processes remain running.
+ */
+function killChildProcess(child: ChildProcess): void {
+  try {
+    if (process.platform !== 'win32' && child.pid) {
+      process.kill(-child.pid, 'SIGKILL')
+    } else {
+      child.kill('SIGKILL')
+    }
+  } catch {
+    // Process already exited or not found
+  }
+}
 
 /**
  * Helper to build the environment variables for child CLI processes.
@@ -73,40 +89,24 @@ function buildCliArgs(
   systemPrompt: string,
   userPrompt: string,
   tempFile: string,
-  purpose: 'slides' | 'research' | 'music' = 'slides'
+  _purpose: 'slides' | 'research' | 'music' = 'slides'
 ): { args: string[]; useStdin: boolean } {
   const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${userPrompt}`
 
   switch (cliId) {
     case 'gemini-cli': {
-      // gemini -p "<prompt>" --approval-mode plan -o text --skip-trust
+      // gemini -p "<fullPrompt>" -y -o text --skip-trust
       //
-      // --approval-mode plan  = read-only mode, no file writes or tool execution
-      // -o text               = clean plain-text stdout (no JSON/ANSI wrapper)
-      // --skip-trust          = trust the (empty) temp workspace without prompting the user
+      // -p <fullPrompt>  = non-interactive/headless mode with the complete prompt passed directly
+      // -y               = YOLO mode / auto-accept all actions (prevents confirmation prompt deadlocks)
+      // -o text          = clean plain-text stdout (no JSON/stream wrappers)
+      // --skip-trust     = trust the workspace without prompting the user
       //
-      // We spawn from an empty temp directory with GEMINI_CLI_TRUST_WORKSPACE=true,
-      // so Gemini has nothing to scan and responds purely to the prompt.
-      // The -p flag is what triggers non-interactive/headless mode.
-      // We pipe the long prompt via stdin to avoid macOS/CLI argument limit/parsing issues.
-      let geminiPrompt = ''
-      if (purpose === 'research') {
-        geminiPrompt =
-          'Research the topic and output a structured outline/blueprint plan in Markdown.'
-      } else if (purpose === 'music') {
-        geminiPrompt =
-          'Analyze the presentation topic and select the best soundtrack name from the list.'
-      } else if (systemPrompt.includes('SINGLE SLIDE GENERATION MODE')) {
-        geminiPrompt =
-          'Generate exactly one raw Reveal.js slide section based on the single slide instruction on stdin.'
-      } else {
-        geminiPrompt =
-          'Generate raw Reveal.js slide sections based on the system prompt and instructions provided on stdin.'
-      }
-
+      // NOTE: We pass fullPrompt directly via args and set useStdin: false.
+      // Passing stdin concurrently with -p causes gemini-cli's node wrapper to deadlock.
       return {
-        args: ['-p', geminiPrompt, '--approval-mode', 'plan', '-o', 'text', '--skip-trust'],
-        useStdin: true
+        args: ['-p', fullPrompt, '-y', '-o', 'text', '--skip-trust'],
+        useStdin: false
       }
     }
 
@@ -198,11 +198,13 @@ export async function generateWithCLI(
     const child = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       cwd: workDir,
-      env: buildChildEnv(settings)
+      env: buildChildEnv(settings),
+      detached: process.platform !== 'win32',
+      stdio: useStdin ? ['pipe', 'pipe', 'pipe'] : ['ignore', 'pipe', 'pipe']
     })
 
     // For CLIs that read from stdin
-    if (useStdin) {
+    if (useStdin && child.stdin) {
       const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${userPrompt}`
       child.stdin.write(fullPrompt)
       child.stdin.end()
@@ -234,14 +236,10 @@ export async function generateWithCLI(
     }
 
     return await new Promise<void>((resolve, reject) => {
-      const timeoutMs = 60000
+      const timeoutMs = 90000
       const timeoutId = setTimeout(() => {
         console.warn(`[cliRunner] Command timed out after ${timeoutMs}ms: ${cliId}`)
-        try {
-          child.kill('SIGKILL')
-        } catch {
-          // Already dead
-        }
+        killChildProcess(child)
         reject(new Error(`Slide generation timed out after ${timeoutMs / 1000} seconds`))
       }, timeoutMs)
 
@@ -255,7 +253,7 @@ export async function generateWithCLI(
         reject(err)
       }
 
-      child.stdout.on('data', (data: Buffer) => {
+      child.stdout?.on('data', (data: Buffer) => {
         const chunk = data.toString('utf-8')
         buffer += chunk
 
@@ -277,16 +275,19 @@ export async function generateWithCLI(
       })
 
       let stderrAccum = ''
-      child.stderr.on('data', (data: Buffer) => {
+      child.stderr?.on('data', (data: Buffer) => {
         const text = data.toString('utf-8')
         const line = text.trim()
         if (line) {
           if (
             line.includes('Ripgrep is not available') ||
             line.includes('ripgrep not found') ||
-            line.includes('falling back to GrepTool')
+            line.includes('falling back to GrepTool') ||
+            line.includes('Skill conflict detected') ||
+            line.includes('TERM=dumb') ||
+            line.includes('256-color support')
           ) {
-            // Silently ignore ripgrep fallback warning to keep logs clean and avoid user confusion
+            // Silently ignore benign CLI warnings to keep logs clean
           } else {
             console.error(`[cliRunner] ${cliId} stderr:`, line)
             stderrAccum += text
@@ -317,6 +318,15 @@ export async function generateWithCLI(
             } catch {
               // Ignore malformed partial slides
             }
+          } else if (slideIndex === 0 && (leftover.includes('<h') || leftover.includes('<p') || leftover.includes('<div') || leftover.includes('<ul'))) {
+            // Graceful auto-wrap if model forgot opening <section> tag
+            try {
+              const wrapped = `<section data-slide-type="${config.blueprint?.slideType || 'content'}">\n${leftover}\n</section>`
+              const slide = parseSlideHtml(wrapped, slideIndex++)
+              onSlide(slide)
+            } catch {
+              // Ignore
+            }
           }
         }
 
@@ -346,19 +356,7 @@ export async function generateWithCLI(
 
       abortSignal.addEventListener('abort', () => {
         console.log(`[cliRunner] Aborting ${cliId} process`)
-        try {
-          child.kill('SIGTERM')
-          // Force kill after 2s if it doesn't respond
-          setTimeout(() => {
-            try {
-              child.kill('SIGKILL')
-            } catch {
-              // Already dead
-            }
-          }, 2000)
-        } catch {
-          // Process may already be dead
-        }
+        killChildProcess(child)
         safeResolve()
       })
     })
@@ -428,25 +426,23 @@ Begin slide plan now:`
     const child = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       cwd: workDir,
-      env: buildChildEnv(settings)
+      env: buildChildEnv(settings),
+      detached: process.platform !== 'win32',
+      stdio: useStdin ? ['pipe', 'pipe', 'pipe'] : ['ignore', 'pipe', 'pipe']
     })
 
-    if (useStdin) {
+    if (useStdin && child.stdin) {
       const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${userPrompt}`
       child.stdin.write(fullPrompt)
       child.stdin.end()
     }
 
-     return await new Promise<string>((resolve, reject) => {
+    return await new Promise<string>((resolve, reject) => {
       let output = ''
-      const timeoutMs = 60000
+      const timeoutMs = 90000
       const timeoutId = setTimeout(() => {
         console.warn(`[cliRunner-research] Research CLI timed out after ${timeoutMs}ms: ${cliId}`)
-        try {
-          child.kill('SIGKILL')
-        } catch {
-          // Already dead
-        }
+        killChildProcess(child)
         reject(new Error(`Research CLI timed out after ${timeoutMs / 1000} seconds`))
       }, timeoutMs)
 
@@ -460,19 +456,22 @@ Begin slide plan now:`
         reject(err)
       }
 
-      child.stdout.on('data', (data: Buffer) => {
+      child.stdout?.on('data', (data: Buffer) => {
         output += data.toString('utf-8')
       })
 
-      child.stderr.on('data', (data: Buffer) => {
+      child.stderr?.on('data', (data: Buffer) => {
         const line = data.toString('utf-8').trim()
         if (line) {
           if (
             line.includes('Ripgrep is not available') ||
             line.includes('ripgrep not found') ||
-            line.includes('falling back to GrepTool')
+            line.includes('falling back to GrepTool') ||
+            line.includes('Skill conflict detected') ||
+            line.includes('TERM=dumb') ||
+            line.includes('256-color support')
           ) {
-            // Silently ignore ripgrep fallback warning to keep logs clean and avoid user confusion
+            // Silently ignore benign warnings
           } else {
             console.error(`[cliRunner-research] ${cliId} stderr:`, line)
           }
@@ -493,11 +492,7 @@ Begin slide plan now:`
       })
 
       abortSignal.addEventListener('abort', () => {
-        try {
-          child.kill('SIGKILL')
-        } catch {
-          // Already dead
-        }
+        killChildProcess(child)
         safeResolve(output)
       })
     })
@@ -561,10 +556,12 @@ Begin chunk research now:`
     const child = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       cwd: workDir,
-      env: buildChildEnv(settings)
+      env: buildChildEnv(settings),
+      detached: process.platform !== 'win32',
+      stdio: useStdin ? ['pipe', 'pipe', 'pipe'] : ['ignore', 'pipe', 'pipe']
     })
 
-    if (useStdin) {
+    if (useStdin && child.stdin) {
       const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${userPrompt}`
       child.stdin.write(fullPrompt)
       child.stdin.end()
@@ -572,14 +569,10 @@ Begin chunk research now:`
 
     return await new Promise<string>((resolve, reject) => {
       let output = ''
-      const timeoutMs = 60000
+      const timeoutMs = 90000
       const timeoutId = setTimeout(() => {
         console.warn(`[cliRunner-chunk-research] Chunk research CLI timed out after ${timeoutMs}ms: ${cliId}`)
-        try {
-          child.kill('SIGKILL')
-        } catch {
-          // Already dead
-        }
+        killChildProcess(child)
         reject(new Error(`Chunk research CLI timed out after ${timeoutMs / 1000} seconds`))
       }, timeoutMs)
 
@@ -593,11 +586,11 @@ Begin chunk research now:`
         reject(err)
       }
 
-      child.stdout.on('data', (data: Buffer) => {
+      child.stdout?.on('data', (data: Buffer) => {
         output += data.toString('utf-8')
       })
 
-      child.stderr.on('data', () => {
+      child.stderr?.on('data', () => {
         // Suppress benign logs
       })
 
@@ -611,11 +604,7 @@ Begin chunk research now:`
       })
 
       abortSignal.addEventListener('abort', () => {
-        try {
-          child.kill('SIGKILL')
-        } catch {
-          // Already dead
-        }
+        killChildProcess(child)
         safeResolve(output.trim())
       })
     })
@@ -653,10 +642,12 @@ export async function runMusicQueryWithCLI(
     const child = spawn(cliPath, args, {
       shell: process.platform === 'win32',
       cwd: workDir,
-      env: buildChildEnv(settings)
+      env: buildChildEnv(settings),
+      detached: process.platform !== 'win32',
+      stdio: useStdin ? ['pipe', 'pipe', 'pipe'] : ['ignore', 'pipe', 'pipe']
     })
 
-    if (useStdin) {
+    if (useStdin && child.stdin) {
       const fullPrompt = `${systemPrompt}\n\n---\n\nUser Request: ${prompt}`
       child.stdin.write(fullPrompt)
       child.stdin.end()
@@ -664,14 +655,10 @@ export async function runMusicQueryWithCLI(
 
     return await new Promise<string>((resolve, reject) => {
       let output = ''
-      const timeoutMs = 30000
+      const timeoutMs = 45000
       const timeoutId = setTimeout(() => {
         console.warn(`[cliRunner-music] Music query CLI timed out after ${timeoutMs}ms`)
-        try {
-          child.kill('SIGKILL')
-        } catch {
-          // Already dead
-        }
+        killChildProcess(child)
         reject(new Error(`Music query CLI timed out after ${timeoutMs / 1000} seconds`))
       }, timeoutMs)
 
@@ -685,11 +672,11 @@ export async function runMusicQueryWithCLI(
         reject(err)
       }
 
-      child.stdout.on('data', (data: Buffer) => {
+      child.stdout?.on('data', (data: Buffer) => {
         output += data.toString('utf-8')
       })
 
-      child.stderr.on('data', (data: Buffer) => {
+      child.stderr?.on('data', (data: Buffer) => {
         const line = data.toString('utf-8').trim()
         if (line) {
           if (
@@ -718,11 +705,7 @@ export async function runMusicQueryWithCLI(
       })
 
       abortSignal?.addEventListener('abort', () => {
-        try {
-          child.kill('SIGKILL')
-        } catch {
-          // Already dead
-        }
+        killChildProcess(child)
         safeResolve(output)
       })
     })
