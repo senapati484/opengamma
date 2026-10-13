@@ -15,6 +15,9 @@ import { promisify } from 'util'
 import crypto from 'crypto'
 import { themes } from '../renderer/src/lib/themes'
 import { GLOBAL_LAYOUT_CSS } from '../renderer/src/lib/layoutStyles'
+import { renderPdf } from './render/pdf'
+import { migrateSlides } from './model/migrate'
+import type { Deck } from './model/schema'
 
 const LAYOUT_CSS = `
       /* Design System Token Mappings & Core Styles & Compact Layout Overrides */
@@ -1459,86 +1462,35 @@ export function registerIpcHandlers(): void {
 
         if (canceled || !filePath) return { success: false }
 
-        let printWindow: BrowserWindow | null = null
-        let tempHtmlPath = ''
+        const exportOptions = presentation.exportOptions || {}
 
         try {
-          const exportOptions = presentation.exportOptions || {}
-          const htmlContent = compilePrintHtml(presentation, theme, exportOptions)
-          tempHtmlPath = join(app.getPath('temp'), `print-${presentation.id}-${Date.now()}.html`)
-          await fs.promises.writeFile(tempHtmlPath, htmlContent, 'utf-8')
-
-          let width = 1280
-          let height = 720
-          if (presentation.aspectRatio === '9:16') {
-            width = 720
-            height = 1280
-          } else if (presentation.aspectRatio === '1:1') {
-            width = 960
-            height = 960
-          }
-
-          printWindow = new BrowserWindow({
-            show: false,
-            width,
-            height,
-            webPreferences: {
-              nodeIntegration: false,
-              contextIsolation: true
-            }
-          })
-
-          await printWindow.loadFile(tempHtmlPath, { query: { 'print-pdf': 'true' } })
-
-          // Wait for the page to finish loading first
-          await new Promise<void>((resolve, reject) => {
-            const timeout = setTimeout(() => resolve(), 10000)
-            printWindow!.webContents.once('did-finish-load', () => {
-              clearTimeout(timeout)
-              resolve()
-            })
-            printWindow!.webContents.once(
-              'did-fail-load',
-              (_e: any, errCode: number, errDesc: string) => {
-                clearTimeout(timeout)
-                reject(new Error(`Page failed to load: ${errDesc} (${errCode})`))
-              }
+          console.log('[ipc] Exporting PDF via OpenGamma Native Vector Engine...')
+          const deck: Deck = (presentation.deck as Deck) || {
+            schemaVersion: 1,
+            meta: {
+              title: presentation.title || 'Untitled Presentation',
+              author: 'OpenGamma',
+              lang: 'en'
+            },
+            themeId: presentation.theme || 'startup-gradient',
+            aspectRatio: (presentation.aspectRatio as any) || '16:9',
+            slides: migrateSlides(
+              presentation.slides as any,
+              presentation.theme || 'startup-gradient'
             )
-          })
-
-          // Give Reveal.js and CDN fonts extra time to render
-          await new Promise((resolve) => setTimeout(resolve, 3500))
-
-          const pdfOptions = {
-            pageSize: exportOptions.pageSize || 'A4',
-            landscape: exportOptions.orientation !== 'portrait',
-            printBackground: true,
-            preferCSSPageSize: true,
-            margins: {
-              marginType: 'none' as any
-            }
           }
 
-          const data = await printWindow.webContents.printToPDF(pdfOptions)
-          await fs.promises.writeFile(filePath, data)
+          await renderPdf(deck, filePath, {
+            showPageNumbers: exportOptions.showPageNumbers !== false
+          })
 
           shell.showItemInFolder(filePath)
           return { success: true, path: filePath }
-        } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : 'PDF export failed'
-          console.error('[ipc] EXPORT_PDF error:', message)
+        } catch (nativeErr) {
+          const message = nativeErr instanceof Error ? nativeErr.message : 'Native vector PDF export failed'
+          console.error('[ipc] Native PDF export error:', nativeErr)
           return { success: false, error: message }
-        } finally {
-          if (printWindow) {
-            printWindow.destroy()
-          }
-          if (tempHtmlPath) {
-            try {
-              await fs.promises.unlink(tempHtmlPath)
-            } catch (e) {
-              console.error('Failed to unlink temporary HTML file:', e)
-            }
-          }
         }
       }
 

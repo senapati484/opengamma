@@ -8,3 +8,10 @@ out
 *.log*
 *.tsbuildinfo
 *.pptx
+test_temp/*.pdf
+test_temp/*.png
+test_temp/*.wav
+test_temp/model_cache/
+test_temp/*.json
+test_temp/test_*.mjs
+test_temp/test_*.js

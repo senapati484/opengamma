@@ -119,7 +119,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                   </span>
                   <div className="space-y-1">
                     <h4 className="text-xs font-bold text-white tracking-wide">{step.title}</h4>
-                    <p className="text-[10px] text-neutral-500 leading-relaxed font-medium">
+                    <p className="text-[11px] text-neutral-300 leading-relaxed font-normal">
                       {step.desc}
                     </p>
                   </div>

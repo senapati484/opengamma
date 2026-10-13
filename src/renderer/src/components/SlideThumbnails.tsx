@@ -70,11 +70,16 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
 
       {/* Section Header */}
       <div className="flex items-center justify-between px-1">
-        <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-          Slides
-        </label>
+        <div className="flex items-center gap-2">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-300">
+            Slide Deck
+          </label>
+          <span className="text-[9px] text-neutral-500 font-mono hidden sm:inline">
+            ← / → navigate
+          </span>
+        </div>
         <span className="text-[10px] text-neutral-400 font-medium">
-          <span className="font-semibold text-[#e8ff57]">{activeSlideIndex + 1}</span> of{' '}
+          Slide <span className="font-bold text-[#e8ff57]">{activeSlideIndex + 1}</span> of{' '}
           {slides.length}
         </span>
       </div>
@@ -227,12 +232,12 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
                 if (isRegenerating) return
                 onSelectSlide(index)
               }}
-              className={`flex-shrink-0 relative w-[152px] h-[86px] rounded-xl border select-none snap-start overflow-hidden group transition-all duration-200 transform active:scale-[0.98] ${
+              className={`flex-shrink-0 relative w-[152px] h-[86px] rounded-xl border select-none snap-start overflow-hidden group transition-all duration-150 transform active:scale-[0.98] ${
                 isRegenerating
-                  ? 'border-amber-300 cursor-wait shadow-sm shadow-amber-100'
+                  ? 'border-amber-400/60 cursor-wait bg-[#161616] shadow-sm shadow-amber-500/10'
                   : isActive
-                    ? 'border-[#e8ff57] ring-2 ring-[#e8ff57]/15 cursor-pointer shadow-sm shadow-[#e8ff57]/10'
-                    : 'border-neutral-200 hover:border-neutral-300 hover:shadow-sm cursor-pointer bg-white'
+                    ? 'border-[#e8ff57] ring-2 ring-[#e8ff57]/25 cursor-pointer shadow-lg shadow-[#e8ff57]/15 bg-[#1a1a1a]'
+                    : 'border-white/10 hover:border-white/25 hover:shadow-md cursor-pointer bg-[#141414]'
               }`}
             >
               {/* Scaled HTML preview iframe */}
@@ -251,10 +256,10 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
 
               {/* Slide number badge */}
               <span
-                className={`absolute bottom-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md text-[9px] font-bold pointer-events-none ${
+                className={`absolute bottom-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md text-[9px] pointer-events-none transition-colors ${
                   isActive
-                    ? 'bg-[#e8ff57] text-black'
-                    : 'bg-white/90 text-neutral-500 border border-neutral-200'
+                    ? 'bg-[#e8ff57] text-black font-black shadow-sm'
+                    : 'bg-black/80 text-neutral-300 border border-white/10 font-bold backdrop-blur-sm'
                 }`}
               >
                 {index + 1}
@@ -262,9 +267,9 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
 
               {/* Regenerating overlay */}
               {isRegenerating && (
-                <div className="absolute inset-0 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center gap-1.5 z-30 pointer-events-none animate-fade-in">
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center gap-1.5 z-30 pointer-events-none animate-fade-in">
                   <svg
-                    className="animate-spin h-4 w-4 text-amber-500"
+                    className="animate-spin h-4 w-4 text-amber-400"
                     fill="none"
                     viewBox="0 0 24 24"
                   >
@@ -282,7 +287,7 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  <span className="text-[9px] font-bold text-amber-600 tracking-wide">
+                  <span className="text-[9px] font-bold text-amber-300 tracking-wide">
                     Regenerating…
                   </span>
                 </div>
@@ -290,18 +295,18 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
 
               {/* Hover action overlay */}
               {!isRegenerating && (
-                <div className="absolute inset-0 bg-neutral-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center justify-center gap-2 z-20">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center justify-center gap-2 z-20">
                   {/* Edit button */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
                       onEditSlide(index)
                     }}
-                    className="p-1.5 rounded-lg bg-white/95 hover:bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="p-1.5 rounded-lg bg-[#202020] hover:bg-[#e8ff57] text-white hover:text-black border border-white/20 hover:border-transparent transition-all active:scale-95 cursor-pointer shadow-md"
                     title="Edit Slide"
                   >
                     <svg
-                      className="w-3 h-3"
+                      className="w-3.5 h-3.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -321,11 +326,11 @@ export const SlideThumbnails: React.FC<SlideThumbnailsProps> = ({
                       e.stopPropagation()
                       onRegenerateSlide(index)
                     }}
-                    className="p-1.5 rounded-lg bg-white/95 hover:bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="p-1.5 rounded-lg bg-[#202020] hover:bg-[#e8ff57] text-white hover:text-black border border-white/20 hover:border-transparent transition-all active:scale-95 cursor-pointer shadow-md"
                     title="Regenerate Slide"
                   >
                     <svg
-                      className="w-3 h-3"
+                      className="w-3.5 h-3.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"

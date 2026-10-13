@@ -641,7 +641,7 @@ export const SlideEditModal: React.FC<SlideEditModalProps> = ({
 
   return (
     <div className="absolute inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 lg:p-8 select-none no-drag">
-      <div className="w-full h-full max-w-7xl bg-[#121212] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-bounce">
+      <div className="w-full h-full max-w-7xl bg-[#121212] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-in">
         {/* Header Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#161616]">
           <div className="flex items-center gap-3">

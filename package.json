@@ -21,21 +21,28 @@
     "lint": "eslint --cache .",
     "format": "prettier --write .",
     "postinstall": "electron-builder install-app-deps",
-    "test:cli": "node -e \"require('./dist-electron/main/cliScanner').scanInstalledCLIs().then(console.log)\""
+    "test:cli": "node -e \"require('./dist-electron/main/cliScanner').scanInstalledCLIs().then(console.log)\"",
+    "test:pdf": "npx tsx test_temp/verify_native_pdf.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.97.1",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@huggingface/transformers": "^3.8.1",
+    "@types/fontkit": "^2.0.9",
+    "@types/pdfkit": "^0.17.6",
     "better-sqlite3": "^12.10.0",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.8.3",
+    "fontkit": "^2.0.4",
     "jsdom": "^27.0.1",
     "kokoro-js": "^1.2.1",
     "onnxruntime-node": "^1.21.0",
+    "pdfkit": "^0.20.2",
     "pptxgenjs": "^4.0.1",
-    "reveal.js": "^6.0.1"
+    "reveal.js": "^6.0.1",
+    "svg-to-pdfkit": "^0.1.8",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
@@ -64,4 +71,3 @@
     "vite": "^7.2.6"
   }
 }
-

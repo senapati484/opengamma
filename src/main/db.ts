@@ -3,6 +3,7 @@ import { app } from 'electron'
 import { join, dirname } from 'path'
 import { existsSync, copyFileSync, mkdirSync } from 'fs'
 import type { Presentation } from '../renderer/src/types'
+import { migrateSlides } from './model/migrate'
 
 let db: Database.Database | null = null
 /** Set to true once initDb() has been attempted, so we don't retry on every call. */
@@ -93,6 +94,15 @@ export function initDb(): void {
       // Column already exists — expected on subsequent launches
     }
 
+    // Schema Migration: Add deck_json and schema_version columns if they do not exist
+    try {
+      db.exec('ALTER TABLE presentations ADD COLUMN deck_json TEXT')
+      db.exec('ALTER TABLE presentations ADD COLUMN schema_version INTEGER DEFAULT 0')
+      console.log('[db] Database schema migrated successfully: deck_json & schema_version columns verified.')
+    } catch {
+      // Columns already exist — expected on subsequent launches
+    }
+
     console.log('[db] SQLite presentations table initialised successfully.')
   } catch (err: unknown) {
     // Non-fatal: native module may be wrong architecture, missing, etc.
@@ -122,10 +132,34 @@ export function savePresentation(p: Presentation): void {
     console.warn('[db] savePresentation skipped — database unavailable.')
     return
   }
+
+  let deckJson: string | null = null
+  try {
+    if (p.deck) {
+      deckJson = JSON.stringify(p.deck)
+    } else if (p.slides && p.slides.length > 0) {
+      const deckSlides = migrateSlides(p.slides as any, p.theme || 'startup-gradient')
+      const deck = {
+        schemaVersion: 1,
+        meta: {
+          title: p.title || 'Untitled Presentation',
+          author: 'OpenGamma',
+          lang: 'en'
+        },
+        themeId: p.theme || 'startup-gradient',
+        aspectRatio: p.aspectRatio || '16:9',
+        slides: deckSlides
+      }
+      deckJson = JSON.stringify(deck)
+    }
+  } catch (err) {
+    console.warn('[db] Failed to serialize deck model for presentation:', p.id, err)
+  }
+
   const stmt = database.prepare(`
     INSERT OR REPLACE INTO presentations (
-      id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio, bg_music_url
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio, bg_music_url, deck_json, schema_version
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   stmt.run(
@@ -137,10 +171,12 @@ export function savePresentation(p: Presentation): void {
     JSON.stringify(p.slides || []),
     p.createdAt || Date.now(),
     p.aspectRatio || '16:9',
-    p.bgMusicUrl || null
+    p.bgMusicUrl || null,
+    deckJson,
+    deckJson ? 1 : 0
   )
   console.log(
-    `[db] Presentation saved successfully — ID: ${p.id}, Title: "${p.title}", Ratio: ${p.aspectRatio || '16:9'}`
+    `[db] Presentation saved successfully — ID: ${p.id}, Title: "${p.title}", Ratio: ${p.aspectRatio || '16:9'}, HasDeck: ${!!deckJson}`
   )
 }
 
@@ -157,7 +193,7 @@ export function getHistory(limit = 50): Presentation[] {
     return []
   }
   const stmt = database.prepare(`
-    SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio, bg_music_url
+    SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio, bg_music_url, deck_json, schema_version
     FROM presentations
     ORDER BY created_at DESC
     LIMIT ?
@@ -173,18 +209,47 @@ export function getHistory(limit = 50): Presentation[] {
     created_at: number
     aspect_ratio?: string
     bg_music_url?: string
+    deck_json?: string
+    schema_version?: number
   }>
 
-  return rows.map((row) => ({
-    id: row.id,
-    title: row.title || 'Untitled Presentation',
-    prompt: row.prompt || '',
-    theme: row.theme_id || '',
-    slides: JSON.parse(row.slides_json || '[]'),
-    createdAt: row.created_at,
-    aspectRatio: (row.aspect_ratio as any) || '16:9',
-    bgMusicUrl: row.bg_music_url
-  }))
+  return rows.map((row) => {
+    const slides = JSON.parse(row.slides_json || '[]')
+    let deck: any = undefined
+    if (row.deck_json) {
+      try {
+        deck = JSON.parse(row.deck_json)
+      } catch {
+        // ignore JSON parse error
+      }
+    }
+    if (!deck && slides.length > 0) {
+      try {
+        const deckSlides = migrateSlides(slides as any, row.theme_id || 'startup-gradient')
+        deck = {
+          schemaVersion: 1,
+          meta: { title: row.title || 'Untitled Presentation', author: 'OpenGamma', lang: 'en' },
+          themeId: row.theme_id || 'startup-gradient',
+          aspectRatio: row.aspect_ratio || '16:9',
+          slides: deckSlides
+        }
+      } catch {
+        // ignore migration error
+      }
+    }
+
+    return {
+      id: row.id,
+      title: row.title || 'Untitled Presentation',
+      prompt: row.prompt || '',
+      theme: row.theme_id || '',
+      slides,
+      createdAt: row.created_at,
+      aspectRatio: (row.aspect_ratio as any) || '16:9',
+      bgMusicUrl: row.bg_music_url,
+      deck
+    }
+  })
 }
 
 /**
@@ -216,7 +281,7 @@ export function getPresentationById(id: string): Presentation | null {
     return null
   }
   const stmt = database.prepare(`
-    SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio, bg_music_url
+    SELECT id, title, prompt, theme_id, slide_count, slides_json, created_at, aspect_ratio, bg_music_url, deck_json, schema_version
     FROM presentations
     WHERE id = ?
   `)
@@ -232,19 +297,46 @@ export function getPresentationById(id: string): Presentation | null {
         created_at: number
         aspect_ratio?: string
         bg_music_url?: string
+        deck_json?: string
+        schema_version?: number
       }
     | undefined
 
   if (!row) return null
+
+  const slides = JSON.parse(row.slides_json || '[]')
+  let deck: any = undefined
+  if (row.deck_json) {
+    try {
+      deck = JSON.parse(row.deck_json)
+    } catch {
+      // ignore JSON parse error
+    }
+  }
+  if (!deck && slides.length > 0) {
+    try {
+      const deckSlides = migrateSlides(slides as any, row.theme_id || 'startup-gradient')
+      deck = {
+        schemaVersion: 1,
+        meta: { title: row.title || 'Untitled Presentation', author: 'OpenGamma', lang: 'en' },
+        themeId: row.theme_id || 'startup-gradient',
+        aspectRatio: row.aspect_ratio || '16:9',
+        slides: deckSlides
+      }
+    } catch {
+      // ignore migration error
+    }
+  }
 
   return {
     id: row.id,
     title: row.title || 'Untitled Presentation',
     prompt: row.prompt || '',
     theme: row.theme_id || '',
-    slides: JSON.parse(row.slides_json || '[]'),
+    slides,
     createdAt: row.created_at,
     aspectRatio: (row.aspect_ratio as any) || '16:9',
-    bgMusicUrl: row.bg_music_url
+    bgMusicUrl: row.bg_music_url,
+    deck
   }
 }

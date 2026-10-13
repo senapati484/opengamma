@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react'
-import type { Presentation, Theme } from '../types'
+import React, { useState, useEffect } from 'react'
+import type { Presentation, Theme, Slide } from '../types'
 import { useElectron } from '../lib/useElectron'
-import { GLOBAL_LAYOUT_CSS } from '../lib/layoutStyles'
 
 export interface PdfEditorViewProps {
   presentation: Presentation
@@ -11,14 +10,8 @@ export interface PdfEditorViewProps {
 
 export interface ExportSettings {
   format: 'pdf' | 'png' | 'pptx' | 'html' | 'md' | 'json'
-  pageSize: 'A4' | 'Letter'
-  orientation: 'landscape' | 'portrait'
-  preset: 'original' | 'ink-saver' | 'monochromatic'
-  margins: 'none' | 'small' | 'medium' | 'large'
-  includeSpeakerNotes: boolean
   showPageNumbers: boolean
-  headingFont: 'original' | string
-  bodyFont: 'original' | string
+  includeSpeakerNotes: boolean
   pngScale: 1 | 2 | 3
 }
 
@@ -31,14 +24,8 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
 
   const [settings, setSettings] = useState<ExportSettings>({
     format: 'pdf',
-    pageSize: 'A4',
-    orientation: 'landscape',
-    preset: 'original',
-    margins: 'none',
-    includeSpeakerNotes: false,
     showPageNumbers: true,
-    headingFont: 'original',
-    bodyFont: 'original',
+    includeSpeakerNotes: false,
     pngScale: 2
   })
 
@@ -48,79 +35,85 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
   const [exportSuccess, setExportSuccess] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
 
-  // A list of gorgeous premium Google fonts for overrides
-  const fontOptions = [
-    { value: 'original', label: 'Theme Original' },
-    { value: 'Inter', label: 'Inter (Sleek Neo-Grotesque)' },
-    { value: 'Outfit', label: 'Outfit (Modern Tech Geometric)' },
-    { value: 'Syne', label: 'Syne (Avant-Garde Punchy)' },
-    { value: 'Atkinson Hyperlegible', label: 'Atkinson Hyperlegible (Maximum Readability)' },
-    { value: 'Playfair Display', label: 'Playfair Display (Prestigious Editorial Serif)' },
-    { value: 'JetBrains Mono', label: 'JetBrains Mono (Console Hacker Tech)' },
-    { value: 'Space Grotesk', label: 'Space Grotesk (Quirky Engineering Tech)' },
-    { value: 'Fredoka', label: 'Fredoka (Soft Rounded Modern)' },
-    { value: 'Bodoni Moda', label: 'Bodoni Moda (High Fashion Luxury Serif)' },
-    { value: 'Montserrat', label: 'Montserrat (Solid Neutral Sans)' },
-    { value: 'EB Garamond', label: 'EB Garamond (Classical Fine Literature Serif)' },
-    { value: 'Sora', label: 'Sora (Energetic Tech Sans)' },
-    { value: 'Cinzel', label: 'Cinzel (Royal Calligraphic Capital Serif)' },
-    { value: 'Fraunces', label: 'Fraunces (Warm Editorial Soft Serif)' }
-  ]
+  // Keyboard navigation: Escape key returns to workspace
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !exporting) {
+        onBack()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onBack, exporting])
 
   const handleExport = async () => {
     setExporting(true)
     setExportSuccess(null)
     setExportError(null)
-    setExportProgress(10)
-    setExportStage('Initializing offscreen renderer...')
+    setExportProgress(12)
+    setExportStage(
+      settings.format === 'pdf'
+        ? 'Initializing OpenGamma native vector engine...'
+        : 'Initializing export pipeline...'
+    )
 
     try {
-      // Connect to IPC channels
-      // We pass the full settings along with presentation so that the main process exporter handles them
       const presentationToExport = {
         ...presentation,
         exportFormat: settings.format,
-        exportOptions: settings
+        exportOptions: {
+          showPageNumbers: settings.showPageNumbers,
+          includeSpeakerNotes: settings.includeSpeakerNotes,
+          pngScale: settings.pngScale
+        }
       }
 
-      setExportProgress(30)
-      setExportStage('Preparing dynamic print booklet stylesheets...')
+      setExportProgress(35)
+      setExportStage(
+        settings.format === 'pdf'
+          ? 'Compiling structured scene graph & vector grid...'
+          : 'Preparing document assets...'
+      )
 
-      // Simulate rendering progress for a slick native feel
-      const progressInterval = setInterval(() => {
-        setExportProgress((p) => {
-          if (p >= 85) {
-            clearInterval(progressInterval)
-            return 85
+      const progressTimer = setInterval(() => {
+        setExportProgress((prev) => {
+          if (prev >= 88) {
+            clearInterval(progressTimer)
+            return 88
           }
-          return p + 5
+          return prev + 6
         })
         setExportStage((stage) => {
-          if (stage.includes('Preparing')) return 'Spawning hidden Electron browser viewport...'
-          if (stage.includes('Spawning')) return 'Rendering individual slides in high resolution...'
-          if (stage.includes('Rendering'))
-            return 'Injecting custom styling & typography overrides...'
-          if (stage.includes('Injecting')) return 'Compiling document frames...'
+          if (stage.includes('Compiling') || stage.includes('Preparing')) {
+            return settings.format === 'pdf'
+              ? 'Drawing vector layout with native gradients...'
+              : 'Encoding document frames...'
+          }
+          if (stage.includes('Drawing')) {
+            return settings.format === 'pdf'
+              ? 'Embedding bookmarks & writing binary PDF stream...'
+              : 'Finalizing export archive...'
+          }
           return stage
         })
-      }, 700)
+      }, 600)
 
-      const result = await electronAPI.exportPptx(presentationToExport as any)
+      const result = await electronAPI.exportPptx(presentationToExport as unknown as Presentation)
 
-      clearInterval(progressInterval)
+      clearInterval(progressTimer)
       setExportProgress(100)
 
       if (result.success && result.path) {
-        setExportStage('Successfully saved to disk!')
+        setExportStage('Document saved successfully!')
         setExportSuccess(result.path)
       } else {
-        setExportStage('Export was cancelled or failed')
+        setExportStage('Export was cancelled')
         if (!result.success) {
-          throw new Error('Save dialog was cancelled or another failure occurred.')
+          throw new Error('Save dialog was cancelled or could not complete write.')
         }
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown export failure'
+      const message = err instanceof Error ? err.message : 'Export failed'
       console.error('[PdfEditorView] Export failed:', message)
       setExportError(message)
     } finally {
@@ -134,256 +127,254 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
         id: presentation.id,
         showFolderOnly: true,
         filePath: exportSuccess
-      } as any)
+      } as unknown as Presentation)
     }
   }
 
-  // Get active slide frames layout
-  const isLandscape = settings.orientation === 'landscape'
-  const isA4 = settings.pageSize === 'A4'
-
-  // Standard aspect ratio mappings for the scrollable canvas previews
-  // Letter Landscape: 11 x 8.5 (1.29)
-  // A4 Landscape: 297 x 210 (1.41)
-  // Portrait: inverse
-  let cardAspectRatio = 'aspect-[1.414]' // A4 landscape
-  if (!isLandscape) {
-    cardAspectRatio = isA4 ? 'aspect-[0.707]' : 'aspect-[0.773]'
-  } else {
-    cardAspectRatio = isA4 ? 'aspect-[1.414]' : 'aspect-[1.294]'
-  }
+  const formatList = [
+    {
+      id: 'pdf',
+      label: 'Native Vector PDF',
+      badge: 'VECTOR ENGINE',
+      desc: 'Crisp vector geometry, embedded fonts & selectable text'
+    },
+    {
+      id: 'pptx',
+      label: 'PowerPoint (.pptx)',
+      badge: 'NATIVE SHAPES',
+      desc: 'Editable vector text boxes and slide master layout'
+    },
+    {
+      id: 'png',
+      label: 'PNG Slide Images',
+      badge: 'RASTER',
+      desc: 'High-resolution slide images in an organized folder'
+    },
+    {
+      id: 'html',
+      label: 'Reveal.js HTML',
+      badge: 'WEB BUNDLE',
+      desc: 'Standalone interactive web presentation package'
+    },
+    {
+      id: 'md',
+      label: 'Markdown Outline',
+      badge: 'CLEAN TEXT',
+      desc: 'Structured headings, bullet points, and speaker notes'
+    },
+    {
+      id: 'json',
+      label: 'JSON Data Model',
+      badge: 'BACKUP',
+      desc: 'Raw structured presentation schema for developers'
+    }
+  ] as const
 
   return (
-    <div className="absolute inset-0 bg-[#0d0d0d] text-neutral-300 flex flex-col z-50 animate-fade-in font-sans">
-      {/* Custom Title Bar / Header */}
-      <div className="h-14 px-6 flex-none bg-[#141414] border-b border-white/5 flex items-center justify-between z-10">
+    <div className="absolute inset-0 bg-[#0a0a0a] text-neutral-300 flex flex-col z-50 animate-fade-in font-sans antialiased">
+      {/* Top Studio Navigation Bar */}
+      <header className="h-14 px-6 flex-none bg-[#121212] border-b border-white/5 flex items-center justify-between z-10 select-none">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-xs font-bold text-neutral-400 hover:text-white transition-all uppercase tracking-widest cursor-pointer group"
+          className="flex items-center gap-2 text-xs font-semibold text-neutral-400 hover:text-white transition-all cursor-pointer group"
+          title="Back to Workspace (Esc)"
         >
           <svg
-            className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform"
+            className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform text-neutral-400 group-hover:text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-              d="M15 19l-7-7 7-7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Workspace
+          <span>Workspace</span>
+          <span className="text-[10px] text-neutral-500 font-mono bg-white/5 px-1.5 py-0.5 rounded ml-1">
+            Esc
+          </span>
         </button>
 
         <div className="flex flex-col items-center">
-          <span className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.25em]">
-            Export Studio
+          <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em]">
+            Native Export Studio
           </span>
-          <span className="text-xs font-bold text-white max-w-[320px] truncate">
-            {presentation.title}
+          <span className="text-xs font-bold text-white max-w-[340px] truncate">
+            {presentation.title || 'Untitled Presentation'}
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-[9px] bg-white/5 border border-white/5 text-neutral-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider select-none">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] bg-white/5 border border-white/5 text-neutral-300 px-2.5 py-1 rounded-full font-semibold">
             {presentation.slides.length} slides
           </span>
-          <span className="text-[9px] bg-blue-500/10 border border-blue-500/15 text-blue-400 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider select-none">
-            {presentation.aspectRatio || '16:9'} aspect
+          <span className="text-[10px] bg-[#e8ff57]/10 border border-[#e8ff57]/20 text-[#e8ff57] px-2.5 py-1 rounded-full font-semibold">
+            16:9 Vector
           </span>
         </div>
-      </div>
+      </header>
 
-      {/* Main Split Interface */}
+      {/* Main Studio Body: Controls + Canvas */}
       <div className="flex-1 flex min-h-0 relative">
-        <div className="w-[360px] flex-none bg-[#101010] border-r border-white/5 flex flex-col min-h-0 select-none no-drag">
+        {/* Left Export Controls Sidebar */}
+        <aside className="w-[360px] flex-none bg-[#0f0f0f] border-r border-white/5 flex flex-col min-h-0 select-none">
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-6">
-            {/* Format Segmented Selection Tabs */}
-            <div className="flex flex-col gap-2">
-              <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
+            {/* Format Selection Grid */}
+            <div className="flex flex-col gap-2.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 Export Target Format
               </label>
-              <div className="grid grid-cols-2 gap-1.5 p-1 bg-white/5 rounded-xl border border-white/5">
-                {[
-                  { id: 'pdf', label: 'PDF Booklet', icon: '📄' },
-                  { id: 'png', label: 'PNG Images', icon: '🖼️' },
-                  { id: 'pptx', label: 'PowerPoint', icon: '📊' },
-                  { id: 'html', label: 'Reveal HTML', icon: '🌐' },
-                  { id: 'md', label: 'Markdown Outline', icon: '📝' },
-                  { id: 'json', label: 'Raw JSON Schema', icon: '⚙️' }
-                ].map((f) => {
-                  const isSel = settings.format === f.id
+              <div className="grid grid-cols-1 gap-1.5">
+                {formatList.map((f) => {
+                  const isSelected = settings.format === f.id
                   return (
                     <button
                       key={f.id}
-                      onClick={() => setSettings((s) => ({ ...s, format: f.id as any }))}
-                      className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border transition-all active:scale-[0.97] cursor-pointer ${
-                        isSel
-                          ? 'bg-[#e8ff57] border-[#e8ff57] text-black shadow-lg shadow-[#e8ff57]/10 font-bold'
-                          : 'text-neutral-400 border-transparent hover:text-white hover:bg-white/5'
+                      onClick={() => setSettings((s) => ({ ...s, format: f.id }))}
+                      className={`flex items-start justify-between p-3 rounded-xl border text-left transition-all active:scale-[0.99] cursor-pointer ${
+                        isSelected
+                          ? 'bg-white/10 border-[#e8ff57]/40 shadow-sm'
+                          : 'bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04]'
                       }`}
                     >
-                      <span className="text-base mb-0.5">{f.icon}</span>
-                      <span className="text-[10px] tracking-wide font-semibold">{f.label}</span>
+                      <div className="flex flex-col gap-0.5 min-w-0 pr-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-neutral-300'}`}>
+                            {f.label}
+                          </span>
+                          <span
+                            className={`text-[8px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider ${
+                              isSelected
+                                ? 'bg-[#e8ff57] text-black'
+                                : 'bg-white/5 text-neutral-500'
+                            }`}
+                          >
+                            {f.badge}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-neutral-400 leading-normal">
+                          {f.desc}
+                        </span>
+                      </div>
+                      <div
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center flex-none mt-0.5 ${
+                          isSelected
+                            ? 'border-[#e8ff57] bg-[#e8ff57]'
+                            : 'border-white/20 bg-transparent'
+                        }`}
+                      >
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                      </div>
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            {/* Dynamic settings categories */}
-            <div className="flex flex-col gap-5 border-t border-white/5 pt-5">
-              {/* Preset Color Schemes (Applies to PDF & PNG) */}
-              {(settings.format === 'pdf' || settings.format === 'png') && (
-                <div className="flex flex-col gap-2">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
-                    Print Design Preset
-                  </label>
-                  <div className="flex flex-col gap-1.5">
-                    {[
-                      {
-                        id: 'original',
-                        name: 'Original Theme Colors',
-                        desc: 'Preserves gorgeous dynamic gradient and dark background aesthetics.',
-                        color: 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'
-                      },
-                      {
-                        id: 'ink-saver',
-                        name: 'Ink Saver (High-Contrast)',
-                        desc: 'Forces pure white background and charcoal text. Perfect for paper prints.',
-                        color: 'bg-white border border-neutral-300'
-                      },
-                      {
-                        id: 'monochromatic',
-                        name: 'Monochromatic Grayscale',
-                        desc: 'Render in crisp black, white, and full tonal grayscales.',
-                        color: 'bg-gradient-to-r from-black to-neutral-400'
-                      }
-                    ].map((p) => {
-                      const isSel = settings.preset === p.id
-                      return (
-                        <div
-                          key={p.id}
-                          onClick={() => setSettings((s) => ({ ...s, preset: p.id as any }))}
-                          className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-all active:scale-[0.98] ${
-                            isSel
-                              ? 'border-[#e8ff57]/30 bg-[#e8ff57]/5'
-                              : 'border-white/5 hover:border-white/10 bg-white/2'
-                          }`}
-                        >
-                          <div className={`w-4 h-4 rounded-full flex-none mt-0.5 ${p.color}`} />
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span
-                              className={`text-[11px] font-bold ${isSel ? 'text-white' : 'text-neutral-300'}`}
-                            >
-                              {p.name}
-                            </span>
-                            <span className="text-[9px] text-neutral-500 leading-normal">
-                              {p.desc}
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
+            {/* Presentation Locked Theme Notice */}
+            <div className="flex flex-col gap-2 border-t border-white/5 pt-5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                Deck Design Theme
+              </label>
+              <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3">
+                <div
+                  className="w-7 h-7 rounded-lg border border-white/20 flex-none shadow-sm"
+                  style={{
+                    background: `linear-gradient(135deg, ${activeTheme.colors.primary} 0%, ${activeTheme.colors.accent} 100%)`
+                  }}
+                />
+                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                  <span className="text-xs font-bold text-white truncate">
+                    {activeTheme.name}
+                  </span>
+                  <span className="text-[10px] text-neutral-400 leading-tight truncate">
+                    Vector typography & native gradients active
+                  </span>
                 </div>
-              )}
+              </div>
+            </div>
 
-              {/* PDF setup parameters */}
+            {/* Format-Specific Configuration */}
+            <div className="flex flex-col gap-4 border-t border-white/5 pt-5">
               {settings.format === 'pdf' && (
                 <>
-                  {/* Page Layout Settings */}
-                  <div className="flex flex-col gap-3">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
-                      Page Booklet Setup
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <span className="text-[9px] text-neutral-500 block mb-1">
-                          Standard Size
-                        </span>
-                        <select
-                          value={settings.pageSize}
-                          onChange={(e) =>
-                            setSettings((s) => ({ ...s, pageSize: e.target.value as any }))
-                          }
-                          className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20"
-                        >
-                          <option value="A4">A4 (Standard)</option>
-                          <option value="Letter">US Letter</option>
-                        </select>
-                      </div>
-                      <div>
-                        <span className="text-[9px] text-neutral-500 block mb-1">Orientation</span>
-                        <select
-                          value={settings.orientation}
-                          onChange={(e) =>
-                            setSettings((s) => ({ ...s, orientation: e.target.value as any }))
-                          }
-                          className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20"
-                        >
-                          <option value="landscape">Landscape</option>
-                          <option value="portrait">Portrait</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Margins */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
-                        Booklet Margins
-                      </label>
-                      <span className="text-[10px] font-bold text-neutral-400 capitalize">
-                        {settings.margins}
+                  <div className="p-3.5 bg-[#e8ff57]/5 border border-[#e8ff57]/20 rounded-xl flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#e8ff57] animate-pulse" />
+                      <span className="text-xs font-bold text-[#e8ff57]">
+                        Direct Vector Engine Active
                       </span>
                     </div>
-                    <div className="grid grid-cols-4 gap-1 p-1 bg-white/2 rounded-lg border border-white/5">
-                      {['none', 'small', 'medium', 'large'].map((m) => {
-                        const isSel = settings.margins === m
-                        return (
-                          <button
-                            key={m}
-                            onClick={() => setSettings((s) => ({ ...s, margins: m as any }))}
-                            className={`py-1 rounded-md text-[10px] font-bold transition-all capitalize cursor-pointer ${
-                              isSel
-                                ? 'bg-[#e8ff57] text-black shadow-md shadow-[#e8ff57]/5'
-                                : 'text-neutral-400 hover:text-neutral-200'
-                            }`}
-                          >
-                            {m}
-                          </button>
-                        )
-                      })}
+                    <p className="text-[10px] text-neutral-300 leading-relaxed">
+                      Generated directly via Node.js PDFKit stream. Mathematical 12-column grid, sub-pixel font metrics, and native vector shading with zero web-page distortion.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-2.5">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      Vector Document Options
+                    </label>
+                    <div className="flex flex-col gap-2 bg-white/[0.02] border border-white/5 rounded-xl p-3">
+                      <label className="flex items-center justify-between py-1 cursor-pointer">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-semibold text-white">
+                            Show Page Numbers
+                          </span>
+                          <span className="text-[10px] text-neutral-400">
+                            Stamps slide index counter in the footer
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={settings.showPageNumbers}
+                          onChange={(e) =>
+                            setSettings((s) => ({ ...s, showPageNumbers: e.target.checked }))
+                          }
+                          className="w-4 h-4 rounded border-white/20 bg-[#161616] text-[#e8ff57] accent-[#e8ff57] cursor-pointer"
+                        />
+                      </label>
+
+                      <label className="flex items-center justify-between py-1 border-t border-white/5 pt-2 cursor-pointer">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-semibold text-white">
+                            Include Speaker Notes
+                          </span>
+                          <span className="text-[10px] text-neutral-400">
+                            Outputs presenter script notes with document
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={settings.includeSpeakerNotes}
+                          onChange={(e) =>
+                            setSettings((s) => ({ ...s, includeSpeakerNotes: e.target.checked }))
+                          }
+                          className="w-4 h-4 rounded border-white/20 bg-[#161616] text-[#e8ff57] accent-[#e8ff57] cursor-pointer"
+                        />
+                      </label>
                     </div>
                   </div>
                 </>
               )}
 
-              {/* PNG setup parameters */}
               {settings.format === 'png' && (
-                <div className="flex flex-col gap-2">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
-                    PNG Render Resolution Scale
+                <div className="flex flex-col gap-2.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                    PNG Render Resolution
                   </label>
-                  <div className="grid grid-cols-3 gap-1.5 p-1 bg-white/2 rounded-lg border border-white/5">
+                  <div className="grid grid-cols-3 gap-1.5 p-1 bg-white/[0.02] rounded-xl border border-white/5">
                     {[
-                      { val: 1, label: '1x (Web)' },
-                      { val: 2, label: '2x (HD)' },
-                      { val: 3, label: '3x (300 DPI Print)' }
+                      { val: 1, label: '1x Web' },
+                      { val: 2, label: '2x HD' },
+                      { val: 3, label: '3x Print' }
                     ].map((s) => {
                       const isSel = settings.pngScale === s.val
                       return (
                         <button
                           key={s.val}
-                          onClick={() => setSettings((st) => ({ ...st, pngScale: s.val as any }))}
-                          className={`py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                          onClick={() => setSettings((st) => ({ ...st, pngScale: s.val as 1 | 2 | 3 }))}
+                          className={`py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                             isSel
-                              ? 'bg-[#e8ff57] text-black shadow-md shadow-[#e8ff57]/10'
-                              : 'text-neutral-400 hover:text-neutral-200'
+                              ? 'bg-[#e8ff57] text-black font-bold shadow-sm'
+                              : 'text-neutral-400 hover:text-white'
                           }`}
                         >
                           {s.label}
@@ -394,223 +385,104 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
                 </div>
               )}
 
-              {/* Global Typography Overrides (Applies to PDF & PNG) */}
-              {(settings.format === 'pdf' || settings.format === 'png') && (
-                <div className="flex flex-col gap-3">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
-                    Global Font Overrides (WYSIWYG)
-                  </label>
-                  <div className="flex flex-col gap-2">
-                    <div>
-                      <span className="text-[9px] text-neutral-500 block mb-1">
-                        Heading Typography
-                      </span>
-                      <select
-                        value={settings.headingFont}
-                        onChange={(e) =>
-                          setSettings((s) => ({ ...s, headingFont: e.target.value }))
-                        }
-                        className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20"
-                      >
-                        {fontOptions.map((f) => (
-                          <option key={f.value} value={f.value}>
-                            {f.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <span className="text-[9px] text-neutral-500 block mb-1">
-                        Body Text Typography
-                      </span>
-                      <select
-                        value={settings.bodyFont}
-                        onChange={(e) => setSettings((s) => ({ ...s, bodyFont: e.target.value }))}
-                        className="w-full bg-[#161616] border border-white/5 rounded-lg py-1.5 px-2.5 text-xs text-white focus:outline-none focus:border-[#e8ff57]/30 focus:ring-1 focus:ring-[#e8ff57]/20"
-                      >
-                        {fontOptions.map((f) => (
-                          <option key={f.value} value={f.value}>
-                            {f.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+              {settings.format === 'pptx' && (
+                <div className="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[10px] text-blue-200 leading-relaxed">
+                  PowerPoint export compiles native shapes, solid background fills, and vector text containers using pptxgenjs. Opens natively in Microsoft PowerPoint, Apple Keynote, and Google Slides.
                 </div>
               )}
 
-              {/* Toggles (Toggles show up for PDF & PNG) */}
-              <div className="flex flex-col gap-3">
-                <label className="text-[9px] font-black uppercase tracking-widest text-neutral-500">
-                  Supplementary Content & Elements
-                </label>
-                <div className="flex flex-col gap-2 bg-white/2 rounded-xl p-3 border border-white/5">
-                  {/* Speaker notes toggle (for pdf, png, pptx, md) */}
-                  {settings.format !== 'html' && settings.format !== 'json' && (
-                    <label className="flex items-center justify-between py-1.5 cursor-pointer">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[11px] font-bold text-white">
-                          Include Speaker Notes
-                        </span>
-                        <span className="text-[9px] text-neutral-500">
-                          Renders presentation notes onto paper
-                        </span>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={settings.includeSpeakerNotes}
-                        onChange={(e) =>
-                          setSettings((s) => ({ ...s, includeSpeakerNotes: e.target.checked }))
-                        }
-                        className="w-3.5 h-3.5 rounded border-white/10 bg-[#161616] text-[#e8ff57] focus:ring-0 focus:ring-offset-0 accent-[#e8ff57]"
-                      />
-                    </label>
-                  )}
-
-                  {/* Page numbering toggle (for pdf, png) */}
-                  {(settings.format === 'pdf' || settings.format === 'png') && (
-                    <label className="flex items-center justify-between py-1.5 border-t border-white/5 mt-1 pt-2.5 cursor-pointer">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[11px] font-bold text-white">Page Numbering</span>
-                        <span className="text-[9px] text-neutral-500">
-                          Stamps page indices in bottom corners
-                        </span>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={settings.showPageNumbers}
-                        onChange={(e) =>
-                          setSettings((s) => ({ ...s, showPageNumbers: e.target.checked }))
-                        }
-                        className="w-3.5 h-3.5 rounded border-white/10 bg-[#161616] text-[#e8ff57] focus:ring-0 focus:ring-offset-0 accent-[#e8ff57]"
-                      />
-                    </label>
-                  )}
-
-                  {/* PowerPoint details */}
-                  {settings.format === 'pptx' && (
-                    <div className="text-[10px] text-neutral-500 leading-relaxed py-1.5">
-                      📂 PPTX exports are built natively using shape coordinates. Background fills,
-                      font definitions, and speaker slides map perfectly into Microsoft PowerPoint.
-                    </div>
-                  )}
-
-                  {/* HTML details */}
-                  {settings.format === 'html' && (
-                    <div className="text-[10px] text-neutral-500 leading-relaxed py-1.5">
-                      ⚡ Standalone HTML encapsulates the entire Reveal.js bundle, themes, and CSS
-                      custom styling. You can open and present this directly inside any modern
-                      browser without dependencies!
-                    </div>
-                  )}
-
-                  {/* Markdown details */}
-                  {settings.format === 'md' && (
-                    <div className="text-[10px] text-neutral-500 leading-relaxed py-1.5">
-                      📝 Markdown export extracts your slide titles, clear text bullet points, and
-                      speaker notes directly into an elegant, standard, shareable document.
-                    </div>
-                  )}
-
-                  {/* JSON details */}
-                  {settings.format === 'json' && (
-                    <div className="text-[10px] text-neutral-500 leading-relaxed py-1.5">
-                      ⚙️ Raw JSON export compiles the entire slide presentation model (HTML nodes,
-                      styling settings, speaker scripts) to a backup file for developers.
-                    </div>
-                  )}
+              {settings.format === 'html' && (
+                <div className="p-3.5 bg-purple-500/10 border border-purple-500/20 rounded-xl text-[10px] text-purple-200 leading-relaxed">
+                  Generates an independent, self-contained HTML bundle containing Reveal.js presentation engine, active design CSS, and keyboard navigation. Ready to deploy or host on the web.
                 </div>
-              </div>
+              )}
+
+              {settings.format === 'md' && (
+                <div className="p-3.5 bg-neutral-800/40 border border-white/5 rounded-xl text-[10px] text-neutral-300 leading-relaxed">
+                  Extracts all slide titles, narrative paragraphs, bullet points, and speaker scripts into clean GitHub-flavored markdown. Ideal for blog posts and meeting notes.
+                </div>
+              )}
+
+              {settings.format === 'json' && (
+                <div className="p-3.5 bg-neutral-800/40 border border-white/5 rounded-xl text-[10px] text-neutral-300 leading-relaxed">
+                  Exports the complete presentation schema (Zod Deck model, slide definitions, theme tokens, and metadata) as standard JSON for archival or programmatic integration.
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Glowing bottom Export Trigger button */}
-          <div className="flex-none p-6 border-t border-white/5 bg-[#0e0e0e] z-10">
+          {/* Bottom Export Action Button */}
+          <div className="flex-none p-6 border-t border-white/5 bg-[#121212]">
             <button
               onClick={handleExport}
-              className="w-full py-3 rounded-xl bg-[#e8ff57] hover:bg-[#f3ff99] text-black text-xs font-black uppercase tracking-widest shadow-lg shadow-[#e8ff57]/20 active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden group animate-pulse-slow"
+              disabled={exporting}
+              className="w-full py-3 px-4 rounded-xl bg-[#e8ff57] hover:bg-[#d8ef47] active:scale-[0.98] disabled:opacity-40 text-black text-xs font-black uppercase tracking-wider shadow-lg shadow-[#e8ff57]/10 transition-all cursor-pointer flex items-center justify-center gap-2"
             >
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              Export Presentation
+              <svg className="w-4 h-4 fill-black" viewBox="0 0 24 24">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+              </svg>
+              <span>Export {settings.format.toUpperCase()}</span>
             </button>
           </div>
-        </div>
+        </aside>
 
-        {/* Right Side Booklet real-time preview canvas */}
-        <div className="flex-1 bg-[#090909] overflow-y-auto custom-scrollbar p-8 relative flex flex-col items-center">
-          {/* Section banner */}
-          <div className="max-w-[720px] w-full flex items-center justify-between mb-6 px-1">
-            <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
-              {settings.format === 'md'
-                ? 'Live Markdown Document Outline'
-                : settings.format === 'json'
-                  ? 'Live Presentation JSON Schema'
-                  : 'Live WYSIWYG Booklet Frame Grid'}
-            </span>
-            <span className="text-[9px] font-bold text-neutral-400">
-              {settings.format === 'pdf' || settings.format === 'png' ? (
-                <>
-                  Preset: <span className="text-white uppercase font-bold">{settings.preset}</span>
-                </>
-              ) : (
-                <span className="text-neutral-500">FORMAT OVERVIEW</span>
-              )}
+        {/* Right Slide Canvas: Native Vector Preview */}
+        <main className="flex-1 bg-[#090909] overflow-y-auto custom-scrollbar p-8 flex flex-col items-center">
+          <div className="max-w-[800px] w-full flex items-center justify-between mb-6 px-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                {settings.format === 'md'
+                  ? 'Live Markdown Outline'
+                  : settings.format === 'json'
+                    ? 'Structured JSON Model'
+                    : 'Live Vector Slide Frames'}
+              </span>
+              <span className="text-[10px] text-neutral-500 font-mono">
+                ({presentation.slides.length} slides)
+              </span>
+            </div>
+            <span className="text-[9px] font-bold text-[#e8ff57] bg-[#e8ff57]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+              {activeTheme.name}
             </span>
           </div>
 
-          {/* Content display depending on format */}
           {settings.format === 'md' ? (
-            <div className="max-w-[720px] w-full bg-[#121212] border border-white/5 rounded-2xl p-8 pb-16 shadow-2xl font-serif text-neutral-300 select-text leading-relaxed animate-slide-up">
-              <h1 className="text-3xl font-black mb-6 text-white border-b border-white/5 pb-4 font-sans tracking-tight">
+            <div className="max-w-[800px] w-full bg-[#121212] border border-white/5 rounded-2xl p-8 shadow-xl text-neutral-300 select-text leading-relaxed">
+              <h1 className="text-2xl font-black text-white mb-6 border-b border-white/5 pb-4">
                 {presentation.title || 'Untitled Presentation'}
               </h1>
-              {presentation.slides.map((slide, index) => (
-                <div
-                  key={slide.id}
-                  className="mb-8 border-b border-white/5 pb-6 last:border-b-0 last:pb-0"
-                >
-                  <h2 className="text-xl font-bold text-white mb-3 font-sans">
-                    Slide {index + 1}: {slide.title || 'Untitled Slide'}
+              {presentation.slides.map((s, idx) => (
+                <div key={s.id} className="mb-6 pb-6 border-b border-white/5 last:border-b-0">
+                  <h2 className="text-lg font-bold text-white mb-2">
+                    Slide {idx + 1}: {s.title || 'Untitled Slide'}
                   </h2>
-                  <div className="text-neutral-400 pl-4 border-l-2 border-neutral-700 font-sans text-sm leading-relaxed whitespace-pre-wrap mb-4">
-                    {slide.html.replace(/<[^>]*>/g, '').trim()}
-                  </div>
-                  {settings.includeSpeakerNotes && slide.notes && (
-                    <div className="bg-white/2 border border-white/5 rounded-xl p-4 text-xs font-sans mt-3">
-                      <span className="text-[9px] font-black uppercase text-[#0047ff] block mb-1 tracking-widest">
-                        Speaker Script Notes
+                  <p className="text-neutral-400 text-xs whitespace-pre-wrap leading-relaxed">
+                    {s.html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}
+                  </p>
+                  {settings.includeSpeakerNotes && s.notes && (
+                    <div className="mt-3 p-3 bg-white/[0.02] border border-white/5 rounded-lg text-xs text-neutral-400 italic">
+                      <span className="text-[9px] font-bold text-[#e8ff57] not-italic block mb-1">
+                        SPEAKER SCRIPT:
                       </span>
-                      <p className="text-neutral-400 italic">{slide.notes}</p>
+                      {s.notes}
                     </div>
                   )}
                 </div>
               ))}
             </div>
           ) : settings.format === 'json' ? (
-            <div className="max-w-[720px] w-full bg-[#121212] border border-white/5 rounded-2xl p-6 shadow-2xl font-mono text-xs text-neutral-400 overflow-x-auto custom-scrollbar select-text animate-slide-up">
-              <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
-                <span className="text-[9px] font-black text-neutral-500 uppercase tracking-widest font-sans">
-                  Presentation Data Model
-                </span>
-                <span className="text-[9px] font-bold text-neutral-400 bg-white/5 px-2 py-0.5 rounded font-sans font-bold">
-                  JSON
-                </span>
-              </div>
-              <pre className="text-blue-400 whitespace-pre-wrap leading-relaxed">
+            <div className="max-w-[800px] w-full bg-[#121212] border border-white/5 rounded-2xl p-6 shadow-xl font-mono text-xs text-neutral-400 overflow-x-auto select-text">
+              <pre className="text-emerald-400 whitespace-pre-wrap leading-relaxed">
                 {JSON.stringify(
                   {
                     id: presentation.id,
                     title: presentation.title,
-                    prompt: presentation.prompt,
                     theme: presentation.theme,
-                    aspectRatio: presentation.aspectRatio,
-                    createdAt: presentation.createdAt,
+                    aspectRatio: presentation.aspectRatio || '16:9',
                     slides: presentation.slides.map((s) => ({
-                      id: s.id,
                       index: s.index,
                       title: s.title,
                       slideType: s.slideType,
-                      html: s.html,
                       notes: s.notes
                     }))
                   },
@@ -620,131 +492,122 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
               </pre>
             </div>
           ) : (
-            /* Booklet Slides List */
-            <div className="max-w-[720px] w-full flex flex-col gap-8 pb-16">
-              {presentation.slides.map((slide, index) => {
-                return (
-                  <div
-                    key={slide.id}
-                    className="flex flex-col gap-2.5 animate-slide-up"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <BookletSlidePreview
-                      slide={slide}
-                      index={index}
-                      presentation={presentation}
-                      activeTheme={activeTheme}
-                      settings={settings}
-                      cardAspectRatio={cardAspectRatio}
-                    />
-
-                    {/* Supplemental Speaker Notes print page layout (if enabled) */}
-                    {settings.includeSpeakerNotes && slide.notes && (
-                      <div className="p-4 rounded-xl border border-white/5 bg-white/2 text-xs flex flex-col gap-1.5">
-                        <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-[#e8ff57]">
-                          <span>📝</span> Speaker Script notes (Page {index + 1} Supplement)
-                        </div>
-                        <div className="text-neutral-400 italic font-medium leading-relaxed font-sans pl-1">
-                          {slide.notes}
-                        </div>
-                      </div>
-                    )}
+            /* Native Vector Slide Cards Stack */
+            <div className="max-w-[800px] w-full flex flex-col gap-8 pb-16">
+              {presentation.slides.map((slide, index) => (
+                <div key={slide.id} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+                      Slide {index + 1} • {slide.slideType.toUpperCase()}
+                    </span>
+                    <span className="text-[9px] text-neutral-600 font-mono">
+                      16:9 VECTOR FRAME
+                    </span>
                   </div>
-                )
-              })}
+
+                  <NativeVectorSlidePreview
+                    slide={slide}
+                    index={index}
+                    total={presentation.slides.length}
+                    presentation={presentation}
+                    theme={activeTheme}
+                    showPageNumbers={settings.showPageNumbers}
+                  />
+
+                  {settings.includeSpeakerNotes && slide.notes && (
+                    <div className="p-3.5 rounded-xl border border-white/5 bg-[#121212] text-xs flex flex-col gap-1">
+                      <span className="text-[9px] font-bold text-[#e8ff57] uppercase tracking-wider">
+                        Presenter Script (Slide {index + 1})
+                      </span>
+                      <p className="text-neutral-400 italic text-[11px] leading-relaxed">
+                        {slide.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
-        </div>
+        </main>
       </div>
 
-      {/* FULL-SCREEN GLASSMORPHIC EXPORTING DIALOG */}
+      {/* Exporting Progress Modal */}
       {exporting && (
-        <div className="absolute inset-0 z-50 bg-[#0d0d0d]/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in no-drag">
-          <div className="bg-[#121212] border border-white/5 rounded-2xl p-8 max-w-[400px] w-full flex flex-col items-center shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-pulse" />
+        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in select-none">
+          <div className="bg-[#141414] border border-white/10 rounded-2xl p-8 max-w-[400px] w-full flex flex-col items-center shadow-2xl relative overflow-hidden">
+            <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-[#e8ff57] animate-spin mb-5" />
 
-            {/* Spinning load icon */}
-            <div className="relative w-16 h-16 mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-white/5" />
-              <div className="absolute inset-0 rounded-full border-4 border-[#e8ff57] border-t-transparent animate-spin" />
-            </div>
-
-            <h3 className="text-sm font-black uppercase tracking-widest text-white mb-2">
-              Generating Document
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1.5">
+              Generating Vector Document
             </h3>
-            <p className="text-[11px] font-semibold text-neutral-400 mb-6 text-center animate-pulse">
+            <p className="text-xs text-neutral-400 mb-6 text-center leading-relaxed">
               {exportStage}
             </p>
 
-            {/* Micro Progress bar */}
             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mb-2">
               <div
                 className="h-full bg-[#e8ff57] transition-all duration-300 rounded-full"
                 style={{ width: `${exportProgress}%` }}
               />
             </div>
-            <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
-              Progress: {exportProgress}%
+            <span className="text-[10px] font-mono font-bold text-neutral-500">
+              {exportProgress}%
             </span>
           </div>
         </div>
       )}
 
-      {/* SUCCESS OVERLAY PANEL */}
+      {/* Export Success Modal */}
       {exportSuccess && (
-        <div className="absolute inset-0 z-50 bg-[#0d0d0d]/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in no-drag">
-          <div className="bg-[#121212] border border-white/5 rounded-2xl p-8 max-w-[480px] w-full flex flex-col items-center shadow-2xl relative text-center">
-            <div className="w-12 h-12 rounded-full bg-[#e8ff57]/10 border border-[#e8ff57]/20 text-[#e8ff57] text-2xl flex items-center justify-center mb-5 animate-scale-up font-bold">
+        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in select-none">
+          <div className="bg-[#141414] border border-white/10 rounded-2xl p-8 max-w-[460px] w-full flex flex-col items-center shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-full bg-[#e8ff57]/10 border border-[#e8ff57]/30 text-[#e8ff57] text-xl flex items-center justify-center mb-4 font-bold">
               ✓
             </div>
 
-            <h3 className="text-sm font-black uppercase tracking-widest text-white mb-2">
+            <h3 className="text-base font-bold text-white mb-1.5">
               Export Complete!
             </h3>
-            <p className="text-xs text-neutral-400 mb-4 max-w-[380px] leading-relaxed">
-              Your presentation was successfully compiled and serialised to your chosen location.
+            <p className="text-xs text-neutral-400 mb-5 leading-relaxed">
+              Your presentation was compiled and saved to disk.
             </p>
 
-            {/* Path card */}
-            <div className="w-full bg-[#181818] border border-white/5 rounded-xl p-3 mb-6 text-left flex items-start gap-3">
-              <span className="text-xl mt-0.5">📂</span>
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
-                  Save Path
-                </span>
-                <span className="text-[10px] text-neutral-300 break-all font-mono select-text font-bold">
-                  {exportSuccess}
-                </span>
-              </div>
+            <div className="w-full bg-[#0a0a0a] border border-white/5 rounded-xl p-3 mb-6 text-left">
+              <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider block mb-1">
+                Output File Path
+              </span>
+              <span className="text-[11px] text-neutral-300 break-all font-mono select-text font-semibold">
+                {exportSuccess}
+              </span>
             </div>
 
             <div className="flex items-center gap-3 w-full">
               <button
                 onClick={handleShowInFolder}
-                className="flex-1 py-2.5 rounded-xl border border-white/5 bg-white/5 text-xs font-bold text-white hover:bg-white/10 active:scale-[0.98] transition-all cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-white/10 bg-white/5 text-xs font-semibold text-white hover:bg-white/10 transition-all cursor-pointer"
               >
                 Show in Folder
               </button>
               <button
                 onClick={() => setExportSuccess(null)}
-                className="flex-1 py-2.5 rounded-xl bg-[#e8ff57] hover:bg-[#f3ff99] text-xs font-black uppercase tracking-widest text-black active:scale-[0.98] transition-all cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-[#e8ff57] hover:bg-[#d8ef47] text-xs font-black uppercase tracking-wider text-black transition-all cursor-pointer"
               >
-                Close Studio
+                Done
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ERROR OVERLAY PANEL */}
+      {/* Export Error Modal */}
       {exportError && (
-        <div className="absolute inset-0 z-50 bg-[#0d0d0d]/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in no-drag">
-          <div className="bg-[#121212] border border-white/5 rounded-2xl p-8 max-w-[420px] w-full flex flex-col items-center shadow-2xl text-center">
-            <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-2xl flex items-center justify-center mb-5 animate-scale-up">
-              ⚠️
+        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in select-none">
+          <div className="bg-[#141414] border border-white/10 rounded-2xl p-8 max-w-[420px] w-full flex flex-col items-center shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xl flex items-center justify-center mb-4">
+              ✕
             </div>
 
-            <h3 className="text-sm font-black uppercase tracking-widest text-white mb-2">
+            <h3 className="text-base font-bold text-white mb-2">
               Export Failed
             </h3>
             <p className="text-xs text-red-400 mb-6 leading-relaxed bg-red-500/5 border border-red-500/10 rounded-xl p-3 w-full font-mono text-left max-h-[140px] overflow-y-auto">
@@ -753,9 +616,9 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
 
             <button
               onClick={() => setExportError(null)}
-              className="px-6 py-2.5 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 text-xs font-bold text-white active:scale-[0.98] transition-all cursor-pointer"
+              className="px-6 py-2.5 rounded-xl bg-white/10 border border-white/10 hover:bg-white/15 text-xs font-semibold text-white transition-all cursor-pointer"
             >
-              Dismiss & Retry
+              Dismiss
             </button>
           </div>
         </div>
@@ -764,237 +627,417 @@ export const PdfEditorView: React.FC<PdfEditorViewProps> = ({
   )
 }
 
-interface BookletSlidePreviewProps {
-  slide: any
+// ─── Native Vector Slide Preview Component ─────────────────────────────────────
+// Pure React vector renderer that mirrors the PDFKit scene graph layout without
+// needing an iframe or Reveal.js HTML.
+
+interface NativeSlidePreviewProps {
+  slide: Slide
   index: number
+  total: number
   presentation: Presentation
-  activeTheme: Theme
-  settings: ExportSettings
-  cardAspectRatio: string
+  theme: Theme
+  showPageNumbers: boolean
 }
 
-const BookletSlidePreview: React.FC<BookletSlidePreviewProps> = ({
+const NativeVectorSlidePreview: React.FC<NativeSlidePreviewProps> = ({
   slide,
   index,
+  total,
   presentation,
-  activeTheme,
-  settings,
-  cardAspectRatio
+  theme,
+  showPageNumbers
 }) => {
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  // Parse slide structure into cards, stats, quotes, bullets, etc.
+  const parsed = parseSlideForVectorPreview(slide)
+  const isTitle = parsed.slideType === 'title' || index === 0
+  const isClosing = parsed.slideType === 'cta' || index === total - 1
 
-  useEffect(() => {
-    const iframe = iframeRef.current
-    if (!iframe || !isLoaded) return
-    const contentWindow = iframe.contentWindow
-    if (!contentWindow) return
-
-    // 1. Set Aspect Ratio (this configures Reveal.js dimensions)
-    const presentationRatio = presentation.aspectRatio || '16:9'
-    contentWindow.postMessage({ type: 'SET_ASPECT_RATIO', aspectRatio: presentationRatio }, '*')
-
-    // 2. Set Reveal Base Theme (black or white)
-    const revealThemeName = activeTheme.revealTheme || 'white'
-    contentWindow.postMessage({ type: 'SET_REVEAL_THEME', themeName: revealThemeName }, '*')
-
-    // 3. Compile custom styles for this preview
-    const fontImport = (activeTheme as any).fontImport || ''
-
-    let extraStyleInject = ''
-
-    if (settings.preset === 'ink-saver') {
-      extraStyleInject = `
-        html, body, .reveal, .reveal .slides, .reveal section, .reveal .slide-background, .reveal .slide-background-content {
-          background: #ffffff !important;
-          background-color: #ffffff !important;
-          background-image: none !important;
-          color: #111111 !important;
-        }
-        .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal p, .reveal li, .reveal td, .reveal th, .reveal span, .reveal div, .reveal strong, .reveal em {
-          color: #111111 !important;
-          background: none !important;
-          -webkit-text-fill-color: #111111 !important;
-          text-shadow: none !important;
-        }
-        .reveal .accent, .reveal strong, .reveal a {
-          color: #0047ff !important;
-          -webkit-text-fill-color: #0047ff !important;
-        }
-        .reveal .cta-block {
-          background: #f3f4f6 !important;
-          color: #111111 !important;
-          border: 1px solid #e5e7eb !important;
-        }
-        .reveal table, .reveal th, .reveal td {
-          border-color: #e5e7eb !important;
-        }
-      `
-    } else if (settings.preset === 'monochromatic') {
-      extraStyleInject = `
-        html, body, .reveal {
-          filter: grayscale(100%) !important;
-        }
-      `
-    }
-
-    // Apply Margins
-    let marginPadding = '60px'
-    if (settings.margins === 'none') marginPadding = '40px'
-    else if (settings.margins === 'small') marginPadding = '60px'
-    else if (settings.margins === 'medium') marginPadding = '90px'
-    else if (settings.margins === 'large') marginPadding = '120px'
-
-    const marginStyles = `
-      .reveal .slides section:not(.og-full-bleed-split) {
-        padding: ${marginPadding} !important;
-        box-sizing: border-box !important;
-      }
-    `
-
-    // Apply global typography overrides
-    let typographyStyles = `
-      .reveal pre, .reveal code {
-        font-family: 'JetBrains Mono', monospace !important;
-      }
-      .reveal strong, .reveal .number, .reveal .stat {
-        font-family: 'Space Grotesk', 'Outfit', sans-serif !important;
-        font-weight: 800 !important;
-      }
-    `
-    if (settings.headingFont !== 'original') {
-      typographyStyles += `
-        .reveal h1, .reveal h2, .reveal h3, .reveal .accent {
-          font-family: '${settings.headingFont}', sans-serif !important;
-        }
-      `
-    } else {
-      typographyStyles += `
-        .reveal h1, .reveal h2, .reveal h3, .reveal .accent {
-          font-family: var(--og-slide-font-heading, 'Outfit'), sans-serif !important;
-        }
-      `
-    }
-    if (settings.bodyFont !== 'original') {
-      typographyStyles += `
-        .reveal p, .reveal li, .reveal td, .reveal th, .reveal div, .reveal span {
-          font-family: '${settings.bodyFont}', sans-serif !important;
-        }
-      `
-    } else {
-      typographyStyles += `
-        .reveal p, .reveal li, .reveal td, .reveal th, .reveal div, .reveal span {
-          font-family: var(--og-slide-font-body, 'Inter'), sans-serif !important;
-        }
-      `
-    }
-
-    // Gather extra Google fonts imports if overrides are active
-    let extraFontsImport = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');\n`
-    if (
-      settings.headingFont !== 'original' &&
-      settings.headingFont !== 'Inter' &&
-      settings.headingFont !== 'Outfit' &&
-      settings.headingFont !== 'JetBrains Mono' &&
-      settings.headingFont !== 'Space Grotesk' &&
-      settings.headingFont !== 'Playfair Display'
-    ) {
-      extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.headingFont.replace(/\s+/g, '+')}:wght@700;800&display=swap');\n`
-    }
-    if (
-      settings.bodyFont !== 'original' &&
-      settings.bodyFont !== 'Inter' &&
-      settings.bodyFont !== 'Outfit' &&
-      settings.bodyFont !== 'JetBrains Mono' &&
-      settings.bodyFont !== 'Space Grotesk' &&
-      settings.bodyFont !== 'Playfair Display'
-    ) {
-      extraFontsImport += `@import url('https://fonts.googleapis.com/css2?family=${settings.bodyFont.replace(/\s+/g, '+')}:wght@400;600&display=swap');\n`
-    }
-
-    const cssTokensWithOverrides = `
-      ${fontImport}
-      ${extraFontsImport}
-      ${activeTheme.cssTokens}
-      ${GLOBAL_LAYOUT_CSS}
-      ${marginStyles}
-      ${typographyStyles}
-      ${extraStyleInject}
-    `
-    // Inject custom theme variables
-    try {
-      if ((contentWindow as any).setTheme) {
-        ;(contentWindow as any).setTheme(cssTokensWithOverrides)
-      } else {
-        contentWindow.postMessage({ type: 'SET_THEME', cssTokens: cssTokensWithOverrides }, '*')
-      }
-    } catch {
-      contentWindow.postMessage({ type: 'SET_THEME', cssTokens: cssTokensWithOverrides }, '*')
-    }
-
-    // 4. Inject Slide HTML
-    try {
-      if ((contentWindow as any).clearSlides) {
-        ;(contentWindow as any).clearSlides()
-      } else {
-        contentWindow.postMessage({ type: 'CLEAR_SLIDES' }, '*')
-      }
-    } catch {
-      contentWindow.postMessage({ type: 'CLEAR_SLIDES' }, '*')
-    }
-
-    try {
-      if ((contentWindow as any).addSlide) {
-        ;(contentWindow as any).addSlide(slide.html)
-      } else {
-        contentWindow.postMessage({ type: 'ADD_SLIDE', html: slide.html }, '*')
-      }
-    } catch {
-      contentWindow.postMessage({ type: 'ADD_SLIDE', html: slide.html }, '*')
-    }
-  }, [slide, activeTheme, settings, isLoaded])
-
-  const getThemeBackground = () => {
-    if (settings.preset === 'ink-saver') return '#ffffff'
-
-    // Try to extract background gradient or color from cssTokens
-    const ogBgMatch = activeTheme.cssTokens.match(/--og-slide-bg:\s*([^;]+);/)
-    if (ogBgMatch && ogBgMatch[1]) {
-      return ogBgMatch[1].trim()
-    }
-    const bgGradientMatch = activeTheme.cssTokens.match(/--background-gradient:\s*([^;]+);/)
-    if (bgGradientMatch && bgGradientMatch[1]) {
-      return bgGradientMatch[1].trim()
-    }
-    return activeTheme.colors.bg
-  }
+  const accentColor = theme.colors.accent || '#e8ff57'
+  const primaryColor = theme.colors.primary || '#6366f1'
+  const bgColor = theme.colors.bg || '#111827'
 
   return (
     <div
-      className={`w-full relative rounded-xl border border-white/5 shadow-2xl overflow-hidden ${cardAspectRatio}`}
+      className="w-full aspect-video rounded-2xl border border-white/10 overflow-hidden relative shadow-2xl p-8 flex flex-col justify-between select-none"
       style={{
-        background: getThemeBackground()
+        background: `radial-gradient(circle at 50% 20%, ${primaryColor}33 0%, ${bgColor} 70%)`,
+        backgroundColor: bgColor
       }}
     >
-      <iframe
-        ref={iframeRef}
-        src="./reveal-host.html"
-        onLoad={() => setIsLoaded(true)}
-        className="border-none select-none pointer-events-none absolute inset-0 w-full h-full bg-transparent"
-        title={`Preview Booklet Slide ${index + 1}`}
+      {/* Ambient Top Glow Layer */}
+      <div
+        className="absolute top-0 inset-x-0 h-40 pointer-events-none opacity-20"
+        style={{
+          background: `radial-gradient(ellipse at 50% 0%, ${accentColor} 0%, transparent 70%)`
+        }}
       />
 
-      {/* Slide number corner tag */}
-      {settings.showPageNumbers && (
-        <span className="absolute bottom-4 right-4 z-10 px-2 py-0.5 rounded bg-black/40 text-neutral-400 font-bold border border-white/5 text-[9px]">
-          Page {index + 1}
-        </span>
-      )}
+      {/* Top Header Region */}
+      <div className="flex flex-col gap-2 relative z-10">
+        {/* Eyebrow Badge (if present) */}
+        {parsed.badge && (
+          <div className="flex items-center">
+            <span
+              className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border"
+              style={{
+                color: accentColor,
+                backgroundColor: `${accentColor}18`,
+                borderColor: `${accentColor}33`
+              }}
+            >
+              {parsed.badge}
+            </span>
+          </div>
+        )}
 
-      {/* Slide badge index */}
-      <span className="absolute top-4 left-4 z-10 px-2 py-0.5 rounded bg-[#e8ff57] text-black font-black text-[9px] select-none shadow-md">
-        Slide {index + 1}
-      </span>
+        {/* Slide Title */}
+        <div className="flex items-start gap-3">
+          {!isTitle && (
+            <div
+              className="w-1 h-6 rounded-full flex-none mt-1"
+              style={{ backgroundColor: accentColor }}
+            />
+          )}
+          <h2
+            className={`font-black text-white tracking-tight ${
+              isTitle
+                ? 'text-3xl md:text-4xl text-center w-full mt-4 leading-tight'
+                : 'text-xl md:text-2xl leading-tight'
+            }`}
+          >
+            {parsed.title}
+          </h2>
+        </div>
+      </div>
+
+      {/* Main Slide Content Layout */}
+      <div className="flex-1 flex flex-col justify-center my-4 relative z-10 min-h-0">
+        {/* Title Slide Archetype */}
+        {isTitle && (
+          <div className="flex flex-col items-center text-center max-w-[620px] mx-auto gap-4">
+            {parsed.bullets.length > 0 && (
+              <p className="text-neutral-300 text-xs md:text-sm font-medium leading-relaxed">
+                {parsed.bullets[0]}
+              </p>
+            )}
+            <div
+              className="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm mt-2"
+              style={{
+                backgroundColor: accentColor,
+                color: '#000000'
+              }}
+            >
+              OpenGamma Deck
+            </div>
+          </div>
+        )}
+
+        {/* Cards Archetype */}
+        {!isTitle && parsed.cards.length > 0 && (
+          <div
+            className={`grid gap-3 w-full ${
+              parsed.cards.length === 2
+                ? 'grid-cols-2'
+                : parsed.cards.length === 3
+                  ? 'grid-cols-3'
+                  : 'grid-cols-2 md:grid-cols-4'
+            }`}
+          >
+            {parsed.cards.slice(0, 4).map((c, i) => (
+              <div
+                key={i}
+                className="bg-white/[0.03] border border-white/10 rounded-xl p-3.5 flex flex-col gap-1.5 relative overflow-hidden shadow-lg"
+              >
+                {/* 2px Top Accent Line */}
+                <div
+                  className="absolute top-0 inset-x-0 h-[2px]"
+                  style={{ backgroundColor: accentColor }}
+                />
+                <span className="text-xs font-bold text-white mt-1 leading-snug">
+                  {c.title}
+                </span>
+                {c.body && (
+                  <p className="text-[11px] text-neutral-300 leading-relaxed line-clamp-4">
+                    {c.body}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Stats Archetype */}
+        {!isTitle && parsed.cards.length === 0 && parsed.stats.length > 0 && (
+          <div
+            className={`grid gap-3 w-full ${
+              parsed.stats.length === 2
+                ? 'grid-cols-2'
+                : parsed.stats.length === 3
+                  ? 'grid-cols-3'
+                  : 'grid-cols-2 md:grid-cols-4'
+            }`}
+          >
+            {parsed.stats.slice(0, 4).map((st, i) => (
+              <div
+                key={i}
+                className="bg-white/[0.03] border border-white/10 rounded-xl p-4 flex flex-col justify-center items-center text-center gap-1 shadow-lg"
+              >
+                <span
+                  className="text-2xl md:text-3xl font-black tracking-tight"
+                  style={{ color: accentColor }}
+                >
+                  {st.value}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  {st.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Quote Archetype */}
+        {!isTitle && parsed.cards.length === 0 && parsed.stats.length === 0 && parsed.quote && (
+          <div className="max-w-[560px] mx-auto bg-white/[0.03] border border-white/10 rounded-2xl p-6 relative">
+            <span
+              className="text-4xl font-serif leading-none absolute -top-3 left-4 select-none opacity-40"
+              style={{ color: accentColor }}
+            >
+              “
+            </span>
+            <p className="text-sm md:text-base font-medium italic text-neutral-200 leading-relaxed mb-3">
+              {parsed.quote.text}
+            </p>
+            {parsed.quote.author && (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-[1px]" style={{ backgroundColor: accentColor }} />
+                <span className="text-xs font-bold" style={{ color: accentColor }}>
+                  {parsed.quote.author}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Two-Column Split Archetype */}
+        {!isTitle &&
+          parsed.cards.length === 0 &&
+          parsed.stats.length === 0 &&
+          !parsed.quote &&
+          parsed.split && (
+            <div className="grid grid-cols-2 gap-4 w-full">
+              <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 flex flex-col gap-2">
+                <span className="text-xs font-bold text-white border-b border-white/5 pb-1.5">
+                  {parsed.split.leftTitle}
+                </span>
+                <div className="flex flex-col gap-1.5">
+                  {parsed.split.leftItems.map((item, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <div
+                        className="w-1.5 h-1.5 rounded-full flex-none mt-1.5"
+                        style={{ backgroundColor: accentColor }}
+                      />
+                      <span className="text-[11px] text-neutral-300 leading-snug">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 flex flex-col gap-2">
+                <span className="text-xs font-bold text-white border-b border-white/5 pb-1.5">
+                  {parsed.split.rightTitle}
+                </span>
+                <div className="flex flex-col gap-1.5">
+                  {parsed.split.rightItems.map((item, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <div
+                        className="w-1.5 h-1.5 rounded-full flex-none mt-1.5"
+                        style={{ backgroundColor: accentColor }}
+                      />
+                      <span className="text-[11px] text-neutral-300 leading-snug">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+        {/* Standard Bullet List Archetype */}
+        {!isTitle &&
+          parsed.cards.length === 0 &&
+          parsed.stats.length === 0 &&
+          !parsed.quote &&
+          !parsed.split && (
+            <div className="flex flex-col gap-2.5 max-w-[680px]">
+              {parsed.bullets.slice(0, 5).map((bullet, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div
+                    className="w-1.5 h-1.5 rounded-full flex-none mt-1.5"
+                    style={{ backgroundColor: accentColor }}
+                  />
+                  <span className="text-xs text-neutral-300 leading-relaxed font-normal">
+                    {bullet}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+      </div>
+
+      {/* Footer Meta: Slide Number & Presentation Branding */}
+      <div className="flex items-center justify-between pt-2 border-t border-white/5 relative z-10">
+        <span className="text-[9px] font-medium text-neutral-500 truncate max-w-[280px]">
+          {presentation.title || 'OpenGamma'}
+        </span>
+        {showPageNumbers && !isTitle && !isClosing && (
+          <span className="text-[9px] font-mono font-bold text-neutral-400 bg-white/5 px-2 py-0.5 rounded">
+            {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+          </span>
+        )}
+      </div>
     </div>
   )
+}
+
+// ─── Lightweight Vector Slide Content Parser ──────────────────────────────────
+// Safely parses slide text, cards, stats, and bullets without requiring heavy JSDOM.
+
+function parseSlideForVectorPreview(slide: Slide) {
+  let title = slide.title || ''
+  let badge: string | undefined = undefined
+  const cards: Array<{ title: string; body?: string }> = []
+  const stats: Array<{ value: string; label: string }> = []
+  let quote: { text: string; author?: string } | null = null
+  let split: {
+    leftTitle: string
+    rightTitle: string
+    leftItems: string[]
+    rightItems: string[]
+  } | null = null
+  const bullets: string[] = []
+
+  const html = slide.html || ''
+
+  try {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+    const section = doc.querySelector('section') || doc.body
+
+    // Extract Eyebrow / Badge
+    const badgeEl = section.querySelector('.badge, [class*="badge"], .og-eyebrow, .eyebrow')
+    if (badgeEl) {
+      badge = badgeEl.textContent?.trim()
+      badgeEl.remove()
+    }
+
+    // Extract Heading
+    const h1 = section.querySelector('h1')
+    const h2 = section.querySelector('h2')
+    const heading = h1 || h2
+    if (heading?.textContent) {
+      title = heading.textContent.trim()
+      heading.remove()
+    }
+
+    // Extract Cards
+    const cardNodes = Array.from(section.querySelectorAll('.card, [class*="card"], .og-card'))
+    cardNodes.forEach((c) => {
+      const tEl = c.querySelector('h3, h4, strong, b, .card-title, .og-heading')
+      const bEl = c.querySelector('p, .card-body, .og-card-body')
+      const cTitle = tEl?.textContent?.trim() || ''
+      const cBody = bEl?.textContent?.trim() || ''
+      if (cTitle || cBody) {
+        cards.push({ title: cTitle || cBody, body: cTitle ? cBody : undefined })
+      }
+      c.remove()
+    })
+
+    // Extract Stats
+    const statNodes = Array.from(
+      section.querySelectorAll('.stat-block, [class*="stat-block"], .og-stat-card')
+    )
+    statNodes.forEach((st) => {
+      const vEl = st.querySelector(
+        '.stat-number, [class*="stat-number"], .og-stat-value, strong, b'
+      )
+      const lEl = st.querySelector(
+        '.stat-label, [class*="stat-label"], .og-stat-label, p, span:last-child'
+      )
+      const val = vEl?.textContent?.trim() || ''
+      const lbl = lEl?.textContent?.trim() || ''
+      if (val) {
+        stats.push({ value: val, label: lbl })
+      }
+      st.remove()
+    })
+
+    // Extract Quote
+    const quoteNode = section.querySelector('.quote-block, blockquote, [class*="quote"]')
+    if (quoteNode) {
+      const textEl = quoteNode.querySelector('.quote-text, .og-quote-text, p') || quoteNode
+      const authorEl = quoteNode.querySelector('.quote-author, [class*="author"], cite, small')
+      const qText = textEl.textContent?.trim() || ''
+      if (qText) {
+        quote = { text: qText, author: authorEl?.textContent?.trim() }
+      }
+      quoteNode.remove()
+    }
+
+    // Extract Two-Column
+    const splitContainer = section.querySelector(
+      '.og-asymmetric-split, .og-split-wrap, [class*="split-wrap"], .cols'
+    )
+    if (splitContainer && splitContainer.children.length >= 2) {
+      const leftEl = splitContainer.children[0]
+      const rightEl = splitContainer.children[1]
+      const leftTitle = leftEl.querySelector('h3, h4')?.textContent?.trim() || 'Column A'
+      const rightTitle = rightEl.querySelector('h3, h4')?.textContent?.trim() || 'Column B'
+      const leftItems = Array.from(leftEl.querySelectorAll('li, p'))
+        .map((p) => p.textContent?.trim() || '')
+        .filter(Boolean)
+      const rightItems = Array.from(rightEl.querySelectorAll('li, p'))
+        .map((p) => p.textContent?.trim() || '')
+        .filter(Boolean)
+      split = { leftTitle, rightTitle, leftItems, rightItems }
+      splitContainer.remove()
+    }
+
+    // Extract Bullets / Paragraphs
+    if (slide.bullets && slide.bullets.length > 0) {
+      bullets.push(...slide.bullets)
+    } else {
+      const listItems = Array.from(section.querySelectorAll('li'))
+      if (listItems.length > 0) {
+        listItems.forEach((li) => {
+          const txt = li.textContent?.trim()
+          if (txt) bullets.push(txt)
+        })
+      } else {
+        const paragraphs = Array.from(section.querySelectorAll('p'))
+        paragraphs.forEach((p) => {
+          const txt = p.textContent?.trim()
+          if (txt) bullets.push(txt)
+        })
+      }
+    }
+  } catch (err) {
+    console.warn('[parseSlideForVectorPreview] Fallback to simple extraction:', err)
+  }
+
+  // Sanitize bullets
+  const cleanBullets = bullets
+    .map((b) => b.replace(/<[^>]*>/g, '').trim())
+    .filter(Boolean)
+
+  return {
+    slideType: slide.slideType || 'content',
+    title: title || 'Untitled Slide',
+    badge,
+    cards,
+    stats,
+    quote,
+    split,
+    bullets: cleanBullets
+  }
 }

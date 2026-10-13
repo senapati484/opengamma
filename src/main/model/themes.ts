@@ -1,0 +1,567 @@
+/**
+ * OpenGamma — PDF Theme Tokens
+ *
+ * Extracts typed, PDF-renderable tokens from the existing renderer themes.
+ * Avoids duplicating the 15 theme definitions — reads them from the source of truth.
+ *
+ * Fonts referenced here are the bundled local TTF files in resources/fonts/.
+ * The PDF engine NEVER fetches from the web.
+ */
+
+import type { Gradient } from './schema'
+
+// ─── Font registry ────────────────────────────────────────────────────────────
+
+export type FontWeight = 'regular' | 'medium' | 'semibold' | 'bold' | 'extrabold'
+export type FontStyle = 'normal' | 'italic'
+
+export interface FontRef {
+  family: string
+  weight: FontWeight
+  style: FontStyle
+}
+
+export interface FontSet {
+  heading: FontRef
+  headingBold: FontRef
+  body: FontRef
+  bodySemiBold: FontRef
+  mono: FontRef
+}
+
+// Map of font-family name → local TTF filename (in resources/fonts/)
+// These must match exactly what is downloaded via the font download script.
+export const FONT_FILE_MAP: Record<string, Record<FontWeight, string>> = {
+  Syne: {
+    regular: 'Syne-Regular.ttf',
+    medium: 'Syne-Medium.ttf',
+    semibold: 'Syne-SemiBold.ttf',
+    bold: 'Syne-Bold.ttf',
+    extrabold: 'Syne-ExtraBold.ttf'
+  },
+  'Plus Jakarta Sans': {
+    regular: 'PlusJakartaSans-Regular.ttf',
+    medium: 'PlusJakartaSans-Medium.ttf',
+    semibold: 'PlusJakartaSans-SemiBold.ttf',
+    bold: 'PlusJakartaSans-Bold.ttf',
+    extrabold: 'PlusJakartaSans-ExtraBold.ttf'
+  },
+  'Playfair Display': {
+    regular: 'PlayfairDisplay-Regular.ttf',
+    medium: 'PlayfairDisplay-Regular.ttf',
+    semibold: 'PlayfairDisplay-SemiBold.ttf',
+    bold: 'PlayfairDisplay-Bold.ttf',
+    extrabold: 'PlayfairDisplay-ExtraBold.ttf'
+  },
+  Lora: {
+    regular: 'Lora-Regular.ttf',
+    medium: 'Lora-Medium.ttf',
+    semibold: 'Lora-SemiBold.ttf',
+    bold: 'Lora-Bold.ttf',
+    extrabold: 'Lora-Bold.ttf'
+  },
+  'Atkinson Hyperlegible': {
+    regular: 'AtkinsonHyperlegible-Regular.ttf',
+    medium: 'AtkinsonHyperlegible-Regular.ttf',
+    semibold: 'AtkinsonHyperlegible-Bold.ttf',
+    bold: 'AtkinsonHyperlegible-Bold.ttf',
+    extrabold: 'AtkinsonHyperlegible-Bold.ttf'
+  },
+  'JetBrains Mono': {
+    regular: 'JetBrainsMono-Regular.ttf',
+    medium: 'JetBrainsMono-Medium.ttf',
+    semibold: 'JetBrainsMono-SemiBold.ttf',
+    bold: 'JetBrainsMono-Bold.ttf',
+    extrabold: 'JetBrainsMono-ExtraBold.ttf'
+  },
+  Inter: {
+    regular: 'Inter-Regular.ttf',
+    medium: 'Inter-Medium.ttf',
+    semibold: 'Inter-SemiBold.ttf',
+    bold: 'Inter-Bold.ttf',
+    extrabold: 'Inter-ExtraBold.ttf'
+  },
+  Outfit: {
+    regular: 'Outfit-Regular.ttf',
+    medium: 'Outfit-Medium.ttf',
+    semibold: 'Outfit-SemiBold.ttf',
+    bold: 'Outfit-Bold.ttf',
+    extrabold: 'Outfit-ExtraBold.ttf'
+  },
+  Raleway: {
+    regular: 'Raleway-Regular.ttf',
+    medium: 'Raleway-Medium.ttf',
+    semibold: 'Raleway-SemiBold.ttf',
+    bold: 'Raleway-Bold.ttf',
+    extrabold: 'Raleway-ExtraBold.ttf'
+  },
+  Montserrat: {
+    regular: 'Montserrat-Regular.ttf',
+    medium: 'Montserrat-Medium.ttf',
+    semibold: 'Montserrat-SemiBold.ttf',
+    bold: 'Montserrat-Bold.ttf',
+    extrabold: 'Montserrat-ExtraBold.ttf'
+  },
+  Nunito: {
+    regular: 'Nunito-Regular.ttf',
+    medium: 'Nunito-Medium.ttf',
+    semibold: 'Nunito-SemiBold.ttf',
+    bold: 'Nunito-Bold.ttf',
+    extrabold: 'Nunito-ExtraBold.ttf'
+  },
+  Poppins: {
+    regular: 'Poppins-Regular.ttf',
+    medium: 'Poppins-Medium.ttf',
+    semibold: 'Poppins-SemiBold.ttf',
+    bold: 'Poppins-Bold.ttf',
+    extrabold: 'Poppins-ExtraBold.ttf'
+  },
+  'Cormorant Garamond': {
+    regular: 'CormorantGaramond-Regular.ttf',
+    medium: 'CormorantGaramond-Medium.ttf',
+    semibold: 'CormorantGaramond-SemiBold.ttf',
+    bold: 'CormorantGaramond-Bold.ttf',
+    extrabold: 'CormorantGaramond-Bold.ttf'
+  },
+  'DM Sans': {
+    regular: 'DMSans-Regular.ttf',
+    medium: 'DMSans-Medium.ttf',
+    semibold: 'DMSans-SemiBold.ttf',
+    bold: 'DMSans-Bold.ttf',
+    extrabold: 'DMSans-ExtraBold.ttf'
+  },
+  'Space Grotesk': {
+    regular: 'SpaceGrotesk-Regular.ttf',
+    medium: 'SpaceGrotesk-Medium.ttf',
+    semibold: 'SpaceGrotesk-SemiBold.ttf',
+    bold: 'SpaceGrotesk-Bold.ttf',
+    extrabold: 'SpaceGrotesk-Bold.ttf'
+  },
+  'Space Mono': {
+    regular: 'SpaceMono-Regular.ttf',
+    medium: 'SpaceMono-Regular.ttf',
+    semibold: 'SpaceMono-Bold.ttf',
+    bold: 'SpaceMono-Bold.ttf',
+    extrabold: 'SpaceMono-Bold.ttf'
+  },
+  'IBM Plex Mono': {
+    regular: 'IBMPlexMono-Regular.ttf',
+    medium: 'IBMPlexMono-Medium.ttf',
+    semibold: 'IBMPlexMono-SemiBold.ttf',
+    bold: 'IBMPlexMono-Bold.ttf',
+    extrabold: 'IBMPlexMono-Bold.ttf'
+  },
+  // Fallback for any unknown font
+  _fallback: {
+    regular: 'Inter-Regular.ttf',
+    medium: 'Inter-Medium.ttf',
+    semibold: 'Inter-SemiBold.ttf',
+    bold: 'Inter-Bold.ttf',
+    extrabold: 'Inter-ExtraBold.ttf'
+  }
+}
+
+// ─── Radius tokens ────────────────────────────────────────────────────────────
+
+export interface RadiusTokens {
+  r1: number // tiny  (tags, badges)
+  r2: number // small (inputs)
+  r3: number // medium (cards)
+  r4: number // large (containers)
+}
+
+// ─── Shadow tokens ────────────────────────────────────────────────────────────
+
+export interface ShadowLayer {
+  offsetY: number
+  expand: number
+  opacity: number
+}
+
+export interface ShadowTokens {
+  soft: ShadowLayer[]  // 4-layer stacked rect shadow
+  glow: string | null  // CSS-style glow (accent-color based) — rendered as outer rect in PDF
+}
+
+// ─── Full theme token set ─────────────────────────────────────────────────────
+
+export interface ThemeTokens {
+  id: string
+  colors: {
+    bg: string
+    bgGradient: Gradient | null
+    text: string
+    muted: string
+    accent: string
+    accentMuted: string  // accent at 15–20% opacity
+    border: string
+    surface: string      // card / panel background
+    heading: string
+    overlay: string      // scrim / overlay base
+  }
+  fonts: FontSet
+  type: {
+    h1: number           // px — display heading
+    h2: number           // px — section heading
+    h3: number           // px — card title
+    body: number         // px — body text
+    sm: number           // px — caption / label
+    mono: number         // px — code
+  }
+  radius: RadiusTokens
+  shadow: ShadowTokens
+  /** Whether headings in this theme use gradient-clip text (white in PDF) */
+  headingIsGradientClip: boolean
+  /** Actual heading color for PDF (resolved from gradient if applicable) */
+  headingColor: string
+  /** Accent bar: whether to show the 48×4 bar above H1 on content slides */
+  showAccentBar: boolean
+}
+
+// ─── Token definitions (one per theme ID) ────────────────────────────────────
+
+const THEME_TOKENS: Record<string, ThemeTokens> = {
+  'startup-gradient': {
+    id: 'startup-gradient',
+    colors: {
+      bg: '#1E1B4B',
+      bgGradient: {
+        kind: 'linear',
+        angle: 135,
+        stops: [
+          { position: 0, color: '#1e1b4b', opacity: 1 },
+          { position: 0.5, color: '#311042', opacity: 1 },
+          { position: 1, color: '#111827', opacity: 1 }
+        ]
+      },
+      text: '#F3F4F6',
+      muted: '#9CA3AF',
+      accent: '#EC4899',
+      accentMuted: 'rgba(236,72,153,0.15)',
+      border: '#374151',
+      surface: 'rgba(255,255,255,0.04)',
+      heading: '#FFFFFF',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Syne', weight: 'bold', style: 'normal' },
+      headingBold: { family: 'Syne', weight: 'extrabold', style: 'normal' },
+      body: { family: 'Plus Jakarta Sans', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Plus Jakarta Sans', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 56, h2: 40, h3: 22, body: 18, sm: 13, mono: 15 },
+    radius: { r1: 4, r2: 8, r3: 14, r4: 20 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.1 },
+        { offsetY: 6, expand: 2, opacity: 0.08 },
+        { offsetY: 14, expand: 4, opacity: 0.05 },
+        { offsetY: 24, expand: 8, opacity: 0.03 }
+      ],
+      glow: '#8B5CF6'
+    },
+    headingIsGradientClip: true,
+    headingColor: '#FFFFFF',
+    showAccentBar: true
+  },
+
+  'academic-clean': {
+    id: 'academic-clean',
+    colors: {
+      bg: '#FFFFFF',
+      bgGradient: null,
+      text: '#1F2937',
+      muted: '#6B7280',
+      accent: '#0F766E',
+      accentMuted: 'rgba(15,118,110,0.12)',
+      border: '#E5E7EB',
+      surface: '#F9FAFB',
+      heading: '#111827',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Playfair Display', weight: 'bold', style: 'normal' },
+      headingBold: { family: 'Playfair Display', weight: 'bold', style: 'normal' },
+      body: { family: 'Lora', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Lora', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 48, h2: 34, h3: 20, body: 18, sm: 13, mono: 14 },
+    radius: { r1: 0, r2: 0, r3: 0, r4: 0 },
+    shadow: {
+      soft: [
+        { offsetY: 1, expand: 0, opacity: 0.04 },
+        { offsetY: 2, expand: 1, opacity: 0.03 },
+        { offsetY: 4, expand: 2, opacity: 0.02 },
+        { offsetY: 8, expand: 4, opacity: 0.01 }
+      ],
+      glow: null
+    },
+    headingIsGradientClip: false,
+    headingColor: '#111827',
+    showAccentBar: true
+  },
+
+  'a11y-dark': {
+    id: 'a11y-dark',
+    colors: {
+      bg: '#000000',
+      bgGradient: null,
+      text: '#FFFFFF',
+      muted: '#E5E7EB',
+      accent: '#FACC15',
+      accentMuted: 'rgba(250,204,21,0.15)',
+      border: '#FACC15',
+      surface: '#0A0A0A',
+      heading: '#FACC15',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Atkinson Hyperlegible', weight: 'bold', style: 'normal' },
+      headingBold: { family: 'Atkinson Hyperlegible', weight: 'bold', style: 'normal' },
+      body: { family: 'Atkinson Hyperlegible', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Atkinson Hyperlegible', weight: 'bold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 60, h2: 44, h3: 24, body: 22, sm: 16, mono: 16 },
+    radius: { r1: 4, r2: 4, r3: 4, r4: 4 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.0 },
+        { offsetY: 2, expand: 0, opacity: 0.0 },
+        { offsetY: 2, expand: 0, opacity: 0.0 },
+        { offsetY: 2, expand: 0, opacity: 0.0 }
+      ],
+      glow: null
+    },
+    headingIsGradientClip: false,
+    headingColor: '#FACC15',
+    showAccentBar: false
+  },
+
+  'terminal-green': {
+    id: 'terminal-green',
+    colors: {
+      bg: '#030712',
+      bgGradient: null,
+      text: '#E0E7FF',
+      muted: '#6B7280',
+      accent: '#10B981',
+      accentMuted: 'rgba(16,185,129,0.12)',
+      border: '#10B981',
+      surface: '#050B14',
+      heading: '#10B981',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'JetBrains Mono', weight: 'bold', style: 'normal' },
+      headingBold: { family: 'JetBrains Mono', weight: 'bold', style: 'normal' },
+      body: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'JetBrains Mono', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 50, h2: 36, h3: 20, body: 16, sm: 12, mono: 14 },
+    radius: { r1: 2, r2: 2, r3: 2, r4: 2 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.05 },
+        { offsetY: 4, expand: 1, opacity: 0.04 },
+        { offsetY: 8, expand: 2, opacity: 0.03 },
+        { offsetY: 15, expand: 4, opacity: 0.02 }
+      ],
+      glow: '#10B981'
+    },
+    headingIsGradientClip: false,
+    headingColor: '#10B981',
+    showAccentBar: false
+  },
+
+  'corporate-minimal': {
+    id: 'corporate-minimal',
+    colors: {
+      bg: '#F8FAFC',
+      bgGradient: null,
+      text: '#334155',
+      muted: '#64748B',
+      accent: '#2563EB',
+      accentMuted: 'rgba(37,99,235,0.08)',
+      border: '#E2E8F0',
+      surface: '#FFFFFF',
+      heading: '#1F2937',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Inter', weight: 'bold', style: 'normal' },
+      headingBold: { family: 'Inter', weight: 'extrabold', style: 'normal' },
+      body: { family: 'Inter', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Inter', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 48, h2: 34, h3: 20, body: 18, sm: 13, mono: 14 },
+    radius: { r1: 6, r2: 8, r3: 12, r4: 16 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.04 },
+        { offsetY: 4, expand: 1, opacity: 0.03 },
+        { offsetY: 8, expand: 2, opacity: 0.02 },
+        { offsetY: 15, expand: 4, opacity: 0.015 }
+      ],
+      glow: null
+    },
+    headingIsGradientClip: false,
+    headingColor: '#1F2937',
+    showAccentBar: true
+  },
+
+  'deep-ocean': {
+    id: 'deep-ocean',
+    colors: {
+      bg: '#0F172A',
+      bgGradient: {
+        kind: 'linear',
+        angle: 180,
+        stops: [
+          { position: 0, color: '#0a0f1d', opacity: 1 },
+          { position: 1, color: '#0369a1', opacity: 1 }
+        ]
+      },
+      text: '#F1F5F9',
+      muted: '#94A3B8',
+      accent: '#38BDF8',
+      accentMuted: 'rgba(56,189,248,0.12)',
+      border: '#1E293B',
+      surface: 'rgba(15,23,42,0.6)',
+      heading: '#FFFFFF',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Outfit', weight: 'extrabold', style: 'normal' },
+      headingBold: { family: 'Outfit', weight: 'extrabold', style: 'normal' },
+      body: { family: 'Plus Jakarta Sans', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Plus Jakarta Sans', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 54, h2: 38, h3: 22, body: 18, sm: 13, mono: 15 },
+    radius: { r1: 6, r2: 10, r3: 16, r4: 22 },
+    shadow: {
+      soft: [
+        { offsetY: 3, expand: 0, opacity: 0.12 },
+        { offsetY: 8, expand: 2, opacity: 0.09 },
+        { offsetY: 16, expand: 4, opacity: 0.06 },
+        { offsetY: 25, expand: 8, opacity: 0.04 }
+      ],
+      glow: '#0369A1'
+    },
+    headingIsGradientClip: false,
+    headingColor: '#FFFFFF',
+    showAccentBar: true
+  }
+}
+
+// ─── Default token (fallback for unknown/unmapped themes) ─────────────────────
+
+const DEFAULT_TOKENS: ThemeTokens = {
+  id: 'default',
+  colors: {
+    bg: '#1E293B',
+    bgGradient: null,
+    text: '#F1F5F9',
+    muted: '#94A3B8',
+    accent: '#6366F1',
+    accentMuted: 'rgba(99,102,241,0.15)',
+    border: '#334155',
+    surface: 'rgba(255,255,255,0.05)',
+    heading: '#FFFFFF',
+    overlay: '#000000'
+  },
+  fonts: {
+    heading: { family: 'Inter', weight: 'bold', style: 'normal' },
+    headingBold: { family: 'Inter', weight: 'extrabold', style: 'normal' },
+    body: { family: 'Inter', weight: 'regular', style: 'normal' },
+    bodySemiBold: { family: 'Inter', weight: 'semibold', style: 'normal' },
+    mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+  },
+  type: { h1: 52, h2: 36, h3: 20, body: 18, sm: 13, mono: 14 },
+  radius: { r1: 6, r2: 8, r3: 14, r4: 20 },
+  shadow: {
+    soft: [
+      { offsetY: 2, expand: 0, opacity: 0.08 },
+      { offsetY: 6, expand: 2, opacity: 0.06 },
+      { offsetY: 12, expand: 4, opacity: 0.04 },
+      { offsetY: 20, expand: 8, opacity: 0.02 }
+    ],
+    glow: null
+  },
+  headingIsGradientClip: false,
+  headingColor: '#FFFFFF',
+  showAccentBar: true
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+/**
+ * Returns the PDF-renderable theme tokens for a given theme ID.
+ * Falls back to default tokens if the theme ID is not mapped.
+ */
+export function getThemeTokens(themeId: string): ThemeTokens {
+  return THEME_TOKENS[themeId] ?? buildFallbackTokens(themeId)
+}
+
+/**
+ * For themes not yet in the static map, build a best-effort token set
+ * from the renderer theme's colors object.
+ */
+function buildFallbackTokens(themeId: string): ThemeTokens {
+  // Try to import the renderer themes lazily for color extraction
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { themes } = require('../../renderer/src/lib/themes') as { themes: Array<{ id: string; colors: Record<string, string> }> }
+    const t = themes.find((x: { id: string }) => x.id === themeId)
+    if (t) {
+      const isDark = isColorDark(t.colors.bg ?? '#1E293B')
+      return {
+        ...DEFAULT_TOKENS,
+        id: themeId,
+        colors: {
+          ...DEFAULT_TOKENS.colors,
+          bg: t.colors.bg ?? DEFAULT_TOKENS.colors.bg,
+          text: t.colors.text ?? DEFAULT_TOKENS.colors.text,
+          accent: t.colors.accent ?? DEFAULT_TOKENS.colors.accent,
+          accentMuted: hexToRgba(t.colors.accent ?? '#6366F1', 0.15),
+          heading: isDark ? '#FFFFFF' : '#111827',
+          surface: isDark ? 'rgba(255,255,255,0.05)' : '#F8FAFC'
+        }
+      }
+    }
+  } catch {
+    // Running outside Electron renderer context — use default
+  }
+  return { ...DEFAULT_TOKENS, id: themeId }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function isColorDark(hex: string): boolean {
+  const c = hex.replace('#', '')
+  if (c.length < 6) return true
+  const r = parseInt(c.slice(0, 2), 16)
+  const g = parseInt(c.slice(2, 4), 16)
+  const b = parseInt(c.slice(4, 6), 16)
+  // Relative luminance
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  return luminance < 128
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const c = hex.replace('#', '')
+  const r = parseInt(c.slice(0, 2), 16)
+  const g = parseInt(c.slice(2, 4), 16)
+  const b = parseInt(c.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
+export function getFontFileName(family: string, weight: FontWeight): string {
+  const familyMap = FONT_FILE_MAP[family] ?? FONT_FILE_MAP['_fallback']
+  return familyMap[weight] ?? familyMap.regular
+}

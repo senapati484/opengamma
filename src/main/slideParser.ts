@@ -1,6 +1,7 @@
 import { JSDOM } from 'jsdom'
 import { randomUUID } from 'crypto'
 import type { Slide } from '../renderer/src/types'
+import { htmlSlideToDeckSlide } from './model/migrate'
 
 /**
  * Extracts complete <section>...</section> blocks from a streaming buffer.
@@ -443,7 +444,7 @@ export function parseSlideHtml(html: string, index: number): Slide {
       finalHtml = doc.body.innerHTML
     }
 
-    return {
+    const parsedSlide: Slide = {
       id,
       html: finalHtml,
       title,
@@ -454,7 +455,17 @@ export function parseSlideHtml(html: string, index: number): Slide {
       slug: section ? section.getAttribute('data-slug') || '' : '',
       layout: section ? section.getAttribute('data-layout') || '' : '',
       imagePrompt
-    } as any
+    }
+
+    try {
+      const deckSlide = htmlSlideToDeckSlide(parsedSlide as any, 'startup-gradient')
+      parsedSlide.deckSlide = deckSlide
+    } catch (e) {
+      // Non-fatal: if migration fails, slide still has valid HTML
+      console.warn('[slideParser] Failed to extract deckSlide for slide:', id, e)
+    }
+
+    return parsedSlide
   } catch (error: any) {
     console.error('HTML parse error in parseSlideHtml, returning fallback structure:', error)
     return {

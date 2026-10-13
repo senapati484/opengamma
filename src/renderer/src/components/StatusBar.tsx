@@ -49,24 +49,23 @@ export const StatusBar: React.FC = () => {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <div
-            className={`w-1.5 h-1.5 rounded-full ${agentText === 'None' && isLocal ? 'bg-red-500' : 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.4)]'}`}
+            className={`w-1.5 h-1.5 rounded-full ${agentText === 'None' && isLocal ? 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.5)]' : 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]'}`}
           />
-          <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest leading-none mt-0.5">
+          <span className="text-[10px] font-semibold text-neutral-300 uppercase tracking-wider leading-none">
             {modeText}
           </span>
-          <span className="text-neutral-700 font-black text-[9px] uppercase tracking-tighter">
+          <span className="text-neutral-600 font-black text-[10px]">
             /
           </span>
-          <span className="text-[9px] font-black text-[#e8ff57] uppercase tracking-widest leading-none mt-0.5">
+          <span className="text-[10px] font-bold text-[#e8ff57] uppercase tracking-wider leading-none">
             {agentText}
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-4 h-full">
-        <div className="h-3 w-px bg-white/5" />
-        <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-[0.2em] leading-none mt-0.5">
-          Open Gamma v{appVersion}
+      <div className="flex items-center gap-3 h-full">
+        <span className="text-[10px] font-mono text-neutral-400">
+          v{appVersion}
         </span>
       </div>
     </div>

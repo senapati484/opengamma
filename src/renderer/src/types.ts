@@ -32,6 +32,11 @@ export interface Slide {
   style?: SlideStyle
   /** Base64 MP3 narration audio data URL */
   voiceoverUrl?: string
+  /** Structured deck slide model for native PDF/PPTX engine */
+  deckSlide?: unknown
+  slug?: string
+  layout?: string
+  imagePrompt?: string
 }
 
 // ─── Presentation ─────────────────────────────────────────────────────────────
@@ -53,6 +58,8 @@ export interface Presentation {
   aspectRatio?: '9:16' | '16:9' | '1:1'
   /** Base64 MP3 ambient loop background music URL */
   bgMusicUrl?: string
+  /** Versioned, structured Deck model (single source of truth for native export) */
+  deck?: unknown
 }
 
 // ─── Theme ────────────────────────────────────────────────────────────────────

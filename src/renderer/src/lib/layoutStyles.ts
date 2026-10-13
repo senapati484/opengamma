@@ -149,10 +149,7 @@ export const GLOBAL_LAYOUT_CSS = `
   .card {
     background: rgba(255, 255, 255, 0.03) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-left: 5px solid var(--og-slide-accent, #e8ff57) !important;
     border-radius: var(--og-slide-radius, 12px) !important;
-    border-top-left-radius: 0px !important;
-    border-bottom-left-radius: 0px !important;
     padding: 24px !important;
     box-sizing: border-box !important;
     box-shadow: var(--og-slide-shadow, 0 10px 30px rgba(0, 0, 0, 0.2)) !important;
@@ -160,7 +157,8 @@ export const GLOBAL_LAYOUT_CSS = `
     backdrop-filter: blur(12px) !important;
     transition:
       transform 0.2s ease,
-      border-color 0.2s ease !important;
+      border-color 0.2s ease,
+      box-shadow 0.2s ease !important;
   }
   .card:hover {
     border-color: rgba(255, 255, 255, 0.15) !important;
@@ -220,18 +218,15 @@ export const GLOBAL_LAYOUT_CSS = `
 
   /* Testimonials & Pull Quotes */
   .quote-block {
-    border-left: 4px solid var(--og-slide-accent, #e8ff57) !important;
-    padding-left: 24px !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    padding: 20px 24px !important;
     text-align: left !important;
     margin: 30px auto !important;
     max-width: 85% !important;
     font-style: italic !important;
     box-sizing: border-box !important;
-    background: rgba(255, 255, 255, 0.01) !important;
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-    border-top-right-radius: 8px !important;
-    border-bottom-right-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-radius: 10px !important;
   }
   .quote-text {
     font-size: 1.3em !important;
@@ -338,7 +333,7 @@ export const GLOBAL_LAYOUT_CSS = `
     backdrop-filter: blur(16px) saturate(120%) !important;
     -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-left: 6px solid var(--og-slide-accent, #e8ff57) !important;
+    border-radius: var(--og-slide-radius, 12px) !important;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
   }

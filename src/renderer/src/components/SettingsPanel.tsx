@@ -302,7 +302,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-4xl h-full max-h-[600px] bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-bounce">
+      <div className="relative w-full max-w-4xl h-full max-h-[600px] bg-[#0d0d0d] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-in">
         {/* Main Body */}
         <div className="flex-1 flex min-h-0">
           {/* Left Navigation */}

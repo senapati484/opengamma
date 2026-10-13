@@ -118,98 +118,148 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
       theme.description.toLowerCase().includes(themeSearchQuery.toLowerCase())
   )
 
+  const handleSlideCountStep = (delta: number) => {
+    setSlideCount((prev) => Math.min(24, Math.max(3, prev + delta)))
+  }
+
   return (
-    <div className="w-[260px] h-full bg-[#141414] border-r border-white/5 flex flex-col overflow-hidden no-drag relative">
+    <aside className="w-[280px] h-full bg-[#141414] border-r border-white/10 flex flex-col overflow-hidden no-drag relative select-none">
       {/* Header / Logo Area */}
-      <div className="p-5 pb-2">
-        <div className="flex items-center gap-1.5 mb-1">
-          <span className="text-lg font-black text-white tracking-tighter">Open</span>
-          <span className="text-lg font-black text-[#e8ff57] tracking-tighter">Gamma</span>
+      <div className="p-4 pb-3 border-b border-white/5">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-base font-black text-white tracking-tight">Open</span>
+            <span className="text-base font-black text-[#e8ff57] tracking-tight">Gamma</span>
+          </div>
+          <div className="text-[10px] font-mono text-neutral-500 font-semibold">
+            v{packageJson.version}
+          </div>
         </div>
+
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-white/5 border border-white/5">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-              {settings?.executionMode === 'local-cli' ? 'Local CLI' : 'API Mode'}
+          <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-[#1a1a1a] border border-white/5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+            <span className="text-[10px] font-semibold text-neutral-300 tracking-wider">
+              {settings?.executionMode === 'local-cli' ? 'Local CLI Mode' : 'API Engine'}
             </span>
           </div>
-          <div className="text-[8px] font-black text-neutral-600 tracking-tighter">v{packageJson.version}</div>
+
+          <button
+            onClick={onOpenHelp}
+            className="text-[10px] text-neutral-500 hover:text-neutral-300 font-mono tracking-tight px-1.5 py-0.5 rounded hover:bg-white/5 transition-colors"
+            title="Press ? for shortcuts"
+          >
+            ⌘K
+          </button>
         </div>
       </div>
 
       {/* Creation & Studio Forms */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-5">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
         {/* Presentation builder */}
-        <div className="space-y-4">
-          <div className="text-[10px] font-bold text-[#e8ff57] uppercase tracking-[0.2em] opacity-70">
-            Presentation Builder
+        <div className="space-y-3.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-[#e8ff57] uppercase tracking-[0.15em]">
+              Presentation Builder
+            </span>
           </div>
 
-          <div className="space-y-3.5">
+          <div className="space-y-3">
             {/* Presentation Name */}
-            <div className="space-y-1 group">
-              <label className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider group-focus-within:text-[#e8ff57] transition-colors">
-                Presentation Name
+            <div className="space-y-1">
+              <label
+                htmlFor="presentation-title-input"
+                className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block"
+              >
+                Presentation Title
               </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Q4 Investor Deck"
-                className="w-full bg-[#1a1a1a] border border-white/5 focus:border-[#e8ff57]/30 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-neutral-600 outline-none transition-all"
-              />
+              <div className="relative">
+                <input
+                  id="presentation-title-input"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Q4 Growth & Revenue Review"
+                  className="w-full bg-[#1c1c1c] border border-white/10 hover:border-white/20 focus:border-[#e8ff57] focus:ring-1 focus:ring-[#e8ff57]/30 rounded-lg px-3 py-2 text-xs text-white placeholder:text-neutral-500 outline-none transition-all"
+                />
+                {title.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setTitle('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 text-xs p-0.5"
+                    title="Clear title"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Design System Premium selection */}
-            <div className="space-y-2 relative" ref={themeDropdownRef}>
-              <label className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">
-                Design System
-              </label>
+            <div className="space-y-1.5 relative" ref={themeDropdownRef}>
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                  Design System
+                </label>
+                <span className="text-[9px] text-neutral-500 font-medium">
+                  {themes.length} available
+                </span>
+              </div>
 
-              {/* Active Visual Swatch card */}
-              <div
+              {/* Active Visual Swatch Card Trigger */}
+              <button
+                type="button"
                 onClick={() => setShowThemeDropdown(!showThemeDropdown)}
-                className="p-3 bg-[#1c1c1c] border border-white/5 hover:border-white/10 rounded-xl flex flex-col gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] group shadow-inner"
+                className="w-full p-2.5 bg-[#1c1c1c] border border-white/10 hover:border-white/20 rounded-xl flex flex-col gap-1.5 text-left cursor-pointer transition-all hover:bg-[#202020] active:scale-[0.99] group shadow-sm focus-visible:border-[#e8ff57]"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white group-hover:text-[#e8ff57] transition-colors">
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-xs font-bold text-white group-hover:text-[#e8ff57] transition-colors truncate pr-2">
                     {selectedTheme.name}
                   </span>
 
                   {/* Swatch palette dots */}
-                  <div className="flex gap-1">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <div
-                      className="w-2.5 h-2.5 rounded-full border border-white/10 shadow-sm"
+                      className="w-3 h-3 rounded-full border border-white/10 shadow-sm"
                       style={{ backgroundColor: selectedTheme.colors.primary }}
+                      title="Primary Color"
                     />
                     <div
-                      className="w-2.5 h-2.5 rounded-full border border-white/10 shadow-sm"
+                      className="w-3 h-3 rounded-full border border-white/10 shadow-sm"
                       style={{ backgroundColor: selectedTheme.colors.accent }}
+                      title="Accent Color"
                     />
                     <div
-                      className="w-2.5 h-2.5 rounded-full border border-white/10 shadow-sm"
+                      className="w-3 h-3 rounded-full border border-white/10 shadow-sm"
                       style={{ backgroundColor: selectedTheme.colors.bg }}
+                      title="Background Color"
                     />
+                    <svg
+                      className={`w-3.5 h-3.5 text-neutral-400 ml-1 transition-transform duration-200 ${
+                        showThemeDropdown ? 'rotate-180 text-[#e8ff57]' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
                   </div>
                 </div>
 
-                <p className="text-[10px] text-neutral-500 leading-normal line-clamp-1 font-medium">
+                <p className="text-[10px] text-neutral-400 leading-normal line-clamp-1 font-medium">
                   {selectedTheme.description}
                 </p>
-              </div>
-
-              {/* Browse Button */}
-              <button
-                type="button"
-                onClick={() => setShowThemeDropdown(!showThemeDropdown)}
-                className="w-full py-2 bg-white/5 border border-white/5 text-neutral-300 hover:text-white hover:bg-[#e8ff57]/10 hover:border-[#e8ff57]/20 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
-              >
-                <span>🎨</span> {showThemeDropdown ? 'Close Picker' : 'Browse Design Systems'}
               </button>
 
-              {/* Custom Inline Dropdown list with design references */}
+              {/* Custom Inline Dropdown list with search */}
               {showThemeDropdown && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#161616]/98 backdrop-blur-md border border-white/10 rounded-xl p-2.5 flex flex-col gap-2.5 w-full shadow-[0_15px_30px_rgba(0,0,0,0.6)] animate-fade-in">
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#181818] border border-white/15 rounded-xl p-2.5 flex flex-col gap-2 w-full shadow-2xl backdrop-blur-xl animate-scale-in">
                   {/* Dropdown Search Bar */}
                   <div className="relative" onClick={(e) => e.stopPropagation()}>
                     <input
@@ -217,7 +267,8 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                       placeholder="Search design systems..."
                       value={themeSearchQuery}
                       onChange={(e) => setThemeSearchQuery(e.target.value)}
-                      className="w-full pl-7 pr-3 py-1.5 text-[10px] rounded-lg bg-[#222] border border-white/5 text-white placeholder:text-neutral-500 outline-none focus:border-[#e8ff57]/30 transition-all shadow-inner"
+                      className="w-full pl-7 pr-3 py-1.5 text-xs rounded-lg bg-[#222] border border-white/10 text-white placeholder:text-neutral-500 outline-none focus:border-[#e8ff57] transition-all"
+                      autoFocus
                     />
                     <svg
                       className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500"
@@ -248,42 +299,39 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                             setShowThemeDropdown(false)
                             setThemeSearchQuery('')
                           }}
-                          className={`group/item p-2 rounded-lg border cursor-pointer flex flex-col gap-1 transition-all select-none hover:bg-white/5 ${
+                          className={`p-2 rounded-lg border cursor-pointer flex flex-col gap-1 transition-all select-none ${
                             isSelected
-                              ? 'bg-[#e8ff57]/5 border-[#e8ff57]/20 shadow-sm shadow-[#e8ff57]/5'
-                              : 'bg-transparent border-transparent'
+                              ? 'bg-[#e8ff57]/10 border-[#e8ff57]/40 shadow-sm'
+                              : 'bg-transparent border-transparent hover:bg-white/5 hover:border-white/5'
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-white group-hover/item:text-[#e8ff57] transition-colors">
+                            <span className="text-xs font-bold text-white group-hover:text-[#e8ff57] transition-colors">
                               {theme.name}
                             </span>
                             <div className="flex gap-1.5 items-center">
                               {/* Swatch dots */}
                               <div className="flex gap-0.5">
                                 <div
-                                  className="w-2 h-2 rounded-full border border-white/10"
+                                  className="w-2.5 h-2.5 rounded-full border border-white/10"
                                   style={{ backgroundColor: theme.colors.primary }}
-                                  title="Primary"
                                 />
                                 <div
-                                  className="w-2.5 h-2.5 rounded-full border border-white/10 shadow-sm"
+                                  className="w-2.5 h-2.5 rounded-full border border-white/10"
                                   style={{ backgroundColor: theme.colors.accent }}
-                                  title="Accent"
                                 />
                                 <div
-                                  className="w-2 h-2 rounded-full border border-white/10"
+                                  className="w-2.5 h-2.5 rounded-full border border-white/10"
                                   style={{ backgroundColor: theme.colors.bg }}
-                                  title="Background"
                                 />
                               </div>
                               {isSelected && (
-                                <span className="text-[#e8ff57] text-[10px] font-bold">✓</span>
+                                <span className="text-[#e8ff57] text-xs font-black">✓</span>
                               )}
                             </div>
                           </div>
 
-                          <p className="text-[9px] text-neutral-400 leading-normal font-medium">
+                          <p className="text-[10px] text-neutral-400 leading-normal font-medium line-clamp-1">
                             {theme.description}
                           </p>
                         </div>
@@ -291,8 +339,8 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                     })}
 
                     {filteredThemes.length === 0 && (
-                      <div className="text-center py-4 text-[10px] text-neutral-500 font-bold">
-                        No themes found
+                      <div className="text-center py-4 text-xs text-neutral-500 font-semibold">
+                        No design systems found
                       </div>
                     )}
                   </div>
@@ -300,103 +348,146 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
               )}
             </div>
 
-            {/* Slide Count Slider */}
+            {/* Slide Count Stepper & Slider */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">
-                  Slides
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                  Slide Count
                 </label>
-                <span className="text-[10px] font-bold text-[#e8ff57]">{slideCount}</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSlideCountStep(-1)}
+                    disabled={slideCount <= 3}
+                    className="w-5 h-5 rounded bg-[#202020] hover:bg-[#2a2a2a] disabled:opacity-30 text-neutral-300 font-bold text-xs flex items-center justify-center transition-colors"
+                    title="Decrease slides"
+                  >
+                    -
+                  </button>
+                  <span className="text-xs font-black text-[#e8ff57] min-w-[20px] text-center">
+                    {slideCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleSlideCountStep(1)}
+                    disabled={slideCount >= 24}
+                    className="w-5 h-5 rounded bg-[#202020] hover:bg-[#2a2a2a] disabled:opacity-30 text-neutral-300 font-bold text-xs flex items-center justify-center transition-colors"
+                    title="Increase slides"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <input
                 type="range"
-                min={4}
-                max={20}
+                min={3}
+                max={24}
                 value={slideCount}
                 onChange={(e) => setSlideCount(parseInt(e.target.value))}
-                className="w-full h-1 bg-[#222] rounded-full appearance-none accent-[#e8ff57] cursor-pointer outline-none"
+                className="w-full"
               />
             </div>
 
             {/* Aspect Ratio Selector */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">
+              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
                 Aspect Ratio
               </label>
-              <div className="grid grid-cols-3 gap-1 bg-[#1a1a1a] p-1 rounded-xl border border-white/5">
-                {(['16:9', '9:16', '1:1'] as const).map((ratio) => (
-                  <button
-                    key={ratio}
-                    type="button"
-                    onClick={() => setAspectRatio(ratio)}
-                    className={`py-1.5 text-[9px] font-black rounded-lg transition-all flex flex-col items-center justify-center gap-1 ${
-                      aspectRatio === ratio
-                        ? 'bg-[#e8ff57] text-black shadow-lg shadow-[#e8ff57]/10'
-                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    {ratio === '16:9' && (
-                      <div
-                        className={`w-3.5 h-2 rounded-sm border ${aspectRatio === ratio ? 'border-black' : 'border-neutral-500'} bg-transparent`}
-                      />
-                    )}
-                    {ratio === '9:16' && (
-                      <div
-                        className={`w-2 h-3.5 rounded-sm border ${aspectRatio === ratio ? 'border-black' : 'border-neutral-500'} bg-transparent`}
-                      />
-                    )}
-                    {ratio === '1:1' && (
-                      <div
-                        className={`w-2.5 h-2.5 rounded-sm border ${aspectRatio === ratio ? 'border-black' : 'border-neutral-500'} bg-transparent`}
-                      />
-                    )}
-                    <span>{ratio}</span>
-                  </button>
-                ))}
+              <div className="grid grid-cols-3 gap-1 bg-[#1c1c1c] p-1 rounded-xl border border-white/10">
+                {(['16:9', '9:16', '1:1'] as const).map((ratio) => {
+                  const isSelected = aspectRatio === ratio
+                  return (
+                    <button
+                      key={ratio}
+                      type="button"
+                      onClick={() => setAspectRatio(ratio)}
+                      className={`py-2 text-[10px] font-black rounded-lg transition-all flex flex-col items-center justify-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-[#e8ff57] text-black shadow-md shadow-[#e8ff57]/20 font-black'
+                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {ratio === '16:9' && (
+                        <div
+                          className={`w-4 h-2.5 rounded-sm border ${
+                            isSelected ? 'border-black' : 'border-neutral-400'
+                          } bg-transparent`}
+                        />
+                      )}
+                      {ratio === '9:16' && (
+                        <div
+                          className={`w-2.5 h-4 rounded-sm border ${
+                            isSelected ? 'border-black' : 'border-neutral-400'
+                          } bg-transparent`}
+                        />
+                      )}
+                      {ratio === '1:1' && (
+                        <div
+                          className={`w-3 h-3 rounded-sm border ${
+                            isSelected ? 'border-black' : 'border-neutral-400'
+                          } bg-transparent`}
+                        />
+                      )}
+                      <span>{ratio}</span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
             {/* Prompt Area */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-neutral-500 uppercase tracking-wider">
-                Describe your vision
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="vision-prompt-textarea"
+                  className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider"
+                >
+                  Describe Your Vision
+                </label>
+                {prompt.length > 0 && (
+                  <span className="text-[9px] text-neutral-500 font-mono">
+                    {prompt.length} chars
+                  </span>
+                )}
+              </div>
               <textarea
+                id="vision-prompt-textarea"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Paste outline or outline a topic..."
-                className="w-full h-24 bg-[#1a1a1a] border border-white/5 focus:border-[#e8ff57]/30 rounded-lg px-3 py-2 text-xs text-white placeholder:text-neutral-600 outline-none resize-none transition-all custom-scrollbar"
+                placeholder="Enter topic, outline, or key talking points. E.g. 'Series A deck explaining our developer platform architecture, market size, and business traction...'"
+                rows={4}
+                className="w-full bg-[#1c1c1c] border border-white/10 hover:border-white/20 focus:border-[#e8ff57] focus:ring-1 focus:ring-[#e8ff57]/30 rounded-lg px-3 py-2 text-xs text-white placeholder:text-neutral-500 outline-none resize-none transition-all custom-scrollbar leading-relaxed"
               />
             </div>
           </div>
         </div>
 
         {/* AI Media Studio */}
-        <div className="space-y-4 pt-1.5 border-t border-white/5">
-          <div className="text-[10px] font-bold text-[#e8ff57] uppercase tracking-[0.2em] opacity-70">
+        <div className="space-y-3 pt-3 border-t border-white/10">
+          <div className="text-[10px] font-bold text-[#e8ff57] uppercase tracking-[0.15em]">
             AI Media Studio
           </div>
 
-          <div className="space-y-3">
-            {/* Auto Generate Toggle */}
-            <div className="flex items-center justify-between bg-[#1a1a1a] p-3 rounded-xl border border-white/5">
+          <div className="space-y-2">
+            {/* Auto Generate Images Toggle */}
+            <div className="flex items-center justify-between bg-[#1c1c1c] p-2.5 rounded-xl border border-white/10">
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold text-white uppercase tracking-wider">
-                  AI Images
-                </span>
-                <span className="text-[8px] text-neutral-500 font-semibold leading-tight">
-                  Auto-generate & embed
+                <span className="text-xs font-bold text-white tracking-wide">AI Visuals</span>
+                <span className="text-[10px] text-neutral-400 font-medium">
+                  Auto-generate thematic imagery
                 </span>
               </div>
               <button
                 type="button"
+                role="switch"
+                aria-checked={autoGenerateImages}
                 onClick={() => setAutoGenerateImages((prev) => !prev)}
-                className={`w-9 h-5 rounded-full p-0.5 transition-all duration-300 outline-none ${
-                  autoGenerateImages ? 'bg-[#e8ff57]' : 'bg-[#2a2a2a]'
+                className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 outline-none flex items-center ${
+                  autoGenerateImages ? 'bg-[#e8ff57]' : 'bg-[#333333]'
                 }`}
               >
                 <div
-                  className={`w-4 h-4 rounded-full bg-black transition-all duration-300 transform ${
+                  className={`w-4 h-4 rounded-full bg-black shadow-sm transition-transform duration-200 ${
                     autoGenerateImages ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />
@@ -404,104 +495,111 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
             </div>
 
             {/* AI Voiceover Toggle */}
-            <div className="flex items-center justify-between bg-[#1a1a1a] p-3 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between bg-[#1c1c1c] p-2.5 rounded-xl border border-white/10">
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-bold text-white uppercase tracking-wider">
-                  AI Voiceover
-                </span>
-                <span className="text-[8px] text-neutral-500 font-semibold leading-tight">
-                  Narration based on notes
+                <span className="text-xs font-bold text-white tracking-wide">AI Narration</span>
+                <span className="text-[10px] text-neutral-400 font-medium">
+                  Audio voiceovers from speaker notes
                 </span>
               </div>
               <button
                 type="button"
+                role="switch"
+                aria-checked={autoGenerateVoiceover}
                 onClick={() => setAutoGenerateVoiceover((prev) => !prev)}
-                className={`w-9 h-5 rounded-full p-0.5 transition-all duration-300 outline-none ${
-                  autoGenerateVoiceover ? 'bg-[#e8ff57]' : 'bg-[#2a2a2a]'
+                className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 outline-none flex items-center ${
+                  autoGenerateVoiceover ? 'bg-[#e8ff57]' : 'bg-[#333333]'
                 }`}
               >
                 <div
-                  className={`w-4 h-4 rounded-full bg-black transition-all duration-300 transform ${
+                  className={`w-4 h-4 rounded-full bg-black shadow-sm transition-transform duration-200 ${
                     autoGenerateVoiceover ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />
               </button>
             </div>
-
-            {/* AI Background Music Toggle hidden */}
           </div>
         </div>
 
         {/* Primary Action Buttons */}
-        <div className="pt-2.5 space-y-3">
+        <div className="pt-2 space-y-2">
           {isGenerating ? (
             <button
               onClick={onCancel}
-              className="w-full h-11 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-500/20 active:scale-[0.98] transition-all"
+              className="w-full h-10 bg-red-500/15 border border-red-500/30 text-red-400 hover:text-red-300 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-500/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
             >
+              <div className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
               Cancel Generation
             </button>
           ) : (
             <button
               onClick={handleGenerate}
               disabled={!prompt.trim()}
-              className="w-full h-11 bg-[#e8ff57] text-black rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-[0_0_20px_rgba(232,255,87,0.2)] active:scale-[0.98] disabled:opacity-30 disabled:grayscale transition-all shadow-lg shadow-[#e8ff57]/5"
+              className="w-full h-11 bg-[#e8ff57] text-black font-black rounded-xl text-xs uppercase tracking-wider hover:brightness-105 active:scale-[0.98] disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-md shadow-[#e8ff57]/10 flex items-center justify-center gap-2"
             >
-              + Generate Deck
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+              </svg>
+              Generate Presentation
             </button>
           )}
 
           <button
             onClick={onImport}
-            className="w-full h-11 bg-white/5 border border-white/5 text-neutral-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all active:scale-[0.98]"
+            className="w-full h-9 bg-white/5 border border-white/10 text-neutral-300 rounded-xl text-[11px] font-bold uppercase tracking-wider hover:bg-white/10 hover:text-white transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
           >
-            ↑ Import Slides
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Import Document
           </button>
         </div>
       </div>
 
       {/* Bottom Nav Footer */}
-      <div className="p-4 bg-[#0d0d0d] border-t border-white/5 flex items-center justify-between">
-        <button
-          onClick={onOpenSettings}
-          className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-neutral-500 hover:text-white hover:bg-white/10 transition-all active:scale-95 shadow-sm"
-          title="Settings"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-        </button>
+      <div className="p-3 bg-[#111111] border-t border-white/10 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={onOpenSettings}
+            className="p-2 rounded-lg bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10 transition-all active:scale-95 shadow-sm"
+            title="Settings (⌘,)"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          </button>
 
-        <button
-          onClick={onOpenHelp}
-          className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-neutral-500 hover:text-white hover:bg-white/10 transition-all active:scale-95 shadow-sm"
-          title="Help & Shortcuts"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2.5"
-              d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </button>
-
-        <div className="text-[9px] font-black text-neutral-700 uppercase tracking-tighter pointer-events-none select-none pr-1">
-          Open Gamma v{packageJson.version}
+          <button
+            onClick={onOpenHelp}
+            className="p-2 rounded-lg bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10 transition-all active:scale-95 shadow-sm"
+            title="Keyboard Shortcuts (?)"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
         </div>
+
+        <span className="text-[10px] text-neutral-500 font-semibold tracking-wide">
+          OpenGamma Studio
+        </span>
       </div>
-    </div>
+    </aside>
   )
 }

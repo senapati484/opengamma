@@ -165,12 +165,32 @@ function AppInner() {
   useEffect(() => {
     if (status.state === 'done' && streamedSlides.length > 0 && !hasSavedRef.current) {
       hasSavedRef.current = true
+      const deckSlides = streamedSlides
+        .map((s) => s.deckSlide)
+        .filter(Boolean)
+
+      const deck =
+        deckSlides.length > 0
+          ? {
+              schemaVersion: 1,
+              meta: {
+                title: streamedSlides[0]?.title || 'Untitled Presentation',
+                author: 'OpenGamma',
+                lang: 'en'
+              },
+              themeId: activeTheme?.id || 'startup-gradient',
+              aspectRatio: currentConfigRef.current?.aspectRatio || '16:9',
+              slides: deckSlides
+            }
+          : undefined
+
       const newPresentation: Presentation = {
         id: crypto.randomUUID(),
         prompt: currentConfigRef.current?.prompt || '',
         theme: activeTheme?.id || 'startup-gradient',
         aspectRatio: currentConfigRef.current?.aspectRatio || '16:9',
         slides: streamedSlides,
+        deck,
         createdAt: Date.now(),
         title: streamedSlides[0]?.title || 'Untitled Presentation',
         bgMusicUrl: status.bgMusicUrl
@@ -431,6 +451,19 @@ function AppInner() {
               onDelete={handleDeletePresentation}
               onExport={handleExport}
               onNew={() => {}}
+              onSelectTemplate={(tpl) => {
+                const matchedTheme = themes.find((t) => t.id === tpl.themeId) || themes[0]
+                handleGenerate({
+                  prompt: `Title: ${tpl.title}\n\n${tpl.prompt}`,
+                  theme: matchedTheme,
+                  narrative: tpl.narrative,
+                  slideCount: 8,
+                  aspectRatio: '16:9',
+                  generateImages: true,
+                  generateVoiceover: false,
+                  generateBgMusic: false
+                })
+              }}
             />
           ) : currentView === 'export-studio' ? (
             activePresentation && (
@@ -443,13 +476,14 @@ function AppInner() {
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden animate-fade-in">
               {/* Header */}
-              <div className="h-[52px] px-6 border-b border-white/5 flex items-center justify-between">
+              <div className="h-[54px] px-6 border-b border-white/10 bg-[#121212]/80 backdrop-blur-md flex items-center justify-between z-20 flex-none select-none">
                 <button
                   onClick={handleBackToHome}
-                  className="flex items-center gap-2 text-xs font-bold text-neutral-500 hover:text-white transition-all uppercase tracking-widest"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/5 text-xs font-semibold transition-all active:scale-95 group"
+                  title="Back to library (Esc)"
                 >
                   <svg
-                    className="w-3.5 h-3.5"
+                    className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -461,41 +495,57 @@ function AppInner() {
                       d="M15 19l-7-7 7-7"
                     />
                   </svg>
-                  Back
+                  <span>Library</span>
+                  <span className="text-[10px] text-neutral-500 font-mono bg-white/5 px-1.5 py-0.2 rounded">
+                    Esc
+                  </span>
                 </button>
 
-                <div className="flex flex-col items-center">
-                  <div className="text-xs font-black text-white uppercase tracking-wider truncate max-w-[300px]">
+                <div className="flex flex-col items-center max-w-[50%] min-w-0 px-4">
+                  <div
+                    className="text-xs font-bold text-white tracking-wide truncate max-w-full"
+                    title={
+                      activePresentation?.title ||
+                      currentConfig?.prompt?.split('\n')[0] ||
+                      'Generating Presentation...'
+                    }
+                  >
                     {activePresentation?.title ||
                       currentConfig?.prompt?.split('\n')[0] ||
                       'Generating Presentation...'}
                   </div>
                   {status.state === 'researching' && (
-                    <div className="text-[9px] font-bold text-[#57e8ff] uppercase tracking-widest animate-pulse">
-                      Researching & outlining concepts...
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-semibold text-cyan-400 mt-0.5">
+                      <div className="w-2 h-2 rounded-full border border-cyan-400 border-t-transparent animate-spin" />
+                      <span>Researching topic & outline...</span>
                     </div>
                   )}
                   {status.state === 'generating' && (
-                    <div className="text-[9px] font-bold text-[#e8ff57] uppercase tracking-widest animate-pulse">
-                      Writing slide {status.slidesGenerated} of {status.totalSlides}
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#e8ff57]/10 border border-[#e8ff57]/20 text-[10px] font-semibold text-[#e8ff57] mt-0.5">
+                      <div className="w-2 h-2 rounded-full border border-[#e8ff57] border-t-transparent animate-spin" />
+                      <span>
+                        Drafting slide {status.slidesGenerated} of {status.totalSlides}
+                      </span>
                     </div>
                   )}
                   {status.state === 'imaging' && (
-                    <div className="text-[9px] font-bold text-[#a78bfa] uppercase tracking-widest animate-pulse">
-                      Generating images {status.imagesGenerated ?? 0}/{status.totalImages ?? '...'}
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-semibold text-purple-400 mt-0.5">
+                      <div className="w-2 h-2 rounded-full border border-purple-400 border-t-transparent animate-spin" />
+                      <span>
+                        Generating visuals {status.imagesGenerated ?? 0}/{status.totalImages ?? '...'}
+                      </span>
                     </div>
                   )}
                 </div>
 
                 <div className="flex items-center gap-2">
                   {voiceoverProgress ? (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-neutral-400">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-neutral-300">
                       {voiceoverProgress.state === 'generating' && (
                         <>
                           <div className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin border-[#e8ff57]" />
                           <span>
-                            Generating Voiceover {voiceoverProgress.current}/
-                            {voiceoverProgress.total}...
+                            Voiceovers {voiceoverProgress.current}/{voiceoverProgress.total}...
                           </span>
                         </>
                       )}
@@ -514,15 +564,15 @@ function AppInner() {
                               d="M4.5 12.75l6 6 9-13.5"
                             />
                           </svg>
-                          Voiceovers Ready
+                          Audio Ready
                         </span>
                       )}
                       {voiceoverProgress.state === 'error' && (
                         <span
-                          className="text-red-500 font-semibold flex items-center gap-1"
+                          className="text-red-400 font-semibold flex items-center gap-1"
                           title={voiceoverProgress.error}
                         >
-                          ⚠ Error Generating
+                          ⚠ Audio Error
                         </span>
                       )}
                     </div>
@@ -534,30 +584,44 @@ function AppInner() {
                         status.state === 'researching'
                       }
                       onClick={handleGenerateVoiceovers}
-                      className="px-4 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 active:scale-95 disabled:opacity-20 transition-all uppercase tracking-widest flex items-center gap-1.5"
+                      className="h-8 px-3 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 disabled:opacity-25 border border-white/10 text-xs font-semibold text-neutral-200 hover:text-white transition-all flex items-center gap-1.5 shadow-sm"
+                      title="Generate audio narration with speech synthesis"
                     >
-                      🗣 Voiceover
+                      <svg className="w-3.5 h-3.5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                      </svg>
+                      <span>Voiceover</span>
                     </button>
                   )}
+
                   <button
                     disabled={!activePresentation}
                     onClick={() => setIsPresenting(true)}
-                    className="px-4 py-1.5 rounded-lg bg-[#e8ff57] text-black hover:shadow-[0_0_15px_rgba(232,255,87,0.2)] active:scale-95 disabled:opacity-20 transition-all text-xs font-black uppercase tracking-widest animate-fade-in"
+                    className="h-8 px-3.5 rounded-lg bg-[#e8ff57] hover:brightness-105 active:scale-95 disabled:opacity-25 text-black font-black text-xs transition-all shadow-md shadow-[#e8ff57]/10 flex items-center gap-1.5"
+                    title="Fullscreen presentation mode"
                   >
-                    ▶ Present
+                    <svg className="w-3.5 h-3.5 fill-black" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <span>Present</span>
                   </button>
+
                   <button
                     disabled={!activePresentation}
                     onClick={() => activePresentation && handleExport(activePresentation)}
-                    className="px-4 py-1.5 rounded-lg bg-white/5 border border-white/5 text-xs font-bold text-white hover:bg-white/10 active:scale-95 disabled:opacity-20 transition-all uppercase tracking-widest"
+                    className="h-8 px-3.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 disabled:opacity-25 border border-white/10 text-xs font-semibold text-white transition-all flex items-center gap-1.5 shadow-sm"
+                    title="Open Export Studio (PDF, PPTX, HTML)"
                   >
-                    Export
+                    <svg className="w-3.5 h-3.5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Export</span>
                   </button>
                 </div>
               </div>
 
               {/* Slide Canvas */}
-              <div className="flex-1 p-8 min-h-0">
+              <div className="flex-1 p-4 md:p-6 lg:p-8 min-h-0 flex items-center justify-center">
                 <ErrorBoundary>
                   {!isPresenting && (
                     <SlidePreview

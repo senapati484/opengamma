@@ -863,7 +863,7 @@ export const themes: AppTheme[] = [
   --og-slide-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 .reveal section {
-  border-left: 10px solid #dc2626;
+  border-top: 4px solid #dc2626;
   background: #fbfbfb;
   padding: 2.5em !important;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
@@ -871,19 +871,13 @@ export const themes: AppTheme[] = [
 .reveal .card {
   background: #ffffff !important;
   border: 1px solid #e5e7eb !important;
-  border-left: 5px solid #dc2626 !important;
   color: #1f2937 !important;
-  border-radius: 4px !important;
-  border-top-left-radius: 0px !important;
-  border-bottom-left-radius: 0px !important;
+  border-radius: 6px !important;
 }
 .reveal .stat-block {
   background: #ffffff !important;
   border: 1px solid #e5e7eb !important;
-  border-left: 5px solid #dc2626 !important;
-  border-radius: 4px !important;
-  border-top-left-radius: 0px !important;
-  border-bottom-left-radius: 0px !important;
+  border-radius: 6px !important;
 }
 .reveal .badge {
   background: rgba(220, 38, 38, 0.08) !important;

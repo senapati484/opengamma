@@ -83,24 +83,24 @@ pre,
 }
 
 /* Animations */
-@keyframes scale-bounce {
-  0% {
-    transform: scale(0.95);
+@keyframes scale-in {
+  from {
+    transform: scale(0.97);
     opacity: 0;
   }
-  100% {
+  to {
     transform: scale(1);
     opacity: 1;
   }
 }
-.animate-scale-bounce {
-  animation: scale-bounce 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.animate-scale-in {
+  animation: scale-in 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(3px);
   }
   to {
     opacity: 1;
@@ -108,5 +108,57 @@ pre,
   }
 }
 .animate-fade-in {
-  animation: fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Bespoke Range Slider Styling */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #262626;
+  border-radius: 9999px;
+  outline: none;
+  height: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+input[type='range']:hover {
+  background: #333333;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--og-accent, #e8ff57);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(232, 255, 87, 0.3);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+}
+
+input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 12px rgba(232, 255, 87, 0.5);
+}
+
+input[type='range']::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--og-accent, #e8ff57);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(232, 255, 87, 0.3);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+}
+
+input[type='range']::-moz-range-thumb:hover {
+  transform: scale(1.2);
 }

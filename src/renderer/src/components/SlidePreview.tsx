@@ -377,11 +377,11 @@ export const SlidePreview: React.FC<SlidePreviewProps> = ({
 
       {/* Generation Status Badge */}
       {(status.state === 'generating' || status.state === 'researching') && (
-        <div className="absolute top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full border bg-white/95 border-neutral-200 text-neutral-700 shadow-lg backdrop-blur-sm transition-all duration-300 animate-fade-in">
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full border bg-[#181818]/90 border-white/15 text-neutral-200 shadow-2xl backdrop-blur-md transition-all duration-300 animate-fade-in select-none">
           <div
             className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin"
             style={{
-              borderColor: `${activeTheme.colors?.accent || '#0047ff'} transparent`
+              borderColor: `${activeTheme.colors?.accent || '#e8ff57'} transparent`
             }}
           />
           <span className="text-xs font-semibold tracking-wide">
