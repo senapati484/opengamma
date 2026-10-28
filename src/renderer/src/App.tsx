@@ -389,7 +389,14 @@ function AppInner() {
   const handleUpdatePresentationTheme = async (theme: Theme) => {
     setActiveTheme(theme)
     if (!activePresentation) return
-    const updatedPres = { ...activePresentation, theme: theme.id }
+    const updatedDeck = activePresentation.deck
+      ? { ...(activePresentation.deck as object), themeId: theme.id }
+      : undefined
+    const updatedPres: Presentation = {
+      ...activePresentation,
+      theme: theme.id,
+      ...(updatedDeck ? { deck: updatedDeck } : {})
+    }
     try {
       await electronAPI.savePresentation(updatedPres)
       setActivePresentation(updatedPres)
@@ -471,6 +478,7 @@ function AppInner() {
                 presentation={activePresentation}
                 activeTheme={activeTheme || themes[0]}
                 onBack={() => setCurrentView('editor')}
+                onUpdateTheme={handleUpdatePresentationTheme}
               />
             )
           ) : (
