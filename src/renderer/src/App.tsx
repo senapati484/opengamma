@@ -327,7 +327,8 @@ function AppInner() {
           notes,
           slideType: layout,
           style,
-          html: compiledHtml
+          html: compiledHtml,
+          deckSlide: undefined
         }
       }
       return s
@@ -370,7 +371,8 @@ function AppInner() {
         return {
           ...s,
           bullets,
-          html: compiledHtml
+          html: compiledHtml,
+          deckSlide: undefined
         }
       }
       return s

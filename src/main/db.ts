@@ -135,23 +135,26 @@ export function savePresentation(p: Presentation): void {
 
   let deckJson: string | null = null
   try {
-    if (p.deck) {
-      deckJson = JSON.stringify(p.deck)
-    } else if (p.slides && p.slides.length > 0) {
-      const deckSlides = migrateSlides(p.slides as any, p.theme || 'startup-gradient')
-      const deck = {
-        schemaVersion: 1,
-        meta: {
-          title: p.title || 'Untitled Presentation',
-          author: 'OpenGamma',
-          lang: 'en'
-        },
-        themeId: p.theme || 'startup-gradient',
-        aspectRatio: p.aspectRatio || '16:9',
-        slides: deckSlides
-      }
-      deckJson = JSON.stringify(deck)
+    const themeId = p.theme || (p.deck as any)?.themeId || 'startup-gradient'
+    const deckSlides = p.slides && p.slides.length > 0
+      ? migrateSlides(p.slides as any, themeId)
+      : (p.deck as any)?.slides || []
+    const existingMeta = (p.deck as any)?.meta || {
+      title: p.title || 'Untitled Presentation',
+      author: 'OpenGamma',
+      lang: 'en'
     }
+    const deck = {
+      schemaVersion: 1,
+      meta: {
+        ...existingMeta,
+        title: p.title || existingMeta.title || 'Untitled Presentation'
+      },
+      themeId,
+      aspectRatio: p.aspectRatio || (p.deck as any)?.aspectRatio || '16:9',
+      slides: deckSlides
+    }
+    deckJson = JSON.stringify(deck)
   } catch (err) {
     console.warn('[db] Failed to serialize deck model for presentation:', p.id, err)
   }
@@ -238,12 +241,17 @@ export function getHistory(limit = 50): Presentation[] {
       }
     }
 
+    const enhancedSlides = slides.map((s: any, idx: number) => ({
+      ...s,
+      deckSlide: s.deckSlide || (deck?.slides?.[idx])
+    }))
+
     return {
       id: row.id,
       title: row.title || 'Untitled Presentation',
       prompt: row.prompt || '',
       theme: row.theme_id || '',
-      slides,
+      slides: enhancedSlides,
       createdAt: row.created_at,
       aspectRatio: (row.aspect_ratio as any) || '16:9',
       bgMusicUrl: row.bg_music_url,
@@ -328,12 +336,17 @@ export function getPresentationById(id: string): Presentation | null {
     }
   }
 
+  const enhancedSlides = slides.map((s: any, idx: number) => ({
+    ...s,
+    deckSlide: s.deckSlide || (deck?.slides?.[idx])
+  }))
+
   return {
     id: row.id,
     title: row.title || 'Untitled Presentation',
     prompt: row.prompt || '',
     theme: row.theme_id || '',
-    slides,
+    slides: enhancedSlides,
     createdAt: row.created_at,
     aspectRatio: (row.aspect_ratio as any) || '16:9',
     bgMusicUrl: row.bg_music_url,

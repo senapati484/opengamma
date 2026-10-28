@@ -1467,10 +1467,15 @@ export function registerIpcHandlers(): void {
         try {
           console.log('[ipc] Exporting PDF via OpenGamma Native Vector Engine...')
           const baseDeck = presentation.deck as Deck | undefined
+          const themeId = presentation.theme || baseDeck?.themeId || 'startup-gradient'
           const deck: Deck = baseDeck
             ? {
                 ...baseDeck,
-                themeId: presentation.theme || baseDeck.themeId || 'startup-gradient'
+                themeId,
+                slides:
+                  presentation.slides && presentation.slides.length > 0
+                    ? migrateSlides(presentation.slides as any, themeId)
+                    : baseDeck.slides
               }
             : {
                 schemaVersion: 1,
@@ -1479,12 +1484,9 @@ export function registerIpcHandlers(): void {
                   author: 'OpenGamma',
                   lang: 'en'
                 },
-                themeId: presentation.theme || 'startup-gradient',
+                themeId,
                 aspectRatio: (presentation.aspectRatio as any) || '16:9',
-                slides: migrateSlides(
-                  presentation.slides as any,
-                  presentation.theme || 'startup-gradient'
-                )
+                slides: migrateSlides(presentation.slides as any, themeId)
               }
 
           await renderPdf(deck, filePath, {

@@ -456,6 +456,346 @@ const THEME_TOKENS: Record<string, ThemeTokens> = {
     headingIsGradientClip: false,
     headingColor: '#FFFFFF',
     showAccentBar: true
+  },
+
+  ember: {
+    id: 'ember',
+    colors: {
+      bg: '#1C1917',
+      bgGradient: null,
+      text: '#FAFAF9',
+      muted: '#A8A29E',
+      accent: '#F97316',
+      accentMuted: 'rgba(249,115,22,0.15)',
+      border: '#292524',
+      surface: 'rgba(28,25,22,0.7)',
+      heading: '#EA580C',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Outfit', weight: 'extrabold', style: 'normal' },
+      headingBold: { family: 'Outfit', weight: 'extrabold', style: 'normal' },
+      body: { family: 'Plus Jakarta Sans', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Plus Jakarta Sans', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 52, h2: 36, h3: 20, body: 18, sm: 13, mono: 14 },
+    radius: { r1: 4, r2: 6, r3: 8, r4: 12 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.08 },
+        { offsetY: 6, expand: 2, opacity: 0.06 },
+        { offsetY: 12, expand: 4, opacity: 0.04 },
+        { offsetY: 20, expand: 8, opacity: 0.02 }
+      ],
+      glow: '#EA580C'
+    },
+    headingIsGradientClip: false,
+    headingColor: '#EA580C',
+    showAccentBar: true
+  },
+
+  'warm-paper': {
+    id: 'warm-paper',
+    colors: {
+      bg: '#FDFBF7',
+      bgGradient: null,
+      text: '#292524',
+      muted: '#78716C',
+      accent: '#B45309',
+      accentMuted: 'rgba(180,83,9,0.12)',
+      border: '#D6D3D1',
+      surface: '#FAF7F2',
+      heading: '#451A03',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Playfair Display', weight: 'bold', style: 'normal' },
+      headingBold: { family: 'Playfair Display', weight: 'bold', style: 'normal' },
+      body: { family: 'Lora', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Lora', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 50, h2: 34, h3: 20, body: 19, sm: 13, mono: 14 },
+    radius: { r1: 0, r2: 2, r3: 4, r4: 6 },
+    shadow: {
+      soft: [
+        { offsetY: 1, expand: 0, opacity: 0.03 },
+        { offsetY: 2, expand: 1, opacity: 0.02 },
+        { offsetY: 4, expand: 2, opacity: 0.01 },
+        { offsetY: 8, expand: 4, opacity: 0.01 }
+      ],
+      glow: null
+    },
+    headingIsGradientClip: false,
+    headingColor: '#451A03',
+    showAccentBar: true
+  },
+
+  'forest-dark': {
+    id: 'forest-dark',
+    colors: {
+      bg: '#022C22',
+      bgGradient: null,
+      text: '#ECFDF5',
+      muted: '#A7F3D0',
+      accent: '#10B981',
+      accentMuted: 'rgba(16,185,129,0.15)',
+      border: '#064E3B',
+      surface: 'rgba(2,44,34,0.6)',
+      heading: '#10B981',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Playfair Display', weight: 'bold', style: 'italic' },
+      headingBold: { family: 'Playfair Display', weight: 'bold', style: 'italic' },
+      body: { family: 'Montserrat', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Montserrat', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 52, h2: 36, h3: 22, body: 18, sm: 13, mono: 14 },
+    radius: { r1: 4, r2: 6, r3: 10, r4: 16 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.08 },
+        { offsetY: 6, expand: 2, opacity: 0.06 },
+        { offsetY: 12, expand: 4, opacity: 0.04 },
+        { offsetY: 20, expand: 8, opacity: 0.02 }
+      ],
+      glow: '#10B981'
+    },
+    headingIsGradientClip: false,
+    headingColor: '#10B981',
+    showAccentBar: true
+  },
+
+  'pastel-soft': {
+    id: 'pastel-soft',
+    colors: {
+      bg: '#FFF5F5',
+      bgGradient: null,
+      text: '#4A5568',
+      muted: '#718096',
+      accent: '#DB2777',
+      accentMuted: 'rgba(219,39,119,0.1)',
+      border: '#FED7D7',
+      surface: '#FFFFFF',
+      heading: '#DB2777',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Plus Jakarta Sans', weight: 'extrabold', style: 'normal' },
+      headingBold: { family: 'Plus Jakarta Sans', weight: 'extrabold', style: 'normal' },
+      body: { family: 'Plus Jakarta Sans', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Plus Jakarta Sans', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 50, h2: 34, h3: 20, body: 18, sm: 13, mono: 14 },
+    radius: { r1: 8, r2: 12, r3: 16, r4: 24 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.04 },
+        { offsetY: 6, expand: 2, opacity: 0.03 },
+        { offsetY: 12, expand: 4, opacity: 0.02 },
+        { offsetY: 20, expand: 8, opacity: 0.015 }
+      ],
+      glow: '#DB2777'
+    },
+    headingIsGradientClip: false,
+    headingColor: '#DB2777',
+    showAccentBar: true
+  },
+
+  'noir-gold': {
+    id: 'noir-gold',
+    colors: {
+      bg: '#000000',
+      bgGradient: null,
+      text: '#E5E7EB',
+      muted: '#9CA3AF',
+      accent: '#F59E0B',
+      accentMuted: 'rgba(245,158,11,0.15)',
+      border: '#F59E0B',
+      surface: '#080808',
+      heading: '#F59E0B',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Playfair Display', weight: 'bold', style: 'normal' },
+      headingBold: { family: 'Playfair Display', weight: 'bold', style: 'normal' },
+      body: { family: 'Montserrat', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Montserrat', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 54, h2: 38, h3: 22, body: 18, sm: 13, mono: 14 },
+    radius: { r1: 0, r2: 0, r3: 0, r4: 0 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.1 },
+        { offsetY: 6, expand: 2, opacity: 0.08 },
+        { offsetY: 12, expand: 4, opacity: 0.05 },
+        { offsetY: 20, expand: 8, opacity: 0.03 }
+      ],
+      glow: '#F59E0B'
+    },
+    headingIsGradientClip: false,
+    headingColor: '#F59E0B',
+    showAccentBar: true
+  },
+
+  'midnight-violet': {
+    id: 'midnight-violet',
+    colors: {
+      bg: '#0F0A1E',
+      bgGradient: {
+        kind: 'linear',
+        angle: 135,
+        stops: [
+          { position: 0, color: '#0f0a1e', opacity: 1 },
+          { position: 1, color: '#1e1138', opacity: 1 }
+        ]
+      },
+      text: '#F5F3FF',
+      muted: '#C084FC',
+      accent: '#A78BFA',
+      accentMuted: 'rgba(167,139,250,0.15)',
+      border: '#2E1065',
+      surface: 'rgba(15,10,30,0.6)',
+      heading: '#A78BFA',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Outfit', weight: 'extrabold', style: 'normal' },
+      headingBold: { family: 'Outfit', weight: 'extrabold', style: 'normal' },
+      body: { family: 'DM Sans', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'DM Sans', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 56, h2: 40, h3: 22, body: 18, sm: 13, mono: 14 },
+    radius: { r1: 6, r2: 8, r3: 12, r4: 18 },
+    shadow: {
+      soft: [
+        { offsetY: 3, expand: 0, opacity: 0.12 },
+        { offsetY: 8, expand: 2, opacity: 0.09 },
+        { offsetY: 16, expand: 4, opacity: 0.06 },
+        { offsetY: 25, expand: 8, opacity: 0.04 }
+      ],
+      glow: '#6D28D9'
+    },
+    headingIsGradientClip: false,
+    headingColor: '#A78BFA',
+    showAccentBar: true
+  },
+
+  'grid-paper': {
+    id: 'grid-paper',
+    colors: {
+      bg: '#FFFFFF',
+      bgGradient: null,
+      text: '#334155',
+      muted: '#64748B',
+      accent: '#2563EB',
+      accentMuted: 'rgba(37,99,235,0.12)',
+      border: '#0F172A',
+      surface: '#FFFFFF',
+      heading: '#0F172A',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Space Grotesk', weight: 'bold', style: 'normal' },
+      headingBold: { family: 'Space Grotesk', weight: 'bold', style: 'normal' },
+      body: { family: 'Space Grotesk', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Space Grotesk', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 48, h2: 34, h3: 20, body: 18, sm: 13, mono: 14 },
+    radius: { r1: 2, r2: 4, r3: 4, r4: 6 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.08 },
+        { offsetY: 4, expand: 0, opacity: 0.06 },
+        { offsetY: 6, expand: 0, opacity: 0.04 },
+        { offsetY: 8, expand: 0, opacity: 0.02 }
+      ],
+      glow: null
+    },
+    headingIsGradientClip: false,
+    headingColor: '#0F172A',
+    showAccentBar: false
+  },
+
+  'red-accent': {
+    id: 'red-accent',
+    colors: {
+      bg: '#FFFFFF',
+      bgGradient: null,
+      text: '#1F2937',
+      muted: '#4B5563',
+      accent: '#DC2626',
+      accentMuted: 'rgba(220,38,38,0.12)',
+      border: '#E5E7EB',
+      surface: '#FBFBFB',
+      heading: '#DC2626',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'Inter', weight: 'extrabold', style: 'normal' },
+      headingBold: { family: 'Inter', weight: 'extrabold', style: 'normal' },
+      body: { family: 'Inter', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'Inter', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 50, h2: 34, h3: 20, body: 18, sm: 13, mono: 14 },
+    radius: { r1: 4, r2: 6, r3: 8, r4: 12 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.05 },
+        { offsetY: 4, expand: 1, opacity: 0.04 },
+        { offsetY: 8, expand: 2, opacity: 0.03 },
+        { offsetY: 15, expand: 4, opacity: 0.02 }
+      ],
+      glow: '#DC2626'
+    },
+    headingIsGradientClip: false,
+    headingColor: '#DC2626',
+    showAccentBar: true
+  },
+
+  'void-lime': {
+    id: 'void-lime',
+    colors: {
+      bg: '#030712',
+      bgGradient: null,
+      text: '#ECFDF5',
+      muted: '#6EE7B7',
+      accent: '#84CC16',
+      accentMuted: 'rgba(132,204,22,0.15)',
+      border: '#374151',
+      surface: '#05080F',
+      heading: '#84CC16',
+      overlay: '#000000'
+    },
+    fonts: {
+      heading: { family: 'JetBrains Mono', weight: 'bold', style: 'normal' },
+      headingBold: { family: 'JetBrains Mono', weight: 'bold', style: 'normal' },
+      body: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' },
+      bodySemiBold: { family: 'JetBrains Mono', weight: 'semibold', style: 'normal' },
+      mono: { family: 'JetBrains Mono', weight: 'regular', style: 'normal' }
+    },
+    type: { h1: 52, h2: 36, h3: 20, body: 16, sm: 12, mono: 14 },
+    radius: { r1: 0, r2: 0, r3: 0, r4: 0 },
+    shadow: {
+      soft: [
+        { offsetY: 2, expand: 0, opacity: 0.1 },
+        { offsetY: 6, expand: 2, opacity: 0.08 },
+        { offsetY: 12, expand: 4, opacity: 0.05 },
+        { offsetY: 20, expand: 8, opacity: 0.03 }
+      ],
+      glow: '#84CC16'
+    },
+    headingIsGradientClip: false,
+    headingColor: '#84CC16',
+    showAccentBar: false
   }
 }
 
