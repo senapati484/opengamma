@@ -5,7 +5,8 @@
     "src/main/**/*",
     "src/preload/**/*",
     "src/renderer/src/types.ts",
-    "src/renderer/src/lib/themes.ts"
+    "src/renderer/src/lib/themes.ts",
+    "src/renderer/src/lib/layoutStyles.ts"
   ],
   "compilerOptions": {
     "composite": true,
